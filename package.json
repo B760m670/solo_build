@@ -1,0 +1,24 @@
+{
+  "name": "brabble",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "shared",
+    "frontend",
+    "backend",
+    "bot"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w frontend",
+    "dev:backend": "npm run dev -w backend",
+    "dev:bot": "npm run dev -w bot",
+    "build:shared": "npm run build -w shared",
+    "build:frontend": "npm run build -w frontend",
+    "build:backend": "npm run build -w backend",
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:seed": "npm run db:seed -w backend",
+    "deploy:frontend": "cd frontend && npx vercel --prod",
+    "deploy:backend": "echo 'Deploy via Railway CLI or GitHub push'"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "build": {
+    "builder": "NIXPACKS",
+    "buildCommand": "cd shared && npm run build && cd ../backend && npx prisma generate && npm run build"
+  },
+  "deploy": {
+    "startCommand": "cd backend && npx prisma migrate deploy && node dist/main.js",
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE"
+  }
+}

@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(uuid())
+  telegramId    BigInt        @unique
+  username      String?
+  firstName     String
+  lastName      String?
+  avatarUrl     String?
+  isPremium     Boolean       @default(false)
+  premiumExpiry DateTime?
+  brbBalance    Float         @default(0)
+  totalEarned   Float         @default(0)
+  tonWallet     String?
+  referralCode  String        @unique @default(cuid())
+  referredBy    String?
+  referralCount Int           @default(0)
+  referralEarned Float        @default(0)
+  language      String        @default("en")
+  theme         String        @default("dark")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  tasks         UserTask[]
+  transactions  Transaction[]
+  listings      Listing[]
+  orders        Order[]
+  subscription  Subscription?
+}
+
+model Task {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  category    String
+  reward      Float
+  timeMinutes Int
+  brand       String
+  brandLogo   String?
+  isActive    Boolean    @default(true)
+  totalSlots  Int        @default(100)
+  filledSlots Int        @default(0)
+  expiresAt   DateTime?
+  createdAt   DateTime   @default(now())
+  userTasks   UserTask[]
+}
+
+model UserTask {
+  id          String    @id @default(uuid())
+  userId      String
+  taskId      String
+  status      String    @default("PENDING")
+  proof       String?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  task        Task      @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId])
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  sellerId    String
+  title       String
+  description String
+  price       Float
+  category    String
+  images      String[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  seller      User     @relation(fields: [sellerId], references: [id])
+  orders      Order[]
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  buyerId    String
+  listingId  String
+  amount     Float
+  commission Float
+  status     String   @default("PENDING")
+  createdAt  DateTime @default(now())
+  buyer      User     @relation(fields: [buyerId], references: [id])
+  listing    Listing  @relation(fields: [listingId], references: [id])
+}
+
+model Transaction {
+  id            String   @id @default(uuid())
+  userId        String
+  type          String
+  amount        Float
+  balanceBefore Float
+  balanceAfter  Float
+  meta          Json?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  plan      String   @default("PREMIUM")
+  startsAt  DateTime @default(now())
+  expiresAt DateTime
+  isActive  Boolean  @default(true)
+  user      User     @relation(fields: [userId], references: [id])
+}
