@@ -23,6 +23,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
         ? exception.message
         : 'Internal server error';
 
+    // Log non-HTTP exceptions for debugging
+    if (!(exception instanceof HttpException)) {
+      console.error('[UNHANDLED ERROR]', exception);
+    }
+
     response.status(status).json({
       error: message,
       code: 'ERROR',
