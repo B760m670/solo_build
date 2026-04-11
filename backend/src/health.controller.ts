@@ -23,6 +23,11 @@ export class HealthController {
       checks.users = `error: ${e instanceof Error ? e.message : String(e)}`;
     }
 
-    return { status: checks.database === 'ok' ? 'ok' : 'degraded', checks, uptime: process.uptime() };
+    // Show masked DB host for debugging
+    const dbUrl = process.env.DATABASE_URL || '';
+    const hostMatch = dbUrl.match(/@([^:/]+):(\d+)/);
+    const dbHost = hostMatch ? `${hostMatch[1]}:${hostMatch[2]}` : 'unknown';
+
+    return { status: checks.database === 'ok' ? 'ok' : 'degraded', checks, dbHost, uptime: process.uptime() };
   }
 }
