@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+import { useScrollDirection } from './hooks/useScrollDirection';
 import { isTelegramContext } from './lib/telegram';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
@@ -77,6 +78,7 @@ function App() {
     );
   }
 
+  const navHidden = useScrollDirection(10);
   const navPage = page === 'admin' ? 'profile' : page;
 
   const renderPage = () => {
@@ -106,7 +108,7 @@ function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-      <BottomNav active={navPage} onNavigate={setPage} />
+      <BottomNav active={navPage} onNavigate={setPage} hidden={navHidden} />
     </>
   );
 }

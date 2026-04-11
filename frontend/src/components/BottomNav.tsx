@@ -5,6 +5,7 @@ type Page = 'home' | 'tasks' | 'market' | 'profile';
 interface BottomNavProps {
   active: Page;
   onNavigate: (page: Page) => void;
+  hidden?: boolean;
 }
 
 const tabs: { key: Page; label: string; icon: typeof HomeIcon }[] = [
@@ -14,7 +15,7 @@ const tabs: { key: Page; label: string; icon: typeof HomeIcon }[] = [
   { key: 'profile', label: 'Profile', icon: ProfileIcon },
 ];
 
-function BottomNav({ active, onNavigate }: BottomNavProps) {
+function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
   return (
     <nav
       className="safe-bottom flex items-center justify-around border-t"
@@ -23,6 +24,8 @@ function BottomNav({ active, onNavigate }: BottomNavProps) {
         borderColor: 'var(--border)',
         paddingTop: '8px',
         paddingBottom: '8px',
+        transition: 'transform 0.3s ease',
+        transform: hidden ? 'translateY(100%)' : 'translateY(0)',
       }}
     >
       {tabs.map(({ key, label, icon: Icon }) => {
