@@ -37,8 +37,9 @@ function App() {
 
   if (auth.isLoading) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--bg)' }}>
-        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+      <div className="flex flex-col items-center justify-center h-screen gap-2" style={{ backgroundColor: 'var(--bg)' }}>
+        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }} />
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Connecting...</p>
       </div>
     );
   }

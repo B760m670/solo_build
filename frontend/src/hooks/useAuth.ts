@@ -44,26 +44,36 @@ export function useAuth(): AuthState {
         return;
       }
 
-      try {
-        const referralCode = getStartParam();
-        const result = await api.post<LoginResponse>('/auth/login', {
-          initData,
-          referralCode,
-        });
-        setAuthToken(result.accessToken);
-        setState({
-          user: result.user,
-          isLoading: false,
-          isAuthenticated: true,
-          error: null,
-        });
-      } catch (err) {
-        setState({
-          user: null,
-          isLoading: false,
-          isAuthenticated: false,
-          error: err instanceof Error ? err.message : 'Login failed',
-        });
+      const maxRetries = 2;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const referralCode = getStartParam();
+          const result = await api.post<LoginResponse>('/auth/login', {
+            initData,
+            referralCode,
+          });
+          setAuthToken(result.accessToken);
+          setState({
+            user: result.user,
+            isLoading: false,
+            isAuthenticated: true,
+            error: null,
+          });
+          return;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : 'Login failed';
+          // Retry on network errors (server waking up)
+          if (attempt < maxRetries && msg.includes('fetch')) {
+            await new Promise((r) => setTimeout(r, 3000));
+            continue;
+          }
+          setState({
+            user: null,
+            isLoading: false,
+            isAuthenticated: false,
+            error: msg,
+          });
+        }
       }
     }
 
