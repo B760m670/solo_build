@@ -23,7 +23,7 @@ function App() {
   const [page, setPage] = useState<Page>('home');
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem('brabble_onboarded') === '1');
   useTheme();
-  useAuth();
+  const auth = useAuth();
 
   const handleOnboardingDone = () => {
     localStorage.setItem('brabble_onboarded', '1');
@@ -32,6 +32,14 @@ function App() {
 
   if (!onboarded) {
     return <Onboarding onDone={handleOnboardingDone} />;
+  }
+
+  if (auth.isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+        <p className="text-sm" style={{ color: 'var(--text-muted)' }}>Loading...</p>
+      </div>
+    );
   }
 
   const navPage = page === 'admin' ? 'profile' : page;

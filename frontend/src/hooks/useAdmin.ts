@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api, getAuthToken } from '../lib/api';
 
 interface DashboardData {
   users: { total: number; premium: number; recentSignups: number };
@@ -27,6 +27,7 @@ export function useAdminDashboard() {
   return useQuery({
     queryKey: ['admin', 'dashboard'],
     queryFn: () => api.get<DashboardData>('/admin/dashboard'),
+    enabled: !!getAuthToken(),
     retry: false,
   });
 }
@@ -35,6 +36,7 @@ export function useAdminUsers(limit = 20) {
   return useQuery({
     queryKey: ['admin', 'users', limit],
     queryFn: () => api.get<AdminUser[]>(`/admin/users?limit=${limit}`),
+    enabled: !!getAuthToken(),
     retry: false,
   });
 }

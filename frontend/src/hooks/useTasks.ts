@@ -7,6 +7,7 @@ export function useTasks(category?: string) {
     queryKey: ['tasks', category],
     queryFn: () =>
       api.get<Task[]>(`/tasks${category ? `?category=${category}` : ''}`),
+    enabled: !!getAuthToken(),
   });
 }
 

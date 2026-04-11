@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api, getAuthToken } from '../lib/api';
 import type { Listing, Order } from '@brabble/shared';
 
 export function useListings(search?: string, category?: string) {
@@ -12,6 +12,7 @@ export function useListings(search?: string, category?: string) {
     queryKey: ['listings', search, category],
     queryFn: () =>
       api.get<Listing[]>(`/marketplace/listings${qs ? `?${qs}` : ''}`),
+    enabled: !!getAuthToken(),
   });
 }
 
@@ -27,6 +28,7 @@ export function useMyListings() {
   return useQuery({
     queryKey: ['myListings'],
     queryFn: () => api.get<Listing[]>('/marketplace/listings/my'),
+    enabled: !!getAuthToken(),
   });
 }
 
