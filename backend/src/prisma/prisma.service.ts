@@ -3,6 +3,10 @@ import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 // @ts-ignore
 import pg from 'pg';
+import dns from 'dns';
+
+// Force IPv4 — Render free tier doesn't support IPv6
+dns.setDefaultResultOrder('ipv4first');
 
 @Injectable()
 export class PrismaService
