@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+import { isTelegramContext } from './lib/telegram';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Onboarding from './components/Onboarding';
@@ -42,11 +43,44 @@ function App() {
     );
   }
 
+  if (!auth.isAuthenticated && !isTelegramContext()) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-4 px-6" style={{ backgroundColor: 'var(--bg)' }}>
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center" style={{ backgroundColor: 'var(--surface2)' }}>
+          <svg width={32} height={32} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </div>
+        <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Open in Telegram</p>
+        <p className="text-xs text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          Brabble works as a Telegram Mini App.
+          Open @brabble_bot in Telegram to get started.
+        </p>
+      </div>
+    );
+  }
+
+  if (auth.error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen gap-3 px-6" style={{ backgroundColor: 'var(--bg)' }}>
+        <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>Authentication failed</p>
+        <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>{auth.error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-2 px-4 py-2 text-xs font-medium rounded-btn"
+          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
   const navPage = page === 'admin' ? 'profile' : page;
 
   const renderPage = () => {
     switch (page) {
-      case 'home': return <Home />;
+      case 'home': return <Home onNavigate={setPage} />;
       case 'tasks': return <Tasks />;
       case 'market': return <Market />;
       case 'admin': return <Admin onBack={() => setPage('profile')} />;

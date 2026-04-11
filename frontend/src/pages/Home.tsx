@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import { getTelegramUser } from '../lib/telegram';
 import { SendIcon, ReceiveIcon, SwapIcon, ChevronRightIcon } from '../components/Icons';
 import { useWallet } from '../hooks/useWallet';
 import { useUserTasks } from '../hooks/useTasks';
 import { WalletSkeleton, CardSkeleton } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
+
+type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -13,20 +16,36 @@ function getGreeting(): string {
 }
 
 const modules = [
-  { name: 'Tasks', desc: 'Earn BRB', status: 'Active' },
-  { name: 'Market', desc: 'Buy & sell', status: 'Active' },
-  { name: 'Knowledge', desc: 'Learn & earn', status: 'Soon' },
-  { name: 'Services', desc: 'Web3 tools', status: 'Soon' },
+  { name: 'Tasks', desc: 'Earn BRB', status: 'Active', page: 'tasks' as Page | null },
+  { name: 'Market', desc: 'Buy & sell', status: 'Active', page: 'market' as Page | null },
+  { name: 'Knowledge', desc: 'Learn & earn', status: 'Soon', page: null },
+  { name: 'Services', desc: 'Web3 tools', status: 'Soon', page: null },
 ];
 
-function Home() {
+function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
   const user = getTelegramUser();
   const firstName = user?.first_name || 'User';
   const walletQuery = useWallet();
   const activeTasksQuery = useUserTasks('ACTIVE');
+  const [toast, setToast] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2000);
+  };
 
   return (
     <div className="px-4 py-4 space-y-6">
+      {/* Toast */}
+      {toast && (
+        <div
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-btn text-xs font-medium"
+          style={{ backgroundColor: 'var(--surface2)', color: 'var(--text-secondary)', border: '1px solid var(--border)' }}
+        >
+          {toast}
+        </div>
+      )}
+
       {/* Greeting */}
       <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
         {getGreeting()}, {firstName}
@@ -70,6 +89,7 @@ function Home() {
             ].map(({ label, Icon }) => (
               <button
                 key={label}
+                onClick={() => showToast(`${label} coming soon`)}
                 className="tap-target flex-1 flex items-center justify-center gap-1.5 py-2 rounded-btn text-xs font-medium border"
                 style={{
                   borderColor: 'var(--border)',
@@ -93,12 +113,17 @@ function Home() {
         </p>
         <div className="grid grid-cols-2 gap-3">
           {modules.map((mod) => (
-            <div
+            <button
               key={mod.name}
-              className="rounded-card p-4 border"
+              onClick={() => {
+                if (mod.page && onNavigate) onNavigate(mod.page);
+                else if (!mod.page) showToast(`${mod.name} coming soon`);
+              }}
+              className="rounded-card p-4 border text-left"
               style={{
                 backgroundColor: 'var(--surface)',
                 borderColor: 'var(--border)',
+                cursor: mod.page ? 'pointer' : 'default',
               }}
             >
               <div className="w-8 h-8 rounded-lg mb-2" style={{ backgroundColor: 'var(--surface2)' }} />
@@ -123,7 +148,7 @@ function Home() {
               >
                 {mod.status}
               </span>
-            </div>
+            </button>
           ))}
         </div>
       </div>
@@ -137,8 +162,9 @@ function Home() {
           <CardSkeleton />
         ) : (activeTasksQuery.data?.length ?? 0) === 0 ? (
           <div
+            onClick={() => onNavigate?.('tasks')}
             className="flex items-center justify-between px-4 py-3 rounded-card border"
-            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+            style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', cursor: 'pointer' }}
           >
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--text-muted)' }} />
@@ -154,8 +180,9 @@ function Home() {
             {activeTasksQuery.data!.map((ut) => (
               <div
                 key={ut.id}
+                onClick={() => onNavigate?.('tasks')}
                 className="flex items-center justify-between px-4 py-3 rounded-card border"
-                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}
+                style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', cursor: 'pointer' }}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: 'var(--teal)' }} />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+ import { useState } from 'react';
 import { ChevronRightIcon, SunIcon, MoonIcon, WalletIcon } from '../components/Icons';
 import { toggleTheme, getTheme } from '../hooks/useTheme';
 import { useUser, useUpdateUser } from '../hooks/useUser';
@@ -9,7 +9,7 @@ import { useCreateInvoice } from '../hooks/usePayments';
 import { ProfileSkeleton } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 
-type Modal = null | 'referrals' | 'premium' | 'withdraw' | 'wallet';
+type Modal = null | 'referrals' | 'premium' | 'withdraw' | 'wallet' | 'language' | 'about';
 
 function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
   const userQuery = useUser();
@@ -33,6 +33,8 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
     if (key === 'referrals') setModal('referrals');
     if (key === 'premium') setModal('premium');
     if (key === 'wallet') setModal('wallet');
+    if (key === 'language') setModal('language');
+    if (key === 'about') setModal('about');
     if (key === 'admin') onAdminOpen?.();
   };
 
@@ -235,6 +237,53 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
       {modal === 'premium' && <PremiumModal onClose={() => setModal(null)} isPremium={user.isPremium} premiumExpiry={user.premiumExpiry} />}
       {modal === 'withdraw' && <WithdrawModal onClose={() => setModal(null)} balance={balance} tonWallet={tonWallet} />}
       {modal === 'wallet' && <WalletConnectModal onClose={() => setModal(null)} tonWallet={tonWallet} />}
+
+      {modal === 'language' && (
+        <BottomSheet onClose={() => setModal(null)} title="Language">
+          <div className="space-y-1">
+            {['English', 'Russian'].map((lang) => (
+              <button
+                key={lang}
+                onClick={() => setModal(null)}
+                className="w-full flex items-center justify-between px-3 py-3 rounded-btn"
+                style={{
+                  background: lang === 'English' ? 'rgba(108, 99, 255, 0.08)' : 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                <span className="text-sm" style={{ color: 'var(--text)' }}>{lang}</span>
+                {lang === 'English' && (
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-center mt-2" style={{ color: 'var(--text-muted)' }}>
+            More languages coming soon
+          </p>
+        </BottomSheet>
+      )}
+
+      {modal === 'about' && (
+        <BottomSheet onClose={() => setModal(null)} title="About Brabble">
+          <div className="space-y-3">
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              Brabble is a modular Web3 platform inside Telegram. Complete tasks, trade on the marketplace, and earn BRB tokens.
+            </p>
+            <div className="space-y-2">
+              <Row label="Version" value="1.0.0" />
+              <Row label="Blockchain" value="TON" />
+              <Row label="Token" value="BRB" />
+            </div>
+            <p className="text-[10px] text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              BRB is a utility token providing access to Brabble features. Not a financial instrument. Not investment advice.
+            </p>
+          </div>
+        </BottomSheet>
+      )}
     </div>
   );
 }
