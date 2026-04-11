@@ -23,6 +23,11 @@ function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
     <nav
       className="safe-bottom flex items-center justify-around border-t"
       style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 40,
         backgroundColor: 'var(--bg)',
         borderColor: 'var(--border)',
         paddingTop: '8px',
