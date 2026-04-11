@@ -26,6 +26,7 @@ function App() {
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem('brabble_onboarded') === '1');
   useTheme();
   const auth = useAuth();
+  const navHidden = useScrollDirection(10);
 
   const handleOnboardingDone = () => {
     localStorage.setItem('brabble_onboarded', '1');
@@ -78,7 +79,6 @@ function App() {
     );
   }
 
-  const navHidden = useScrollDirection(10);
   const navPage = page === 'admin' ? 'profile' : page;
 
   const renderPage = () => {
