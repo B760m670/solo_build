@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
 import { useScrollDirection } from './hooks/useScrollDirection';
 import { isTelegramContext } from './lib/telegram';
+import { I18nContext, getStoredLang, setStoredLang, createT, type Lang } from './lib/i18n';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 import Onboarding from './components/Onboarding';
@@ -24,9 +25,21 @@ const pageVariants = {
 function App() {
   const [page, setPage] = useState<Page>('home');
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem('brabble_onboarded') === '1');
+  const [lang, setLangState] = useState<Lang>(getStoredLang);
   useTheme();
   const auth = useAuth();
   const navHidden = useScrollDirection(10);
+
+  const i18n = useMemo(() => {
+    const t = createT(lang);
+    const setLang = (l: Lang) => {
+      setStoredLang(l);
+      setLangState(l);
+    };
+    return { lang, setLang, t };
+  }, [lang]);
+
+  const { t } = i18n;
 
   const handleOnboardingDone = () => {
     localStorage.setItem('brabble_onboarded', '1');
@@ -34,14 +47,18 @@ function App() {
   };
 
   if (!onboarded) {
-    return <Onboarding onDone={handleOnboardingDone} />;
+    return (
+      <I18nContext.Provider value={i18n}>
+        <Onboarding onDone={handleOnboardingDone} />
+      </I18nContext.Provider>
+    );
   }
 
   if (auth.isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-2" style={{ backgroundColor: 'var(--bg)' }}>
         <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }} />
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Connecting...</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('connecting')}</p>
       </div>
     );
   }
@@ -54,10 +71,9 @@ function App() {
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
         </div>
-        <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Open in Telegram</p>
-        <p className="text-xs text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          Brabble works as a Telegram Mini App.
-          Open @brabble_bot in Telegram to get started.
+        <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('openInTelegram')}</p>
+        <p className="text-xs text-center leading-relaxed whitespace-pre-line" style={{ color: 'var(--text-muted)' }}>
+          {t('openInTelegramDesc')}
         </p>
       </div>
     );
@@ -66,14 +82,14 @@ function App() {
   if (auth.error) {
     return (
       <div className="flex flex-col items-center justify-center h-screen gap-3 px-6" style={{ backgroundColor: 'var(--bg)' }}>
-        <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>Authentication failed</p>
+        <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{t('authFailed')}</p>
         <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>{auth.error}</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-2 px-4 py-2 text-xs font-medium rounded-btn"
           style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
         >
-          Retry
+          {t('retry')}
         </button>
       </div>
     );
@@ -92,7 +108,7 @@ function App() {
   };
 
   return (
-    <>
+    <I18nContext.Provider value={i18n}>
       <Header />
       <main className="scroll-area">
         <AnimatePresence mode="wait">
@@ -109,7 +125,7 @@ function App() {
         </AnimatePresence>
       </main>
       <BottomNav active={navPage} onNavigate={setPage} hidden={navHidden} />
-    </>
+    </I18nContext.Provider>
   );
 }
 

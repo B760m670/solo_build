@@ -1,4 +1,5 @@
 import { HomeIcon, TasksIcon, MarketIcon, ProfileIcon } from './Icons';
+import { useTranslation } from '../lib/i18n';
 
 type Page = 'home' | 'tasks' | 'market' | 'profile';
 
@@ -8,14 +9,16 @@ interface BottomNavProps {
   hidden?: boolean;
 }
 
-const tabs: { key: Page; label: string; icon: typeof HomeIcon }[] = [
-  { key: 'home', label: 'Home', icon: HomeIcon },
-  { key: 'tasks', label: 'Tasks', icon: TasksIcon },
-  { key: 'market', label: 'Market', icon: MarketIcon },
-  { key: 'profile', label: 'Profile', icon: ProfileIcon },
+const tabs: { key: Page; labelKey: 'navHome' | 'navTasks' | 'navMarket' | 'navProfile'; icon: typeof HomeIcon }[] = [
+  { key: 'home', labelKey: 'navHome', icon: HomeIcon },
+  { key: 'tasks', labelKey: 'navTasks', icon: TasksIcon },
+  { key: 'market', labelKey: 'navMarket', icon: MarketIcon },
+  { key: 'profile', labelKey: 'navProfile', icon: ProfileIcon },
 ];
 
 function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
+  const { t } = useTranslation();
+
   return (
     <nav
       className="safe-bottom flex items-center justify-around border-t"
@@ -28,7 +31,7 @@ function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
         transform: hidden ? 'translateY(100%)' : 'translateY(0)',
       }}
     >
-      {tabs.map(({ key, label, icon: Icon }) => {
+      {tabs.map(({ key, labelKey, icon: Icon }) => {
         const isActive = active === key;
         return (
           <button
@@ -47,7 +50,7 @@ function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
                 color: isActive ? 'var(--accent)' : 'var(--text-muted)',
               }}
             >
-              {label}
+              {t(labelKey)}
             </span>
           </button>
         );
