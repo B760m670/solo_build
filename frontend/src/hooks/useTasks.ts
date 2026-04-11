@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api, getAuthToken } from '../lib/api';
 import type { Task, UserTask } from '@brabble/shared';
 
 export function useTasks(category?: string) {
@@ -25,6 +25,7 @@ export function useUserTasks(status?: string) {
       api.get<UserTask[]>(
         `/tasks/history${status ? `?status=${status}` : ''}`,
       ),
+    enabled: !!getAuthToken(),
   });
 }
 

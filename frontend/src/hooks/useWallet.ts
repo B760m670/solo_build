@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api } from '../lib/api';
+import { api, getAuthToken } from '../lib/api';
 import type { PaginatedResponse, Transaction } from '@brabble/shared';
 
 interface WalletData {
@@ -13,6 +13,7 @@ export function useWallet() {
   return useQuery({
     queryKey: ['wallet'],
     queryFn: () => api.get<WalletData>('/wallet'),
+    enabled: !!getAuthToken(),
   });
 }
 
