@@ -20,5 +20,13 @@
     "db:seed": "npm run db:seed -w backend",
     "deploy:frontend": "cd frontend && npx vercel --prod",
     "deploy:backend": "echo 'Deploy via Railway CLI or GitHub push'"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.2",
+    "@prisma/adapter-neon": "^5.22.0",
+    "@prisma/adapter-pg": "^5.22.0",
+    "@types/ws": "^8.18.1",
+    "pg": "^8.20.0",
+    "ws": "^8.20.0"
   }
 }
