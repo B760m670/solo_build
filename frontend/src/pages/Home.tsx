@@ -33,7 +33,7 @@ function Home() {
       </p>
 
       {/* Wallet Card */}
-      {walletQuery.isLoading ? (
+      {walletQuery.isLoading || (!walletQuery.data && !walletQuery.isError) ? (
         <WalletSkeleton />
       ) : walletQuery.isError ? (
         <ErrorState message="Failed to load wallet" onRetry={() => walletQuery.refetch()} />

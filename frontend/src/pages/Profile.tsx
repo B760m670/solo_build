@@ -42,13 +42,13 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (userQuery.isLoading) return <ProfileSkeleton />;
+  if (userQuery.isLoading || userQuery.fetchStatus === 'idle' && !userQuery.data) return <ProfileSkeleton />;
   if (userQuery.isError) {
     return <ErrorState message="Failed to load profile" onRetry={() => userQuery.refetch()} />;
   }
 
   const user = userQuery.data;
-  if (!user) return null;
+  if (!user) return <ProfileSkeleton />;
 
   const balance = walletQuery.data?.balance ?? user.brbBalance;
   const totalEarned = walletQuery.data?.totalEarned ?? user.totalEarned;
