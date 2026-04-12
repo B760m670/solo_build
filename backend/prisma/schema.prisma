@@ -58,6 +58,9 @@ model UserTask {
   taskId      String
   status      String    @default("PENDING")
   proof       String?
+  submittedAt DateTime?
+  reviewedAt  DateTime?
+  reviewNote  String?
   completedAt DateTime?
   createdAt   DateTime  @default(now())
   user        User      @relation(fields: [userId], references: [id])

@@ -77,7 +77,8 @@ export function useAdminApproveSubmission() {
 export function useAdminRejectSubmission() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (userTaskId: string) => api.post(`/admin/tasks/submissions/${userTaskId}/reject`, {}),
+    mutationFn: ({ userTaskId, reason }: { userTaskId: string; reason?: string }) =>
+      api.post(`/admin/tasks/submissions/${userTaskId}/reject`, { reason }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
       qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });

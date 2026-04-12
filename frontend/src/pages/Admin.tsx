@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAdminApproveSubmission, useAdminDashboard, useAdminRejectSubmission, useAdminTaskSubmissions, useAdminUsers } from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
@@ -20,6 +21,8 @@ function Admin({ onBack }: { onBack: () => void }) {
   const submissions = useAdminTaskSubmissions();
   const approve = useAdminApproveSubmission();
   const reject = useAdminRejectSubmission();
+  const [rejectModalId, setRejectModalId] = useState<string | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
 
   if (dashboard.isError) {
     return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
@@ -151,7 +154,10 @@ function Admin({ onBack }: { onBack: () => void }) {
                           {t('approve')}
                         </button>
                         <button
-                          onClick={() => reject.mutate(s.id)}
+                          onClick={() => {
+                            setRejectModalId(s.id);
+                            setRejectReason('');
+                          }}
                           disabled={approve.isPending || reject.isPending}
                           className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
                           style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
@@ -206,6 +212,38 @@ function Admin({ onBack }: { onBack: () => void }) {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {rejectModalId && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setRejectModalId(null)}>
+          <div className="w-full max-w-md rounded-t-2xl p-6 space-y-4 safe-bottom" style={{ backgroundColor: 'var(--surface)' }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('rejectReasonTitle')}</p>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('rejectReasonDesc')}</p>
+            <textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder={t('rejectReasonPlaceholder')} rows={3} className="w-full p-3 rounded-btn text-sm outline-none resize-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
+            <div className="flex gap-3">
+              <button onClick={() => setRejectModalId(null)} className="flex-1 py-2.5 text-sm font-medium rounded-btn border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}>{t('cancel')}</button>
+              <button
+                onClick={() => {
+                  const id = rejectModalId;
+                  reject.mutate(
+                    { userTaskId: id, reason: rejectReason },
+                    {
+                      onSuccess: () => {
+                        setRejectModalId(null);
+                        setRejectReason('');
+                      },
+                    },
+                  );
+                }}
+                disabled={reject.isPending}
+                className="flex-1 py-2.5 text-sm font-medium rounded-btn"
+                style={{ backgroundColor: 'var(--accent)', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}
+              >
+                {reject.isPending ? t('processing') : t('reject')}
+              </button>
+            </div>
           </div>
         </div>
       )}

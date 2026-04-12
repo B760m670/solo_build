@@ -31,7 +31,7 @@ function Tasks() {
 
   const tasksQuery = useTasks(activeCategory ?? undefined);
   const userTasksQuery = useUserTasks(
-    activeTab === 'active' ? 'ACTIVE,SUBMITTED' : activeTab === 'completed' ? 'COMPLETED' : undefined,
+    activeTab === 'active' ? 'ACTIVE,SUBMITTED' : activeTab === 'completed' ? 'COMPLETED,REJECTED' : undefined,
   );
   const startTask = useStartTask();
   const completeTask = useCompleteTask();
@@ -178,6 +178,8 @@ function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete
   const task = userTask.task;
   if (!task) return null;
 
+  const showRejected = userTask.status === 'REJECTED';
+
   return (
     <div className="rounded-card p-4 border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div className="flex items-start justify-between mb-2">
@@ -188,12 +190,20 @@ function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete
         <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>+{task.reward} BRB</span>
       </div>
       <p className="text-sm font-medium mb-3" style={{ color: 'var(--text)' }}>{task.title}</p>
+      {showRejected && userTask.reviewNote && (
+        <div className="mb-3 p-2 rounded-btn border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
+          <p className="text-[10px] font-medium mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('rejectedReason')}</p>
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{userTask.reviewNote}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
           {userTask.status === 'COMPLETED' && userTask.completedAt
             ? `${t('completed')} ${new Date(userTask.completedAt).toLocaleDateString()}`
             : userTask.status === 'SUBMITTED'
               ? t('pendingReview')
+              : userTask.status === 'REJECTED'
+                ? t('rejected')
               : t('inProgress')}
         </span>
         {userTask.status === 'ACTIVE' && (
@@ -201,6 +211,9 @@ function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete
         )}
         {userTask.status === 'COMPLETED' && (
           <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('done')}</span>
+        )}
+        {userTask.status === 'REJECTED' && (
+          <span className="text-[11px] font-medium" style={{ color: '#ff6b6b' }}>{t('rejected')}</span>
         )}
       </div>
     </div>

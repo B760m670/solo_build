@@ -46,6 +46,9 @@ export interface UserTask {
   taskId: string;
   status: UserTaskStatus;
   proof: string | null;
+  submittedAt?: string | null;
+  reviewedAt?: string | null;
+  reviewNote?: string | null;
   completedAt: string | null;
   createdAt: string;
   task?: Task;

@@ -21,9 +21,7 @@ export class AdminTasksController {
   }
 
   @Post('submissions/:id/reject')
-  reject(@Param('id') userTaskId: string, @Body() _body: { reason?: string }) {
-    // Reason is accepted for future-proofing; v1 doesn't persist it.
-    return this.tasksService.rejectSubmission(userTaskId);
+  reject(@Param('id') userTaskId: string, @Body() body: { reason?: string }) {
+    return this.tasksService.rejectSubmissionWithReason(userTaskId, body?.reason);
   }
 }
-

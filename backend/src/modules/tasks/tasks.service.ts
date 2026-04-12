@@ -75,6 +75,7 @@ export class TasksService {
       data: {
         status: USER_TASK_STATUS.SUBMITTED,
         proof,
+        submittedAt: new Date(),
         completedAt: new Date(),
       },
     });
@@ -145,6 +146,8 @@ export class TasksService {
         where: { id: userTaskId },
         data: {
           status: USER_TASK_STATUS.COMPLETED,
+          reviewedAt: new Date(),
+          reviewNote: null,
           completedAt: new Date(),
         },
       });
@@ -185,6 +188,11 @@ export class TasksService {
   }
 
   async rejectSubmission(userTaskId: string) {
+    // Back-compat: reject without reason
+    return this.rejectSubmissionWithReason(userTaskId, undefined);
+  }
+
+  async rejectSubmissionWithReason(userTaskId: string, reason?: string) {
     const userTask = await this.prisma.userTask.findUnique({
       where: { id: userTaskId },
     });
@@ -196,7 +204,11 @@ export class TasksService {
 
     await this.prisma.userTask.update({
       where: { id: userTaskId },
-      data: { status: USER_TASK_STATUS.REJECTED },
+      data: {
+        status: USER_TASK_STATUS.REJECTED,
+        reviewedAt: new Date(),
+        reviewNote: reason?.trim() ? reason.trim().slice(0, 500) : null,
+      },
     });
 
     return { status: USER_TASK_STATUS.REJECTED };

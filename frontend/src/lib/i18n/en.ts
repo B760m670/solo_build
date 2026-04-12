@@ -91,6 +91,8 @@ const en = {
   slotsLeft: '{count} slots left',
   complete: 'Complete',
   pendingReview: 'Pending review',
+  rejected: 'Rejected',
+  rejectedReason: 'Rejection reason',
   starting: 'Starting...',
   start: 'Start',
   full: 'Full',
@@ -199,6 +201,9 @@ const en = {
   approve: 'Approve',
   reject: 'Reject',
   noSubmissions: 'No pending submissions',
+  rejectReasonTitle: 'Reject submission',
+  rejectReasonDesc: 'Add a short reason to help the user fix and resubmit.',
+  rejectReasonPlaceholder: 'Reason (optional)...',
 
   // Error
   failedLoadWallet: 'Failed to load wallet',

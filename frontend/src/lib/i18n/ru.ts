@@ -93,6 +93,8 @@ const ru: Record<TranslationKeys, string> = {
   slotsLeft: 'Осталось мест: {count}',
   complete: 'Завершить',
   pendingReview: 'На проверке',
+  rejected: 'Отклонено',
+  rejectedReason: 'Причина отклонения',
   starting: 'Запуск...',
   start: 'Начать',
   full: 'Мест нет',
@@ -201,6 +203,9 @@ const ru: Record<TranslationKeys, string> = {
   approve: 'Одобрить',
   reject: 'Отклонить',
   noSubmissions: 'Нет заявок на проверку',
+  rejectReasonTitle: 'Отклонить заявку',
+  rejectReasonDesc: 'Добавьте короткую причину, чтобы пользователь мог исправить и отправить снова.',
+  rejectReasonPlaceholder: 'Причина (необязательно)...',
 
   // Error
   failedLoadWallet: 'Не удалось загрузить кошелёк',
