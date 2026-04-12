@@ -1,6 +1,8 @@
 import { useAdminDashboard, useAdminUsers } from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
+import { useTranslation } from '../lib/i18n';
+import type { TranslationKeys } from '../lib/i18n/en';
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
@@ -13,11 +15,12 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 }
 
 function Admin({ onBack }: { onBack: () => void }) {
+  const { t } = useTranslation();
   const dashboard = useAdminDashboard();
   const users = useAdminUsers();
 
   if (dashboard.isError) {
-    return <ErrorState message="Admin access required" onRetry={onBack} />;
+    return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
   }
 
   return (
@@ -25,15 +28,15 @@ function Admin({ onBack }: { onBack: () => void }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>Admin Panel</p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>Platform statistics</p>
+          <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('adminPanel')}</p>
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('platformStats')}</p>
         </div>
         <button
           onClick={onBack}
           className="px-3 py-1.5 text-xs rounded-btn border"
           style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
         >
-          Back
+          {t('back')}
         </button>
       </div>
 
@@ -45,52 +48,52 @@ function Admin({ onBack }: { onBack: () => void }) {
         <>
           {/* Users */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Users</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('users')}</p>
             <div className="grid grid-cols-3 gap-3">
-              <StatCard label="Total" value={dashboard.data.users.total} />
-              <StatCard label="Premium" value={dashboard.data.users.premium} />
-              <StatCard label="Last 7 days" value={dashboard.data.users.recentSignups} />
+              <StatCard label={t('total')} value={dashboard.data.users.total} />
+              <StatCard label={t('premium')} value={dashboard.data.users.premium} />
+              <StatCard label={t('last7days')} value={dashboard.data.users.recentSignups} />
             </div>
           </div>
 
           {/* Economy */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Economy</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('economy')}</p>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="BRB in circulation" value={`${dashboard.data.economy.totalBrbInCirculation.toFixed(0)}`} />
-              <StatCard label="Total BRB earned" value={`${dashboard.data.economy.totalBrbEarned.toFixed(0)}`} />
-              <StatCard label="Transactions" value={dashboard.data.economy.totalTransactions} />
-              <StatCard label="Commission revenue" value={`${dashboard.data.marketplace.commissionRevenue.toFixed(0)} BRB`} />
+              <StatCard label={t('brbCirculation')} value={`${dashboard.data.economy.totalBrbInCirculation.toFixed(0)}`} />
+              <StatCard label={t('totalBrbEarned')} value={`${dashboard.data.economy.totalBrbEarned.toFixed(0)}`} />
+              <StatCard label={t('transactions')} value={dashboard.data.economy.totalTransactions} />
+              <StatCard label={t('commissionRevenue')} value={`${dashboard.data.marketplace.commissionRevenue.toFixed(0)} BRB`} />
             </div>
           </div>
 
           {/* Tasks */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Tasks</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('tasks')}</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
-              <StatCard label="Total tasks" value={dashboard.data.tasks.total} />
-              <StatCard label="Completed" value={dashboard.data.tasks.completed} />
+              <StatCard label={t('totalTasks')} value={dashboard.data.tasks.total} />
+              <StatCard label={t('completed')} value={dashboard.data.tasks.completed} />
             </div>
             {dashboard.data.tasks.topTasks.length > 0 && (
               <div className="rounded-card border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
                 <p className="px-3 py-2 text-[10px] font-medium" style={{ color: 'var(--text-muted)', borderBottom: '1px solid var(--border)' }}>
-                  Top tasks
+                  {t('topTasks')}
                 </p>
-                {dashboard.data.tasks.topTasks.map((t, i) => (
+                {dashboard.data.tasks.topTasks.map((task, i) => (
                   <div
-                    key={t.id}
+                    key={task.id}
                     className="flex items-center justify-between px-3 py-2"
                     style={{ borderBottom: i < dashboard.data!.tasks.topTasks.length - 1 ? '1px solid var(--border)' : 'none' }}
                   >
                     <div>
-                      <p className="text-xs" style={{ color: 'var(--text)' }}>{t.title}</p>
-                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t.brand}</p>
+                      <p className="text-xs" style={{ color: 'var(--text)' }}>{task.title}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{task.brand}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs font-mono" style={{ color: 'var(--text-secondary)' }}>
-                        {t.filledSlots}/{t.totalSlots}
+                        {task.filledSlots}/{task.totalSlots}
                       </p>
-                      <p className="text-[10px]" style={{ color: 'var(--gold)' }}>+{t.reward} BRB</p>
+                      <p className="text-[10px]" style={{ color: 'var(--gold)' }}>+{task.reward} BRB</p>
                     </div>
                   </div>
                 ))}
@@ -100,10 +103,10 @@ function Admin({ onBack }: { onBack: () => void }) {
 
           {/* Marketplace */}
           <div>
-            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Marketplace</p>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('marketplace')}</p>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard label="Active listings" value={dashboard.data.marketplace.activeListings} />
-              <StatCard label="Total orders" value={dashboard.data.marketplace.totalOrders} />
+              <StatCard label={t('activeListings')} value={dashboard.data.marketplace.activeListings} />
+              <StatCard label={t('totalOrders')} value={dashboard.data.marketplace.totalOrders} />
             </div>
           </div>
         </>
@@ -112,7 +115,7 @@ function Admin({ onBack }: { onBack: () => void }) {
       {/* Recent Users */}
       {users.data && users.data.length > 0 && (
         <div>
-          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>Recent Users</p>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('recentUsers')}</p>
           <div className="rounded-card border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
             {users.data.map((u, i) => (
               <div
@@ -127,7 +130,7 @@ function Admin({ onBack }: { onBack: () => void }) {
                     </p>
                     {u.isPremium && (
                       <span className="text-[8px] px-1 py-0.5 rounded" style={{ backgroundColor: 'rgba(245,200,66,0.15)', color: 'var(--gold)' }}>
-                        PRO
+                        {t('pro')}
                       </span>
                     )}
                   </div>

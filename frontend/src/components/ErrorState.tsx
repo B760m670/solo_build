@@ -1,9 +1,13 @@
+import { useTranslation } from '../lib/i18n';
+
 interface ErrorStateProps {
   message?: string;
   onRetry?: () => void;
 }
 
-function ErrorState({ message = 'Something went wrong', onRetry }: ErrorStateProps) {
+function ErrorState({ message, onRetry }: ErrorStateProps) {
+  const { t } = useTranslation();
+  const displayMessage = message || t('somethingWrong');
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6">
       <div
@@ -29,7 +33,7 @@ function ErrorState({ message = 'Something went wrong', onRetry }: ErrorStatePro
         className="text-sm text-center mb-1"
         style={{ color: 'var(--text-secondary)' }}
       >
-        {message}
+        {displayMessage}
       </p>
       {onRetry && (
         <button
@@ -42,14 +46,16 @@ function ErrorState({ message = 'Something went wrong', onRetry }: ErrorStatePro
             cursor: 'pointer',
           }}
         >
-          Try again
+          {t('tryAgain')}
         </button>
       )}
     </div>
   );
 }
 
-export function EmptyState({ message = 'Nothing here yet' }: { message?: string }) {
+export function EmptyState({ message }: { message?: string }) {
+  const { t } = useTranslation();
+  const displayMessage = message || t('nothingHere');
   return (
     <div className="flex flex-col items-center justify-center py-16 px-6">
       <div
@@ -72,7 +78,7 @@ export function EmptyState({ message = 'Nothing here yet' }: { message?: string 
         </svg>
       </div>
       <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-        {message}
+        {displayMessage}
       </p>
     </div>
   );

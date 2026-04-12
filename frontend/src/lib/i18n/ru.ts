@@ -179,6 +179,7 @@ const ru: Record<TranslationKeys, string> = {
   back: 'Назад',
   users: 'Пользователи',
   total: 'Всего',
+  premium: 'Премиум',
   last7days: 'За 7 дней',
   economy: 'Экономика',
   brbCirculation: 'BRB в обращении',
@@ -193,6 +194,9 @@ const ru: Record<TranslationKeys, string> = {
   totalOrders: 'Всего заказов',
   recentUsers: 'Новые пользователи',
   adminRequired: 'Требуется доступ администратора',
+  pro: 'ПРО',
+  listings: 'объявления',
+  tryAgain: 'Попробовать снова',
 
   // Error
   failedLoadWallet: 'Не удалось загрузить кошелёк',
