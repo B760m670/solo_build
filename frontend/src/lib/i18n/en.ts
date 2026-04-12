@@ -177,7 +177,6 @@ const en = {
   back: 'Back',
   users: 'Users',
   total: 'Total',
-  premium: 'Premium',
   last7days: 'Last 7 days',
   economy: 'Economy',
   brbCirculation: 'BRB in circulation',
@@ -194,7 +193,6 @@ const en = {
   adminRequired: 'Admin access required',
   pro: 'PRO',
   listings: 'listings',
-  tryAgain: 'Try again',
 
   // Error
   failedLoadWallet: 'Failed to load wallet',

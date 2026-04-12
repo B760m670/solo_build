@@ -2,7 +2,6 @@ import { useAdminDashboard, useAdminUsers } from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import { useTranslation } from '../lib/i18n';
-import type { TranslationKeys } from '../lib/i18n/en';
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
