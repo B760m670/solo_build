@@ -1,4 +1,4 @@
-import { useAdminDashboard, useAdminUsers } from '../hooks/useAdmin';
+import { useAdminApproveSubmission, useAdminDashboard, useAdminRejectSubmission, useAdminTaskSubmissions, useAdminUsers } from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import { useTranslation } from '../lib/i18n';
@@ -17,6 +17,9 @@ function Admin({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
   const dashboard = useAdminDashboard();
   const users = useAdminUsers();
+  const submissions = useAdminTaskSubmissions();
+  const approve = useAdminApproveSubmission();
+  const reject = useAdminRejectSubmission();
 
   if (dashboard.isError) {
     return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
@@ -107,6 +110,62 @@ function Admin({ onBack }: { onBack: () => void }) {
               <StatCard label={t('activeListings')} value={dashboard.data.marketplace.activeListings} />
               <StatCard label={t('totalOrders')} value={dashboard.data.marketplace.totalOrders} />
             </div>
+          </div>
+
+          {/* Task Submissions */}
+          <div>
+            <p className="text-xs font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>{t('taskReviewQueue')}</p>
+            {submissions.isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <Skeleton key={i} height={64} rounded="card" />)}
+              </div>
+            ) : submissions.data && submissions.data.length > 0 ? (
+              <div className="rounded-card border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                {submissions.data.map((s, i) => (
+                  <div
+                    key={s.id}
+                    className="px-3 py-2.5"
+                    style={{ borderBottom: i < submissions.data!.length - 1 ? '1px solid var(--border)' : 'none' }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>
+                          {s.task.title}
+                        </p>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          {s.task.brand} • +{s.task.reward} BRB • {s.user.username ? `@${s.user.username}` : s.user.firstName}
+                        </p>
+                        {s.proof && (
+                          <p className="text-[10px] mt-1 line-clamp-2" style={{ color: 'var(--text-secondary)' }}>
+                            {s.proof}
+                          </p>
+                        )}
+                      </div>
+                      <div className="shrink-0 flex gap-2">
+                        <button
+                          onClick={() => approve.mutate(s.id)}
+                          disabled={approve.isPending || reject.isPending}
+                          className="px-3 py-1.5 text-[11px] font-medium rounded-btn"
+                          style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}
+                        >
+                          {t('approve')}
+                        </button>
+                        <button
+                          onClick={() => reject.mutate(s.id)}
+                          disabled={approve.isPending || reject.isPending}
+                          className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
+                          style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
+                        >
+                          {t('reject')}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('noSubmissions')}</p>
+            )}
           </div>
         </>
       ) : null}

@@ -14,7 +14,7 @@ function Tasks() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [proofModal, setProofModal] = useState<string | null>(null);
   const [proof, setProof] = useState('');
-  const [completedTaskId, setCompletedTaskId] = useState<string | null>(null);
+  const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'all', label: t('tabAll') },
@@ -31,7 +31,7 @@ function Tasks() {
 
   const tasksQuery = useTasks(activeCategory ?? undefined);
   const userTasksQuery = useUserTasks(
-    activeTab === 'active' ? 'ACTIVE' : activeTab === 'completed' ? 'COMPLETED' : undefined,
+    activeTab === 'active' ? 'ACTIVE,SUBMITTED' : activeTab === 'completed' ? 'COMPLETED' : undefined,
   );
   const startTask = useStartTask();
   const completeTask = useCompleteTask();
@@ -47,10 +47,10 @@ function Tasks() {
       { taskId: proofModal, proof: proof.trim() },
       {
         onSuccess: () => {
-          setCompletedTaskId(proofModal);
+          setSubmittedTaskId(proofModal);
           setProofModal(null);
           setProof('');
-          setTimeout(() => setCompletedTaskId(null), 2500);
+          setTimeout(() => setSubmittedTaskId(null), 2500);
         },
       },
     );
@@ -63,10 +63,10 @@ function Tasks() {
 
   return (
     <div className="px-4 py-4 space-y-4">
-      {completedTaskId && (
+      {submittedTaskId && (
         <div className="fixed top-4 left-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-card" style={{ backgroundColor: 'var(--teal)', color: '#000' }}>
           <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-          <span className="text-sm font-medium">{t('taskCompleted')}</span>
+          <span className="text-sm font-medium">{t('taskSubmitted')}</span>
         </div>
       )}
 
@@ -159,6 +159,8 @@ function TaskCard({ task, userTask, onStart, onComplete, isStarting }: { task: T
         </div>
         {status === 'COMPLETED' ? (
           <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('completed')}</span>
+        ) : status === 'SUBMITTED' ? (
+          <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{t('pendingReview')}</span>
         ) : status === 'ACTIVE' ? (
           <button onClick={onComplete} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}>{t('complete')}</button>
         ) : (
@@ -190,7 +192,9 @@ function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete
         <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
           {userTask.status === 'COMPLETED' && userTask.completedAt
             ? `${t('completed')} ${new Date(userTask.completedAt).toLocaleDateString()}`
-            : t('inProgress')}
+            : userTask.status === 'SUBMITTED'
+              ? t('pendingReview')
+              : t('inProgress')}
         </span>
         {userTask.status === 'ACTIVE' && (
           <button onClick={onComplete} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}>{t('complete')}</button>

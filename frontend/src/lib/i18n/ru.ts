@@ -81,6 +81,7 @@ const ru: Record<TranslationKeys, string> = {
   catTest: 'тест',
   catSubscribe: 'подписка',
   taskCompleted: 'Задание выполнено! BRB начислены',
+  taskSubmitted: 'Отправлено на проверку',
   failedLoadTasks: 'Не удалось загрузить задания',
   noTasks: 'Нет заданий: {tab}',
   noTasksAvailable: 'Нет доступных заданий',
@@ -91,6 +92,7 @@ const ru: Record<TranslationKeys, string> = {
   submit: 'Отправить',
   slotsLeft: 'Осталось мест: {count}',
   complete: 'Завершить',
+  pendingReview: 'На проверке',
   starting: 'Запуск...',
   start: 'Начать',
   full: 'Мест нет',
@@ -195,6 +197,10 @@ const ru: Record<TranslationKeys, string> = {
   adminRequired: 'Требуется доступ администратора',
   pro: 'ПРО',
   listings: 'объявления',
+  taskReviewQueue: 'Очередь проверок',
+  approve: 'Одобрить',
+  reject: 'Отклонить',
+  noSubmissions: 'Нет заявок на проверку',
 
   // Error
   failedLoadWallet: 'Не удалось загрузить кошелёк',

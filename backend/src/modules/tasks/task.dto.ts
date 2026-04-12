@@ -6,7 +6,7 @@ export class TaskFilterDto {
   category?: string;
 
   @IsOptional()
-  @IsIn(['PENDING', 'ACTIVE', 'COMPLETED'])
+  @IsIn(['PENDING', 'ACTIVE', 'SUBMITTED', 'COMPLETED', 'REJECTED'])
   status?: string;
 }
 

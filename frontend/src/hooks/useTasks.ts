@@ -46,7 +46,7 @@ export function useCompleteTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ taskId, proof }: { taskId: string; proof: string }) =>
-      api.post<{ reward: number }>(`/tasks/${taskId}/complete`, { proof }),
+      api.post<{ status: string }>(`/tasks/${taskId}/complete`, { proof }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
       qc.invalidateQueries({ queryKey: ['userTasks'] });

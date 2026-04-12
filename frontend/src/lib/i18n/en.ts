@@ -79,6 +79,7 @@ const en = {
   catTest: 'test',
   catSubscribe: 'subscribe',
   taskCompleted: 'Task completed! BRB rewarded',
+  taskSubmitted: 'Submitted for review',
   failedLoadTasks: 'Failed to load tasks',
   noTasks: 'No {tab} tasks',
   noTasksAvailable: 'No tasks available',
@@ -89,6 +90,7 @@ const en = {
   submit: 'Submit',
   slotsLeft: '{count} slots left',
   complete: 'Complete',
+  pendingReview: 'Pending review',
   starting: 'Starting...',
   start: 'Start',
   full: 'Full',
@@ -193,6 +195,10 @@ const en = {
   adminRequired: 'Admin access required',
   pro: 'PRO',
   listings: 'listings',
+  taskReviewQueue: 'Task review queue',
+  approve: 'Approve',
+  reject: 'Reject',
+  noSubmissions: 'No pending submissions',
 
   // Error
   failedLoadWallet: 'Failed to load wallet',

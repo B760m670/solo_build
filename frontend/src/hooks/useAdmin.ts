@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, getAuthToken } from '../lib/api';
 
 interface DashboardData {
@@ -23,6 +24,18 @@ interface AdminUser {
   _count: { tasks: number; listings: number };
 }
 
+interface AdminTaskSubmission {
+  id: string;
+  userId: string;
+  taskId: string;
+  status: string;
+  proof: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  task: { id: string; title: string; brand: string; reward: number; category: string };
+  user: { id: string; telegramId: number; username: string | null; firstName: string; avatarUrl: string | null; brbBalance: number };
+}
+
 export function useAdminDashboard() {
   return useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -38,5 +51,36 @@ export function useAdminUsers(limit = 20) {
     queryFn: () => api.get<AdminUser[]>(`/admin/users?limit=${limit}`),
     enabled: !!getAuthToken(),
     retry: false,
+  });
+}
+
+export function useAdminTaskSubmissions(limit = 50) {
+  return useQuery({
+    queryKey: ['admin', 'taskSubmissions', limit],
+    queryFn: () => api.get<AdminTaskSubmission[]>(`/admin/tasks/submissions?limit=${limit}`),
+    enabled: !!getAuthToken(),
+    retry: false,
+  });
+}
+
+export function useAdminApproveSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userTaskId: string) => api.post(`/admin/tasks/submissions/${userTaskId}/approve`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+export function useAdminRejectSubmission() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (userTaskId: string) => api.post(`/admin/tasks/submissions/${userTaskId}/reject`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
   });
 }

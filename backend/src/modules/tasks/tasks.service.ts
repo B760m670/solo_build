@@ -9,6 +9,14 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 type TxClient = Prisma.TransactionClient;
 
+const USER_TASK_STATUS = {
+  PENDING: 'PENDING',
+  ACTIVE: 'ACTIVE',
+  SUBMITTED: 'SUBMITTED',
+  COMPLETED: 'COMPLETED',
+  REJECTED: 'REJECTED',
+} as const;
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -57,31 +65,97 @@ export class TasksService {
       where: { userId_taskId: { userId, taskId } },
     });
 
-    if (!userTask || userTask.status !== 'ACTIVE') {
+    if (!userTask || userTask.status !== USER_TASK_STATUS.ACTIVE) {
       throw new BadRequestException('Task not active');
     }
 
-    const task = await this.findById(taskId);
+    // Submit for review. Reward is granted only after admin approval.
+    await this.prisma.userTask.update({
+      where: { id: userTask.id },
+      data: {
+        status: USER_TASK_STATUS.SUBMITTED,
+        proof,
+        completedAt: new Date(),
+      },
+    });
 
+    return { status: USER_TASK_STATUS.SUBMITTED };
+  }
+
+  async getUserTasks(userId: string, status?: string) {
+    const statuses = (status || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    return this.prisma.userTask.findMany({
+      where: {
+        userId,
+        ...(statuses.length ? { status: { in: statuses } } : {}),
+      },
+      include: { task: true },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async listSubmissions(limit = 50) {
+    return this.prisma.userTask.findMany({
+      where: { status: USER_TASK_STATUS.SUBMITTED },
+      include: {
+        task: true,
+        user: {
+          select: {
+            id: true,
+            telegramId: true,
+            username: true,
+            firstName: true,
+            avatarUrl: true,
+            brbBalance: true,
+          },
+        },
+      },
+      orderBy: [{ completedAt: 'desc' }, { createdAt: 'desc' }],
+      take: limit,
+    });
+  }
+
+  async approveSubmission(userTaskId: string) {
     return this.prisma.$transaction(async (tx: TxClient) => {
-      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+      const userTask = await tx.userTask.findUnique({
+        where: { id: userTaskId },
+        include: { task: true },
+      });
+
+      if (!userTask) throw new NotFoundException('User task not found');
+      if (userTask.status !== USER_TASK_STATUS.SUBMITTED) {
+        throw new BadRequestException('Submission is not pending review');
+      }
+
+      const task = userTask.task;
+      if (!task) throw new NotFoundException('Task not found');
+      if (task.filledSlots >= task.totalSlots) {
+        throw new BadRequestException('No slots available');
+      }
+
+      const user = await tx.user.findUniqueOrThrow({
+        where: { id: userTask.userId },
+      });
 
       await tx.userTask.update({
-        where: { id: userTask.id },
+        where: { id: userTaskId },
         data: {
-          status: 'COMPLETED',
-          proof,
+          status: USER_TASK_STATUS.COMPLETED,
           completedAt: new Date(),
         },
       });
 
       await tx.task.update({
-        where: { id: taskId },
+        where: { id: task.id },
         data: { filledSlots: { increment: 1 } },
       });
 
       await tx.user.update({
-        where: { id: userId },
+        where: { id: user.id },
         data: {
           brbBalance: { increment: task.reward },
           totalEarned: { increment: task.reward },
@@ -90,34 +164,41 @@ export class TasksService {
 
       await tx.transaction.create({
         data: {
-          userId,
+          userId: user.id,
           type: 'TASK_REWARD',
           amount: task.reward,
           balanceBefore: user.brbBalance,
           balanceAfter: user.brbBalance + task.reward,
-          meta: { taskId, taskTitle: task.title },
+          meta: {
+            taskId: task.id,
+            taskTitle: task.title,
+            userTaskId: userTaskId,
+          },
         },
       });
 
-      // Send push notification (fire and forget)
-      this.notifications.sendTaskCompleted(
-        user.telegramId,
-        task.title,
-        task.reward,
-      );
+      // Fire and forget
+      this.notifications.sendTaskCompleted(user.telegramId, task.title, task.reward);
 
-      return { reward: task.reward };
+      return { reward: task.reward, status: USER_TASK_STATUS.COMPLETED };
     });
   }
 
-  async getUserTasks(userId: string, status?: string) {
-    return this.prisma.userTask.findMany({
-      where: {
-        userId,
-        ...(status ? { status } : {}),
-      },
-      include: { task: true },
-      orderBy: { createdAt: 'desc' },
+  async rejectSubmission(userTaskId: string) {
+    const userTask = await this.prisma.userTask.findUnique({
+      where: { id: userTaskId },
     });
+
+    if (!userTask) throw new NotFoundException('User task not found');
+    if (userTask.status !== USER_TASK_STATUS.SUBMITTED) {
+      throw new BadRequestException('Submission is not pending review');
+    }
+
+    await this.prisma.userTask.update({
+      where: { id: userTaskId },
+      data: { status: USER_TASK_STATUS.REJECTED },
+    });
+
+    return { status: USER_TASK_STATUS.REJECTED };
   }
 }

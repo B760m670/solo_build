@@ -51,7 +51,12 @@ export interface UserTask {
   task?: Task;
 }
 
-export type UserTaskStatus = 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'REJECTED';
+export type UserTaskStatus =
+  | 'PENDING'
+  | 'ACTIVE'
+  | 'SUBMITTED'
+  | 'COMPLETED'
+  | 'REJECTED';
 
 // ─── Marketplace ─────────────────────────────────────
 export interface Listing {
