@@ -7,6 +7,8 @@ Own utility token BRB — access to platform features, NOT an investment asset.
 TON blockchain integration. Halal-compliant. No gambling mechanics.
 Disclaimer required everywhere: BRB is not a financial instrument.
 
+**→ See [BRB_ISLAMIC_ANALYSIS.md](./BRB_ISLAMIC_ANALYSIS.md) for full Sharia compliance assessment**
+
 ## Tech Stack
 - Frontend: React + Vite + TypeScript
 - Styling: Tailwind CSS + custom CSS variables
