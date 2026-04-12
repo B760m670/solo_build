@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { getTelegramUser } from '../lib/telegram';
-import { SendIcon, ReceiveIcon, SwapIcon, ChevronRightIcon } from '../components/Icons';
+import { SendIcon, ReceiveIcon, SwapIcon, ChevronRightIcon, TasksModuleIcon, MarketModuleIcon, KnowledgeIcon, ServicesIcon } from '../components/Icons';
 import { useWallet } from '../hooks/useWallet';
 import { useUserTasks } from '../hooks/useTasks';
 import { WalletSkeleton, CardSkeleton } from '../components/Skeleton';
@@ -31,10 +31,10 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
   };
 
   const modules = [
-    { name: t('moduleTasks'), desc: t('moduleTasksDesc'), status: t('statusActive'), page: 'tasks' as Page | null },
-    { name: t('moduleMarket'), desc: t('moduleMarketDesc'), status: t('statusActive'), page: 'market' as Page | null },
-    { name: t('moduleKnowledge'), desc: t('moduleKnowledgeDesc'), status: t('statusSoon'), page: null },
-    { name: t('moduleServices'), desc: t('moduleServicesDesc'), status: t('statusSoon'), page: null },
+    { name: t('moduleTasks'), desc: t('moduleTasksDesc'), status: t('statusActive'), page: 'tasks' as Page | null, Icon: TasksModuleIcon, color: 'var(--accent)' },
+    { name: t('moduleMarket'), desc: t('moduleMarketDesc'), status: t('statusActive'), page: 'market' as Page | null, Icon: MarketModuleIcon, color: 'var(--teal)' },
+    { name: t('moduleKnowledge'), desc: t('moduleKnowledgeDesc'), status: t('statusSoon'), page: null, Icon: KnowledgeIcon, color: 'var(--gold)' },
+    { name: t('moduleServices'), desc: t('moduleServicesDesc'), status: t('statusSoon'), page: null, Icon: ServicesIcon, color: 'var(--text-muted)' },
   ];
 
   const txTypeMap: Record<string, TranslationKeys> = {
@@ -117,7 +117,9 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
               className="rounded-card p-4 border text-left"
               style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)', cursor: mod.page ? 'pointer' : 'default' }}
             >
-              <div className="w-8 h-8 rounded-lg mb-2" style={{ backgroundColor: 'var(--surface2)' }} />
+              <div className="w-8 h-8 rounded-lg mb-2 flex items-center justify-center" style={{ backgroundColor: 'var(--surface2)' }}>
+                <mod.Icon size={18} color={mod.color} />
+              </div>
               <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{mod.name}</p>
               <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{mod.desc}</p>
               <span

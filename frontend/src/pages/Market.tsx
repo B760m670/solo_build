@@ -4,11 +4,20 @@ import { useListings, useCreateListing, useBuyListing } from '../hooks/useMarket
 import { useWallet } from '../hooks/useWallet';
 import { ListingSkeleton } from '../components/Skeleton';
 import ErrorState, { EmptyState } from '../components/ErrorState';
+import { useTranslation } from '../lib/i18n';
 import type { Listing } from '@brabble/shared';
+import type { TranslationKeys } from '../lib/i18n/en';
 
-const categories = ['All', 'Digital', 'Services', 'NFT', 'Other'];
+const categories: { key: string; label: TranslationKeys }[] = [
+  { key: 'All', label: 'catAll' },
+  { key: 'Digital', label: 'catDigital' },
+  { key: 'Services', label: 'catServices' },
+  { key: 'NFT', label: 'catNFT' },
+  { key: 'Other', label: 'catOther' },
+];
 
 function Market() {
+  const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState('All');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -48,7 +57,7 @@ function Market() {
         <SearchIcon size={16} color="var(--text-muted)" />
         <input
           type="text"
-          placeholder="Search marketplace..."
+          placeholder={t('searchMarketplace')}
           value={search}
           onChange={(e) => handleSearch(e.target.value)}
           className="flex-1 bg-transparent text-sm outline-none"
@@ -60,17 +69,17 @@ function Market() {
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
         {categories.map((cat) => (
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
+            key={cat.key}
+            onClick={() => setActiveCategory(cat.key)}
             className="shrink-0 px-3 py-1.5 text-[11px] font-medium rounded-full border"
             style={{
-              borderColor: activeCategory === cat ? 'var(--accent)' : 'var(--border)',
-              color: activeCategory === cat ? 'var(--accent)' : 'var(--text-secondary)',
-              background: activeCategory === cat ? 'rgba(108, 99, 255, 0.08)' : 'transparent',
+              borderColor: activeCategory === cat.key ? 'var(--accent)' : 'var(--border)',
+              color: activeCategory === cat.key ? 'var(--accent)' : 'var(--text-secondary)',
+              background: activeCategory === cat.key ? 'rgba(108, 99, 255, 0.08)' : 'transparent',
               cursor: 'pointer',
             }}
           >
-            {cat}
+            {t(cat.label)}
           </button>
         ))}
       </div>
@@ -81,9 +90,9 @@ function Market() {
           {[1, 2, 3, 4].map((i) => <ListingSkeleton key={i} />)}
         </div>
       ) : listingsQuery.isError ? (
-        <ErrorState message="Failed to load listings" onRetry={() => listingsQuery.refetch()} />
+        <ErrorState message={t('failedLoadListings')} onRetry={() => listingsQuery.refetch()} />
       ) : (listingsQuery.data?.length ?? 0) === 0 ? (
-        <EmptyState message="No listings found" />
+        <EmptyState message={t('noListings')} />
       ) : (
         <div className="grid grid-cols-2 gap-3">
           {listingsQuery.data!.map((listing) => (
@@ -138,29 +147,29 @@ function Market() {
             onClick={(e) => e.stopPropagation()}
           >
             <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-              Confirm purchase
+              {t('confirmPurchase')}
             </p>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--text-secondary)' }}>Item</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('item')}</span>
                 <span style={{ color: 'var(--text)' }}>{buyConfirm.title}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--text-secondary)' }}>Price</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('price')}</span>
                 <span className="font-bold" style={{ color: 'var(--accent)' }}>
                   {buyConfirm.price} BRB
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span style={{ color: 'var(--text-secondary)' }}>Your balance</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{t('yourBalance')}</span>
                 <span style={{ color: balance >= buyConfirm.price ? 'var(--teal)' : '#FF3B30' }}>
                   {balance.toFixed(0)} BRB
                 </span>
               </div>
               {balance < buyConfirm.price && (
                 <p className="text-[11px]" style={{ color: '#FF3B30' }}>
-                  Insufficient balance
+                  {t('insufficientBalance')}
                 </p>
               )}
             </div>
@@ -171,7 +180,7 @@ function Market() {
                 className="flex-1 py-2.5 text-sm font-medium rounded-btn border"
                 style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
               >
-                Cancel
+                {t('cancel')}
               </button>
               <button
                 onClick={handleBuy}
@@ -184,7 +193,7 @@ function Market() {
                   cursor: balance >= buyConfirm.price ? 'pointer' : 'default',
                 }}
               >
-                {buyListing.isPending ? 'Processing...' : 'Buy now'}
+                {buyListing.isPending ? t('processing') : t('buyNow')}
               </button>
             </div>
           </div>
@@ -200,6 +209,7 @@ function Market() {
 }
 
 function CreateListingModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
@@ -234,13 +244,13 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>
-          Create listing
+          {t('createListing')}
         </p>
 
         <div className="space-y-3">
           <input
             type="text"
-            placeholder="Title"
+            placeholder={t('title')}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             maxLength={200}
@@ -248,7 +258,7 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
             style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }}
           />
           <textarea
-            placeholder="Description"
+            placeholder={t('description')}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
@@ -258,7 +268,7 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
           />
           <input
             type="number"
-            placeholder="Price (BRB)"
+            placeholder={t('priceBRB')}
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             min={1}
@@ -266,19 +276,19 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
             style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }}
           />
           <div className="flex gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
-            {['Digital', 'Services', 'NFT', 'Other'].map((cat) => (
+            {categories.slice(1).map((cat) => (
               <button
-                key={cat}
-                onClick={() => setCategory(cat)}
+                key={cat.key}
+                onClick={() => setCategory(cat.key)}
                 className="shrink-0 px-3 py-1.5 text-[11px] font-medium rounded-full border"
                 style={{
-                  borderColor: category === cat ? 'var(--accent)' : 'var(--border)',
-                  color: category === cat ? 'var(--accent)' : 'var(--text-secondary)',
-                  background: category === cat ? 'rgba(108, 99, 255, 0.08)' : 'transparent',
+                  borderColor: category === cat.key ? 'var(--accent)' : 'var(--border)',
+                  color: category === cat.key ? 'var(--accent)' : 'var(--text-secondary)',
+                  background: category === cat.key ? 'rgba(108, 99, 255, 0.08)' : 'transparent',
                   cursor: 'pointer',
                 }}
               >
-                {cat}
+                {t(cat.label)}
               </button>
             ))}
           </div>
@@ -290,7 +300,7 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
             className="flex-1 py-2.5 text-sm font-medium rounded-btn border"
             style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
           >
-            Cancel
+            {t('cancel')}
           </button>
           <button
             onClick={handleSubmit}
@@ -303,7 +313,7 @@ function CreateListingModal({ onClose }: { onClose: () => void }) {
               cursor: isValid ? 'pointer' : 'default',
             }}
           >
-            {createListing.isPending ? 'Creating...' : 'List item'}
+            {createListing.isPending ? t('creating') : t('listItem')}
           </button>
         </div>
       </div>
