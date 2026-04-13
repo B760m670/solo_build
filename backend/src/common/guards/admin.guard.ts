@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { ADMIN_KEY } from '../decorators/admin.decorator';
+import { SUPERADMIN_KEY } from '../decorators/superadmin.decorator';
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -21,7 +22,12 @@ export class AdminGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (!isAdmin) return true;
+    const isSuperAdmin = this.reflector.getAllAndOverride<boolean>(SUPERADMIN_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!isAdmin && !isSuperAdmin) return true;
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
@@ -30,7 +36,19 @@ export class AdminGuard implements CanActivate {
       .map((id) => id.trim())
       .filter(Boolean);
 
-    if (!adminIds.includes(String(user.telegramId))) {
+    const isEnvAdmin = adminIds.includes(String(user.telegramId));
+
+    if (isSuperAdmin) {
+      if (!isEnvAdmin) {
+        throw new ForbiddenException('Super admin access required');
+      }
+      return true;
+    }
+
+    const role = String(user?.role || '').toUpperCase();
+    const isRoleAdmin = role === 'ADMIN' || role === 'MODERATOR';
+
+    if (!isEnvAdmin && !isRoleAdmin) {
       throw new ForbiddenException('Admin access required');
     }
 

@@ -9,6 +9,12 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
+}
+
 model User {
   id            String        @id @default(uuid())
   telegramId    BigInt        @unique
@@ -18,6 +24,7 @@ model User {
   avatarUrl     String?
   isPremium     Boolean       @default(false)
   premiumExpiry DateTime?
+  role          UserRole      @default(USER)
   brbBalance    Float         @default(0)
   totalEarned   Float         @default(0)
   tonWallet     String?

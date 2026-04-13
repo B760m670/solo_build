@@ -8,6 +8,7 @@ export interface User {
   avatarUrl: string | null;
   isPremium: boolean;
   premiumExpiry: string | null;
+  role?: 'USER' | 'ADMIN' | 'MODERATOR';
   brbBalance: number;
   totalEarned: number;
   tonWallet: string | null;
