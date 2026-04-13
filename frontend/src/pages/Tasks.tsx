@@ -40,6 +40,13 @@ function Tasks() {
   const query = showUserTasks ? userTasksQuery : tasksQuery;
 
   const handleStart = (taskId: string) => startTask.mutate(taskId);
+  const handleRetry = (taskId: string) =>
+    startTask.mutate(taskId, {
+      onSuccess: () => {
+        setProofModal(taskId);
+        setProof('');
+      },
+    });
 
   const handleComplete = () => {
     if (!proofModal || !proof.trim()) return;
@@ -98,7 +105,12 @@ function Tasks() {
         ) : (
           <div className="space-y-3">
             {userTasksQuery.data!.map((ut) => (
-              <UserTaskCard key={ut.id} userTask={ut} onComplete={() => { setProofModal(ut.taskId); setProof(''); }} />
+              <UserTaskCard
+                key={ut.id}
+                userTask={ut}
+                onComplete={() => { setProofModal(ut.taskId); setProof(''); }}
+                onRetry={() => handleRetry(ut.taskId)}
+              />
             ))}
           </div>
         )
@@ -173,7 +185,7 @@ function TaskCard({ task, userTask, onStart, onComplete, isStarting }: { task: T
   );
 }
 
-function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete: () => void }) {
+function UserTaskCard({ userTask, onComplete, onRetry }: { userTask: UserTask; onComplete: () => void; onRetry: () => void }) {
   const { t } = useTranslation();
   const task = userTask.task;
   if (!task) return null;
@@ -213,7 +225,7 @@ function UserTaskCard({ userTask, onComplete }: { userTask: UserTask; onComplete
           <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('done')}</span>
         )}
         {userTask.status === 'REJECTED' && (
-          <span className="text-[11px] font-medium" style={{ color: '#ff6b6b' }}>{t('rejected')}</span>
+          <button onClick={onRetry} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('resubmit')}</button>
         )}
       </div>
     </div>

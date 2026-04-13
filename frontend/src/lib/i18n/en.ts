@@ -93,6 +93,7 @@ const en = {
   pendingReview: 'Pending review',
   rejected: 'Rejected',
   rejectedReason: 'Rejection reason',
+  resubmit: 'Resubmit',
   starting: 'Starting...',
   start: 'Start',
   full: 'Full',

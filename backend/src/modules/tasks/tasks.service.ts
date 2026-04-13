@@ -52,6 +52,21 @@ export class TasksService {
     });
 
     if (existing) {
+      if (existing.status === USER_TASK_STATUS.REJECTED) {
+        // Allow resubmission after rejection.
+        return this.prisma.userTask.update({
+          where: { id: existing.id },
+          data: {
+            status: USER_TASK_STATUS.ACTIVE,
+            proof: null,
+            submittedAt: null,
+            reviewedAt: null,
+            reviewNote: null,
+            completedAt: null,
+          },
+        });
+      }
+
       throw new BadRequestException('Task already started');
     }
 

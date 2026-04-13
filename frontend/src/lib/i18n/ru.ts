@@ -95,6 +95,7 @@ const ru: Record<TranslationKeys, string> = {
   pendingReview: 'На проверке',
   rejected: 'Отклонено',
   rejectedReason: 'Причина отклонения',
+  resubmit: 'Отправить снова',
   starting: 'Запуск...',
   start: 'Начать',
   full: 'Мест нет',
