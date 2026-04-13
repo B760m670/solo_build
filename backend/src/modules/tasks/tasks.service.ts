@@ -17,6 +17,18 @@ const USER_TASK_STATUS = {
   REJECTED: 'REJECTED',
 } as const;
 
+function readIntEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  const parsed = raw ? parseInt(raw, 10) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function readFloatEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  const parsed = raw ? parseFloat(raw) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 @Injectable()
 export class TasksService {
   constructor(
@@ -43,8 +55,27 @@ export class TasksService {
   async start(userId: string, taskId: string) {
     const task = await this.findById(taskId);
 
+    if (!task.isActive) {
+      throw new BadRequestException('Task is not active');
+    }
+
+    if (task.expiresAt && new Date(task.expiresAt).getTime() < Date.now()) {
+      throw new BadRequestException('Task expired');
+    }
+
     if (task.filledSlots >= task.totalSlots) {
       throw new BadRequestException('No slots available');
+    }
+
+    const maxActive = readIntEnv('MAX_ACTIVE_TASKS_PER_USER', 3);
+    const activeCount = await this.prisma.userTask.count({
+      where: {
+        userId,
+        status: { in: [USER_TASK_STATUS.ACTIVE, USER_TASK_STATUS.SUBMITTED] },
+      },
+    });
+    if (activeCount >= maxActive) {
+      throw new BadRequestException('Too many active tasks');
     }
 
     const existing = await this.prisma.userTask.findUnique({
@@ -82,6 +113,14 @@ export class TasksService {
 
     if (!userTask || userTask.status !== USER_TASK_STATUS.ACTIVE) {
       throw new BadRequestException('Task not active');
+    }
+
+    const task = await this.findById(taskId);
+    if (!task.isActive) {
+      throw new BadRequestException('Task is not active');
+    }
+    if (task.expiresAt && new Date(task.expiresAt).getTime() < Date.now()) {
+      throw new BadRequestException('Task expired');
     }
 
     // Submit for review. Reward is granted only after admin approval.
@@ -149,6 +188,12 @@ export class TasksService {
 
       const task = userTask.task;
       if (!task) throw new NotFoundException('Task not found');
+      if (!task.isActive) {
+        throw new BadRequestException('Task is not active');
+      }
+      if (task.expiresAt && new Date(task.expiresAt).getTime() < Date.now()) {
+        throw new BadRequestException('Task expired');
+      }
       if (task.filledSlots >= task.totalSlots) {
         throw new BadRequestException('No slots available');
       }
@@ -156,6 +201,23 @@ export class TasksService {
       const user = await tx.user.findUniqueOrThrow({
         where: { id: userTask.userId },
       });
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+
+      const maxDailyReward = readFloatEnv('MAX_DAILY_TASK_REWARD_BRB', 200);
+      const earnedTodayAgg = await tx.transaction.aggregate({
+        where: {
+          userId: user.id,
+          type: 'TASK_REWARD',
+          createdAt: { gte: startOfDay },
+        },
+        _sum: { amount: true },
+      });
+      const earnedToday = earnedTodayAgg._sum.amount ?? 0;
+      if (earnedToday + task.reward > maxDailyReward) {
+        throw new BadRequestException('Daily task reward limit reached');
+      }
 
       await tx.userTask.update({
         where: { id: userTaskId },

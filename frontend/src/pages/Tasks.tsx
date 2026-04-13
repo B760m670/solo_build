@@ -157,6 +157,7 @@ function TaskCard({ task, userTask, onStart, onRetry, onComplete, isStarting }: 
   const { t } = useTranslation();
   const status = userTask?.status;
   const slotsLeft = task.totalSlots - task.filledSlots;
+  const showRejected = status === 'REJECTED';
 
   return (
     <div className="rounded-card p-4 border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
@@ -169,6 +170,12 @@ function TaskCard({ task, userTask, onStart, onRetry, onComplete, isStarting }: 
       </div>
       <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>{task.title}</p>
       <p className="text-[11px] mb-3" style={{ color: 'var(--text-muted)' }}>{task.description}</p>
+      {showRejected && userTask?.reviewNote && (
+        <div className="mb-3 p-2 rounded-btn border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
+          <p className="text-[10px] font-medium mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('rejectedReason')}</p>
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{userTask.reviewNote}</p>
+        </div>
+      )}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
