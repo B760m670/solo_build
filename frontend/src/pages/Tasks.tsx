@@ -120,7 +120,15 @@ function Tasks() {
         ) : (
           <div className="space-y-3">
             {tasksQuery.data!.map((task) => (
-              <TaskCard key={task.id} task={task} userTask={userTaskMap.get(task.id)} onStart={() => handleStart(task.id)} onComplete={() => { setProofModal(task.id); setProof(''); }} isStarting={startTask.isPending} />
+              <TaskCard
+                key={task.id}
+                task={task}
+                userTask={userTaskMap.get(task.id)}
+                onStart={() => handleStart(task.id)}
+                onRetry={() => handleRetry(task.id)}
+                onComplete={() => { setProofModal(task.id); setProof(''); }}
+                isStarting={startTask.isPending}
+              />
             ))}
           </div>
         )
@@ -145,7 +153,7 @@ function Tasks() {
   );
 }
 
-function TaskCard({ task, userTask, onStart, onComplete, isStarting }: { task: Task; userTask?: UserTask; onStart: () => void; onComplete: () => void; isStarting: boolean }) {
+function TaskCard({ task, userTask, onStart, onRetry, onComplete, isStarting }: { task: Task; userTask?: UserTask; onStart: () => void; onRetry: () => void; onComplete: () => void; isStarting: boolean }) {
   const { t } = useTranslation();
   const status = userTask?.status;
   const slotsLeft = task.totalSlots - task.filledSlots;
@@ -173,6 +181,8 @@ function TaskCard({ task, userTask, onStart, onComplete, isStarting }: { task: T
           <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('completed')}</span>
         ) : status === 'SUBMITTED' ? (
           <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{t('pendingReview')}</span>
+        ) : status === 'REJECTED' ? (
+          <button onClick={onRetry} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('resubmit')}</button>
         ) : status === 'ACTIVE' ? (
           <button onClick={onComplete} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}>{t('complete')}</button>
         ) : (
