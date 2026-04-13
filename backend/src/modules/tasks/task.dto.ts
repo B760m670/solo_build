@@ -37,6 +37,10 @@ export class CreateTaskDto {
   @IsIn(['survey', 'review', 'test', 'subscribe'])
   category!: string;
 
+  @IsOptional()
+  @IsIn(['MANUAL', 'AUTO_CONNECT_WALLET', 'AUTO_FIRST_LISTING', 'AUTO_FIRST_PURCHASE'])
+  verificationType?: string;
+
   @IsNumber()
   @Min(0.01)
   reward!: number;
@@ -82,6 +86,10 @@ export class UpdateTaskDto {
   @IsOptional()
   @IsIn(['survey', 'review', 'test', 'subscribe'])
   category?: string;
+
+  @IsOptional()
+  @IsIn(['MANUAL', 'AUTO_CONNECT_WALLET', 'AUTO_FIRST_LISTING', 'AUTO_FIRST_PURCHASE'])
+  verificationType?: string;
 
   @IsOptional()
   @IsNumber()

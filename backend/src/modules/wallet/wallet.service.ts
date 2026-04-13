@@ -2,6 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TonService } from './ton.service';
+import { TasksService } from '../tasks/tasks.service';
 
 type TxClient = Prisma.TransactionClient;
 
@@ -13,6 +14,7 @@ export class WalletService {
   constructor(
     private prisma: PrismaService,
     private tonService: TonService,
+    private tasksService: TasksService,
   ) {}
 
   async getWallet(userId: string) {
@@ -65,6 +67,9 @@ export class WalletService {
       where: { id: userId },
       data: { tonWallet: tonAddress },
     });
+
+    // Fire and forget: auto-complete wallet-connect tasks if user started them.
+    this.tasksService.autoCompleteActiveTasks(userId, 'AUTO_CONNECT_WALLET');
 
     return { tonWallet: user.tonWallet };
   }

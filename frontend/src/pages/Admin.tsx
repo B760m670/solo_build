@@ -32,6 +32,7 @@ function Admin({ onBack }: { onBack: () => void }) {
     title: '',
     description: '',
     category: 'survey',
+    verificationType: 'MANUAL',
     reward: '10',
     timeMinutes: '5',
     brand: 'Brabble',
@@ -346,6 +347,12 @@ function Admin({ onBack }: { onBack: () => void }) {
                 </select>
                 <input value={taskForm.brand} onChange={(e) => setTaskForm((s) => ({ ...s, brand: e.target.value }))} placeholder={t('brand')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
               </div>
+              <select value={taskForm.verificationType} onChange={(e) => setTaskForm((s) => ({ ...s, verificationType: e.target.value }))} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                <option value="MANUAL">{t('verifyManual')}</option>
+                <option value="AUTO_CONNECT_WALLET">{t('verifyWallet')}</option>
+                <option value="AUTO_FIRST_LISTING">{t('verifyFirstListing')}</option>
+                <option value="AUTO_FIRST_PURCHASE">{t('verifyFirstPurchase')}</option>
+              </select>
               <div className="grid grid-cols-3 gap-2">
                 <input value={taskForm.reward} onChange={(e) => setTaskForm((s) => ({ ...s, reward: e.target.value }))} placeholder={t('reward')} inputMode="decimal" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
                 <input value={taskForm.timeMinutes} onChange={(e) => setTaskForm((s) => ({ ...s, timeMinutes: e.target.value }))} placeholder={t('minutes')} inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
@@ -361,6 +368,7 @@ function Admin({ onBack }: { onBack: () => void }) {
                     title: taskForm.title.trim(),
                     description: taskForm.description.trim(),
                     category: taskForm.category,
+                    verificationType: taskForm.verificationType,
                     reward: parseFloat(taskForm.reward) || 0,
                     timeMinutes: parseInt(taskForm.timeMinutes, 10) || 1,
                     brand: taskForm.brand.trim() || 'Brabble',

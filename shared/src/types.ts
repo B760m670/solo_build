@@ -28,6 +28,7 @@ export interface Task {
   title: string;
   description: string;
   category: TaskCategory;
+  verificationType?: 'MANUAL' | 'AUTO_CONNECT_WALLET' | 'AUTO_FIRST_LISTING' | 'AUTO_FIRST_PURCHASE';
   reward: number;
   timeMinutes: number;
   brand: string;

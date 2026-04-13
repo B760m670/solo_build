@@ -7,6 +7,7 @@ import {
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TasksService } from '../tasks/tasks.service';
 
 type TxClient = Prisma.TransactionClient;
 import { CreateListingDto, UpdateListingDto } from './listing.dto';
@@ -18,6 +19,7 @@ export class MarketplaceService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationsService,
+    private tasksService: TasksService,
   ) {}
 
   async findAll(search?: string, category?: string) {
@@ -57,9 +59,14 @@ export class MarketplaceService {
   }
 
   async create(sellerId: string, dto: CreateListingDto) {
-    return this.prisma.listing.create({
+    const listing = await this.prisma.listing.create({
       data: { ...dto, sellerId },
     });
+
+    // Fire and forget: auto-complete "first listing" tasks if started.
+    this.tasksService.autoCompleteActiveTasks(sellerId, 'AUTO_FIRST_LISTING');
+
+    return listing;
   }
 
   async update(userId: string, listingId: string, dto: UpdateListingDto) {
@@ -91,7 +98,7 @@ export class MarketplaceService {
       throw new BadRequestException('Cannot buy your own listing');
     }
 
-    return this.prisma.$transaction(async (tx: TxClient) => {
+    const order = await this.prisma.$transaction(async (tx: TxClient) => {
       const buyer = await tx.user.findUniqueOrThrow({
         where: { id: buyerId },
       });
@@ -166,6 +173,11 @@ export class MarketplaceService {
 
       return order;
     });
+
+    // Fire and forget: auto-complete "first purchase" tasks if started.
+    this.tasksService.autoCompleteActiveTasks(buyerId, 'AUTO_FIRST_PURCHASE');
+
+    return order;
   }
 
   async getMyListings(sellerId: string) {

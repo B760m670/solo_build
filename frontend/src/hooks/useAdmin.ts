@@ -71,6 +71,7 @@ export function useAdminCreateTask() {
       title: string;
       description: string;
       category: string;
+      verificationType?: string;
       reward: number;
       timeMinutes: number;
       brand: string;

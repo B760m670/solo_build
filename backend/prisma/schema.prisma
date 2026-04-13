@@ -48,6 +48,7 @@ model Task {
   title       String
   description String
   category    String
+  verificationType String @default("MANUAL")
   reward      Float
   timeMinutes Int
   brand       String
