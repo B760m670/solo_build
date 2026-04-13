@@ -12,6 +12,7 @@ import { ReferralsModule } from './modules/referrals/referrals.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { HealthController } from './health.controller';
+import { VersionController } from './version.controller';
 
 @Module({
   imports: [
@@ -28,6 +29,6 @@ import { HealthController } from './health.controller';
     ReferralsModule,
     AdminModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, VersionController],
 })
 export class AppModule {}

@@ -153,6 +153,7 @@ const ru: Record<TranslationKeys, string> = {
   version: 'Версия',
   blockchain: 'Блокчейн',
   token: 'Токен',
+  backendCommit: 'Коммит бэкенда',
   activeUntil: 'Активен до {date}',
   noCommission: 'Без комиссии на маркетплейсе',
   priorityAccess: 'Приоритетный доступ к заданиям',

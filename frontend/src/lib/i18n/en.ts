@@ -151,6 +151,7 @@ const en = {
   version: 'Version',
   blockchain: 'Blockchain',
   token: 'Token',
+  backendCommit: 'Backend commit',
   activeUntil: 'Active until {date}',
   noCommission: 'No commission on marketplace sales',
   priorityAccess: 'Priority task access',
