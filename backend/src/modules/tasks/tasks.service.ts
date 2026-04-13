@@ -46,6 +46,84 @@ export class TasksService {
     });
   }
 
+  async adminList(limit = 50) {
+    return this.prisma.task.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async adminCreate(data: {
+    title: string;
+    description: string;
+    category: string;
+    reward: number;
+    timeMinutes: number;
+    brand: string;
+    brandLogo?: string;
+    isActive?: boolean;
+    totalSlots?: number;
+    expiresAt?: string;
+  }) {
+    return this.prisma.task.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        reward: data.reward,
+        timeMinutes: data.timeMinutes,
+        brand: data.brand,
+        brandLogo: data.brandLogo ?? null,
+        isActive: data.isActive ?? true,
+        totalSlots: data.totalSlots ?? 100,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+      },
+    });
+  }
+
+  async adminUpdate(taskId: string, data: {
+    title?: string;
+    description?: string;
+    category?: string;
+    reward?: number;
+    timeMinutes?: number;
+    brand?: string;
+    brandLogo?: string;
+    isActive?: boolean;
+    totalSlots?: number;
+    filledSlots?: number;
+    expiresAt?: string | null;
+  }) {
+    await this.findById(taskId);
+
+    return this.prisma.task.update({
+      where: { id: taskId },
+      data: {
+        ...(typeof data.title === 'string' ? { title: data.title } : {}),
+        ...(typeof data.description === 'string' ? { description: data.description } : {}),
+        ...(typeof data.category === 'string' ? { category: data.category } : {}),
+        ...(typeof data.reward === 'number' ? { reward: data.reward } : {}),
+        ...(typeof data.timeMinutes === 'number' ? { timeMinutes: data.timeMinutes } : {}),
+        ...(typeof data.brand === 'string' ? { brand: data.brand } : {}),
+        ...(typeof data.brandLogo === 'string' ? { brandLogo: data.brandLogo } : {}),
+        ...(typeof data.isActive === 'boolean' ? { isActive: data.isActive } : {}),
+        ...(typeof data.totalSlots === 'number' ? { totalSlots: data.totalSlots } : {}),
+        ...(typeof data.filledSlots === 'number' ? { filledSlots: data.filledSlots } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'expiresAt')
+          ? { expiresAt: data.expiresAt ? new Date(String(data.expiresAt)) : null }
+          : {}),
+      },
+    });
+  }
+
+  async adminToggle(taskId: string) {
+    const task = await this.findById(taskId);
+    return this.prisma.task.update({
+      where: { id: taskId },
+      data: { isActive: !task.isActive },
+    });
+  }
+
   async findById(id: string) {
     const task = await this.prisma.task.findUnique({ where: { id } });
     if (!task) throw new NotFoundException('Task not found');

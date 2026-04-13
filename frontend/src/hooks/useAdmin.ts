@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, getAuthToken } from '../lib/api';
+import type { Task } from '@brabble/shared';
 
 interface DashboardData {
   users: { total: number; premium: number; recentSignups: number };
@@ -51,6 +52,47 @@ export function useAdminUsers(limit = 20) {
     queryFn: () => api.get<AdminUser[]>(`/admin/users?limit=${limit}`),
     enabled: !!getAuthToken(),
     retry: false,
+  });
+}
+
+export function useAdminTasks(limit = 50) {
+  return useQuery({
+    queryKey: ['admin', 'tasks', limit],
+    queryFn: () => api.get<Task[]>(`/admin/tasks?limit=${limit}`),
+    enabled: !!getAuthToken(),
+    retry: false,
+  });
+}
+
+export function useAdminCreateTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      title: string;
+      description: string;
+      category: string;
+      reward: number;
+      timeMinutes: number;
+      brand: string;
+      totalSlots?: number;
+      expiresAt?: string;
+      isActive?: boolean;
+    }) => api.post<Task>('/admin/tasks', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'tasks'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+export function useAdminToggleTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (taskId: string) => api.post<Task>(`/admin/tasks/${taskId}/toggle`, {}),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'tasks'] });
+      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
   });
 }
 

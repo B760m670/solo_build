@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAdminApproveSubmission, useAdminDashboard, useAdminRejectSubmission, useAdminTaskSubmissions, useAdminUsers } from '../hooks/useAdmin';
+import { useAdminApproveSubmission, useAdminCreateTask, useAdminDashboard, useAdminRejectSubmission, useAdminTaskSubmissions, useAdminTasks, useAdminToggleTask, useAdminUsers } from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import { useTranslation } from '../lib/i18n';
@@ -18,12 +18,27 @@ function Admin({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
   const dashboard = useAdminDashboard();
   const users = useAdminUsers();
+  const tasks = useAdminTasks();
+  const createTask = useAdminCreateTask();
+  const toggleTask = useAdminToggleTask();
   const submissions = useAdminTaskSubmissions();
   const approve = useAdminApproveSubmission();
   const reject = useAdminRejectSubmission();
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [toast, setToast] = useState<string | null>(null);
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [taskForm, setTaskForm] = useState({
+    title: '',
+    description: '',
+    category: 'survey',
+    reward: '10',
+    timeMinutes: '5',
+    brand: 'Brabble',
+    totalSlots: '100',
+    expiresAt: '',
+    isActive: true,
+  });
 
   if (dashboard.isError) {
     return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
@@ -120,6 +135,57 @@ function Admin({ onBack }: { onBack: () => void }) {
               <StatCard label={t('activeListings')} value={dashboard.data.marketplace.activeListings} />
               <StatCard label={t('totalOrders')} value={dashboard.data.marketplace.totalOrders} />
             </div>
+          </div>
+
+          {/* Tasks Management */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('manageTasks')}</p>
+              <button
+                onClick={() => setCreateTaskOpen(true)}
+                className="px-3 py-1.5 text-[11px] font-medium rounded-btn"
+                style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+              >
+                {t('newTask')}
+              </button>
+            </div>
+            {tasks.isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <Skeleton key={i} height={56} rounded="card" />)}
+              </div>
+            ) : tasks.data && tasks.data.length > 0 ? (
+              <div className="rounded-card border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                {tasks.data.map((task, i) => (
+                  <div
+                    key={task.id}
+                    className="flex items-center justify-between gap-3 px-3 py-2.5"
+                    style={{ borderBottom: i < tasks.data!.length - 1 ? '1px solid var(--border)' : 'none' }}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>{task.title}</p>
+                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                        {task.brand} • {task.category} • +{task.reward} BRB
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => toggleTask.mutate(task.id)}
+                      disabled={toggleTask.isPending}
+                      className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
+                      style={{
+                        borderColor: task.isActive ? 'var(--teal)' : 'var(--border)',
+                        color: task.isActive ? 'var(--teal)' : 'var(--text-secondary)',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {task.isActive ? t('active') : t('inactive')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('noTasksAvailable')}</p>
+            )}
           </div>
 
           {/* Task Submissions */}
@@ -258,6 +324,64 @@ function Admin({ onBack }: { onBack: () => void }) {
                 style={{ backgroundColor: 'var(--accent)', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}
               >
                 {reject.isPending ? t('processing') : t('reject')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {createTaskOpen && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setCreateTaskOpen(false)}>
+          <div className="w-full max-w-md rounded-t-2xl p-6 space-y-4 safe-bottom" style={{ backgroundColor: 'var(--surface)' }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('newTask')}</p>
+            <div className="space-y-2">
+              <input value={taskForm.title} onChange={(e) => setTaskForm((s) => ({ ...s, title: e.target.value }))} placeholder={t('taskTitle')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              <textarea value={taskForm.description} onChange={(e) => setTaskForm((s) => ({ ...s, description: e.target.value }))} placeholder={t('taskDescription')} rows={3} className="w-full p-3 rounded-btn text-sm outline-none resize-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              <div className="grid grid-cols-2 gap-2">
+                <select value={taskForm.category} onChange={(e) => setTaskForm((s) => ({ ...s, category: e.target.value }))} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                  <option value="survey">{t('catSurvey')}</option>
+                  <option value="review">{t('catReview')}</option>
+                  <option value="test">{t('catTest')}</option>
+                  <option value="subscribe">{t('catSubscribe')}</option>
+                </select>
+                <input value={taskForm.brand} onChange={(e) => setTaskForm((s) => ({ ...s, brand: e.target.value }))} placeholder={t('brand')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <input value={taskForm.reward} onChange={(e) => setTaskForm((s) => ({ ...s, reward: e.target.value }))} placeholder={t('reward')} inputMode="decimal" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.timeMinutes} onChange={(e) => setTaskForm((s) => ({ ...s, timeMinutes: e.target.value }))} placeholder={t('minutes')} inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.totalSlots} onChange={(e) => setTaskForm((s) => ({ ...s, totalSlots: e.target.value }))} placeholder={t('slots')} inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
+              <input value={taskForm.expiresAt} onChange={(e) => setTaskForm((s) => ({ ...s, expiresAt: e.target.value }))} placeholder={t('expiresAt')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+            </div>
+            <div className="flex gap-3">
+              <button onClick={() => setCreateTaskOpen(false)} className="flex-1 py-2.5 text-sm font-medium rounded-btn border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}>{t('cancel')}</button>
+              <button
+                onClick={() => {
+                  const payload = {
+                    title: taskForm.title.trim(),
+                    description: taskForm.description.trim(),
+                    category: taskForm.category,
+                    reward: parseFloat(taskForm.reward) || 0,
+                    timeMinutes: parseInt(taskForm.timeMinutes, 10) || 1,
+                    brand: taskForm.brand.trim() || 'Brabble',
+                    totalSlots: parseInt(taskForm.totalSlots, 10) || 100,
+                    expiresAt: taskForm.expiresAt.trim() ? taskForm.expiresAt.trim() : undefined,
+                    isActive: taskForm.isActive,
+                  };
+                  createTask.mutate(payload, {
+                    onSuccess: () => {
+                      setToast(t('taskCreated'));
+                      setTimeout(() => setToast(null), 2500);
+                      setCreateTaskOpen(false);
+                      setTaskForm((s) => ({ ...s, title: '', description: '' }));
+                    },
+                  });
+                }}
+                disabled={createTask.isPending}
+                className="flex-1 py-2.5 text-sm font-medium rounded-btn"
+                style={{ backgroundColor: 'var(--accent)', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}
+              >
+                {createTask.isPending ? t('processing') : t('create')}
               </button>
             </div>
           </div>
