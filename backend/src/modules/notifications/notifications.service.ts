@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 
 type NotificationType =
   | 'task_completed'
+  | 'task_rejected'
   | 'marketplace_sale'
   | 'referral_bonus'
   | 'withdrawal_processed'
@@ -17,6 +18,8 @@ interface NotificationPayload {
 const TEMPLATES: Record<NotificationType, (data: Record<string, unknown>) => string> = {
   task_completed: (d) =>
     `Task completed! You earned ${d.reward} BRB for "${d.taskTitle}".`,
+  task_rejected: (d) =>
+    `Task rejected: "${d.taskTitle}".${d.reason ? ` Reason: ${d.reason}` : ''}`,
   marketplace_sale: (d) =>
     `Your listing "${d.listingTitle}" was purchased for ${d.amount} BRB.`,
   referral_bonus: (d) =>
@@ -91,6 +94,13 @@ export class NotificationsService {
     return this.send(telegramId, {
       type: 'task_completed',
       data: { taskTitle, reward },
+    });
+  }
+
+  async sendTaskRejected(telegramId: number | bigint, taskTitle: string, reason?: string | null) {
+    return this.send(telegramId, {
+      type: 'task_rejected',
+      data: { taskTitle, reason: reason || undefined },
     });
   }
 

@@ -217,6 +217,11 @@ export class TasksService {
       throw new BadRequestException('Submission is not pending review');
     }
 
+    const task = await this.findById(userTask.taskId);
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userTask.userId },
+    });
+
     await this.prisma.userTask.update({
       where: { id: userTaskId },
       data: {
@@ -225,6 +230,9 @@ export class TasksService {
         reviewNote: reason?.trim() ? reason.trim().slice(0, 500) : null,
       },
     });
+
+    // Fire and forget
+    this.notifications.sendTaskRejected(user.telegramId, task.title, reason);
 
     return { status: USER_TASK_STATUS.REJECTED };
   }

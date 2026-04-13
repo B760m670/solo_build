@@ -23,6 +23,7 @@ function Admin({ onBack }: { onBack: () => void }) {
   const reject = useAdminRejectSubmission();
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [toast, setToast] = useState<string | null>(null);
 
   if (dashboard.isError) {
     return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
@@ -30,6 +31,12 @@ function Admin({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="px-4 py-4 space-y-6">
+      {toast && (
+        <div className="fixed top-4 left-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-card" style={{ backgroundColor: 'var(--teal)', color: '#000' }}>
+          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          <span className="text-sm font-medium">{toast}</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -146,7 +153,14 @@ function Admin({ onBack }: { onBack: () => void }) {
                       </div>
                       <div className="shrink-0 flex gap-2">
                         <button
-                          onClick={() => approve.mutate(s.id)}
+                          onClick={() =>
+                            approve.mutate(s.id, {
+                              onSuccess: () => {
+                                setToast(t('approved'));
+                                setTimeout(() => setToast(null), 2500);
+                              },
+                            })
+                          }
                           disabled={approve.isPending || reject.isPending}
                           className="px-3 py-1.5 text-[11px] font-medium rounded-btn"
                           style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}
@@ -233,6 +247,8 @@ function Admin({ onBack }: { onBack: () => void }) {
                       onSuccess: () => {
                         setRejectModalId(null);
                         setRejectReason('');
+                        setToast(t('rejected'));
+                        setTimeout(() => setToast(null), 2500);
                       },
                     },
                   );

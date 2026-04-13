@@ -6,7 +6,6 @@ import { useWallet, useConnectWallet, useDisconnectWallet, useWithdraw } from '.
 import { useReferrals, useClaimReferralBonus } from '../hooks/useReferrals';
 import { useUserTasks } from '../hooks/useTasks';
 import { useCreateInvoice } from '../hooks/usePayments';
-import { useVersion } from '../hooks/useVersion';
 import { ProfileSkeleton } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { useTranslation, type Lang } from '../lib/i18n';
@@ -19,7 +18,6 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
   const walletQuery = useWallet();
   const referralsQuery = useReferrals();
   const completedTasksQuery = useUserTasks('COMPLETED');
-  const versionQuery = useVersion();
   const updateUser = useUpdateUser();
   const claimBonus = useClaimReferralBonus();
   const [theme, setTheme] = useState(getTheme());
@@ -223,7 +221,6 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
               <Row label={t('version')} value="1.0.0" />
               <Row label={t('blockchain')} value="TON" />
               <Row label={t('token')} value="BRB" />
-              <Row label={t('backendCommit')} value={(versionQuery.data?.commit || '...').slice(0, 12)} valueColor="var(--accent)" />
             </div>
             <p className="text-[10px] text-center leading-relaxed" style={{ color: 'var(--text-muted)' }}>{t('disclaimer')}</p>
           </div>
