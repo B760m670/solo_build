@@ -14,6 +14,8 @@ function Tasks() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [proofModal, setProofModal] = useState<string | null>(null);
   const [proof, setProof] = useState('');
+  const [proofLink, setProofLink] = useState('');
+  const [proofScreenshotUrl, setProofScreenshotUrl] = useState('');
   const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
 
   const tabs: { key: Tab; label: string }[] = [
@@ -45,18 +47,34 @@ function Tasks() {
       onSuccess: () => {
         setProofModal(taskId);
         setProof('');
+        setProofLink('');
+        setProofScreenshotUrl('');
       },
     });
 
   const handleComplete = () => {
     if (!proofModal || !proof.trim()) return;
+    const deviceFingerprint = localStorage.getItem('brabble_device_fp')
+      || `${navigator.userAgent.slice(0, 40)}_${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+    localStorage.setItem('brabble_device_fp', deviceFingerprint);
     completeTask.mutate(
-      { taskId: proofModal, proof: proof.trim() },
+      {
+        taskId: proofModal,
+        proof: proof.trim(),
+        proofData: {
+          text: proof.trim(),
+          ...(proofLink.trim() ? { link: proofLink.trim() } : {}),
+          ...(proofScreenshotUrl.trim() ? { screenshotUrl: proofScreenshotUrl.trim() } : {}),
+        },
+        deviceFingerprint,
+      },
       {
         onSuccess: () => {
           setSubmittedTaskId(proofModal);
           setProofModal(null);
           setProof('');
+          setProofLink('');
+          setProofScreenshotUrl('');
           setTimeout(() => setSubmittedTaskId(null), 2500);
         },
       },
@@ -108,7 +126,7 @@ function Tasks() {
               <UserTaskCard
                 key={ut.id}
                 userTask={ut}
-                onComplete={() => { setProofModal(ut.taskId); setProof(''); }}
+                onComplete={() => { setProofModal(ut.taskId); setProof(''); setProofLink(''); setProofScreenshotUrl(''); }}
                 onRetry={() => handleRetry(ut.taskId)}
               />
             ))}
@@ -126,7 +144,7 @@ function Tasks() {
                 userTask={userTaskMap.get(task.id)}
                 onStart={() => handleStart(task.id)}
                 onRetry={() => handleRetry(task.id)}
-                onComplete={() => { setProofModal(task.id); setProof(''); }}
+                onComplete={() => { setProofModal(task.id); setProof(''); setProofLink(''); setProofScreenshotUrl(''); }}
                 isStarting={startTask.isPending}
               />
             ))}
@@ -140,6 +158,8 @@ function Tasks() {
             <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('submitProof')}</p>
             <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('proofDescription')}</p>
             <textarea value={proof} onChange={(e) => setProof(e.target.value)} placeholder={t('proofPlaceholder')} rows={3} className="w-full p-3 rounded-btn text-sm outline-none resize-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
+            <input value={proofLink} onChange={(e) => setProofLink(e.target.value)} placeholder="https://proof-link" className="w-full p-3 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
+            <input value={proofScreenshotUrl} onChange={(e) => setProofScreenshotUrl(e.target.value)} placeholder="https://screenshot-url" className="w-full p-3 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
             <div className="flex gap-3">
               <button onClick={() => setProofModal(null)} className="flex-1 py-2.5 text-sm font-medium rounded-btn border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}>{t('cancel')}</button>
               <button onClick={handleComplete} disabled={!proof.trim() || completeTask.isPending} className="flex-1 py-2.5 text-sm font-medium rounded-btn" style={{ backgroundColor: proof.trim() ? 'var(--accent)' : 'var(--surface2)', color: proof.trim() ? '#FFFFFF' : 'var(--text-muted)', border: 'none', cursor: proof.trim() ? 'pointer' : 'default' }}>

@@ -50,6 +50,6 @@ export class WalletController {
 
   @Post('withdraw')
   withdraw(@CurrentUser('id') userId: string, @Body() dto: WithdrawDto) {
-    return this.walletService.withdraw(userId, dto.tonAddress, dto.amount);
+    return this.walletService.withdraw(userId, dto.tonAddress, dto.amount, dto.idempotencyKey);
   }
 }

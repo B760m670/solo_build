@@ -18,12 +18,12 @@ export class AdminTasksController {
 
   @Post()
   createTask(@Body() dto: CreateTaskDto) {
-    return this.tasksService.adminCreate(dto);
+    return this.tasksService.adminCreate(dto as unknown as Parameters<TasksService['adminCreate']>[0]);
   }
 
   @Patch(':id')
   updateTask(@Param('id') taskId: string, @Body() dto: UpdateTaskDto) {
-    return this.tasksService.adminUpdate(taskId, dto);
+    return this.tasksService.adminUpdate(taskId, dto as unknown as Parameters<TasksService['adminUpdate']>[1]);
   }
 
   @Post(':id/toggle')

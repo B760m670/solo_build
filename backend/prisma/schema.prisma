@@ -15,6 +15,13 @@ enum UserRole {
   MODERATOR
 }
 
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  SENT
+  FAILED
+}
+
 model User {
   id            String        @id @default(uuid())
   telegramId    BigInt        @unique
@@ -32,6 +39,8 @@ model User {
   referredBy    String?
   referralCount Int           @default(0)
   referralEarned Float        @default(0)
+  reputationScore Int         @default(50)
+  trustLevel      String      @default("STANDARD")
   language      String        @default("en")
   theme         String        @default("dark")
   createdAt     DateTime      @default(now())
@@ -41,6 +50,7 @@ model User {
   listings      Listing[]
   orders        Order[]
   subscription  Subscription?
+  withdrawals   WithdrawalRequest[]
 }
 
 model Task {
@@ -49,9 +59,19 @@ model Task {
   description String
   category    String
   verificationType String @default("MANUAL")
+  verificationPolicy Json?
   reward      Float
   timeMinutes Int
   brand       String
+  sponsorName String?
+  sponsorType String?
+  kpiName     String?
+  kpiTarget   Float?
+  kpiUnit     String?
+  audienceRules Json?
+  cooldownSeconds Int      @default(0)
+  minReputation Int        @default(0)
+  minAccountAgeDays Int    @default(0)
   brandLogo   String?
   isActive    Boolean    @default(true)
   totalSlots  Int        @default(100)
@@ -67,6 +87,10 @@ model UserTask {
   taskId      String
   status      String    @default("PENDING")
   proof       String?
+  proofData   Json?
+  deviceFingerprint String?
+  riskScore   Int       @default(0)
+  riskFlags   String[]  @default([])
   submittedAt DateTime?
   reviewedAt  DateTime?
   reviewNote  String?
@@ -114,6 +138,28 @@ model Transaction {
   meta          Json?
   createdAt     DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id])
+}
+
+model WithdrawalRequest {
+  id             String           @id @default(uuid())
+  userId         String
+  tonAddress     String
+  grossAmount    Float
+  feeAmount      Float
+  netAmount      Float
+  status         WithdrawalStatus @default(PENDING)
+  idempotencyKey String
+  externalTxId   String?
+  failureReason  String?
+  approvedAt     DateTime?
+  sentAt         DateTime?
+  failedAt       DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id])
+
+  @@unique([userId, idempotencyKey])
+  @@index([status, createdAt])
 }
 
 model Subscription {

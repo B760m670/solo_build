@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronRightIcon, SunIcon, MoonIcon, WalletIcon } from '../components/Icons';
 import { toggleTheme, getTheme } from '../hooks/useTheme';
 import { useUser, useUpdateUser } from '../hooks/useUser';
@@ -9,6 +9,7 @@ import { useCreateInvoice } from '../hooks/usePayments';
 import { ProfileSkeleton } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
 import { useTranslation, type Lang } from '../lib/i18n';
+import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 
 type Modal = null | 'referrals' | 'premium' | 'withdraw' | 'wallet' | 'language' | 'about';
 
@@ -302,7 +303,14 @@ function WithdrawModal({ onClose, balance, tonWallet }: { onClose: () => void; b
 
   const handleSubmit = () => {
     if (!isValid) return;
-    withdraw.mutate({ tonAddress: address, amount: numAmount }, { onSuccess: () => setSuccess(true) });
+    withdraw.mutate(
+      {
+        tonAddress: address,
+        amount: numAmount,
+        idempotencyKey: `wd_${Date.now()}_${Math.round(numAmount * 100)}`,
+      },
+      { onSuccess: () => setSuccess(true) },
+    );
   };
 
   if (success) {
@@ -356,9 +364,16 @@ function WithdrawModal({ onClose, balance, tonWallet }: { onClose: () => void; b
 
 function WalletConnectModal({ onClose, tonWallet }: { onClose: () => void; tonWallet: string | null }) {
   const { t } = useTranslation();
-  const [address, setAddress] = useState('');
+  const [tonConnectUI] = useTonConnectUI();
+  const walletAddress = useTonAddress();
   const connect = useConnectWallet();
   const disconnect = useDisconnectWallet();
+
+  useEffect(() => {
+    if (walletAddress && !tonWallet && !connect.isPending) {
+      connect.mutate(walletAddress, { onSuccess: onClose });
+    }
+  }, [walletAddress, tonWallet, connect, onClose]);
 
   if (tonWallet) {
     return (
@@ -379,11 +394,23 @@ function WalletConnectModal({ onClose, tonWallet }: { onClose: () => void; tonWa
   return (
     <BottomSheet onClose={onClose} title={t('connectTonWallet')}>
       <div className="space-y-3">
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('connectWalletDesc')}</p>
-        <input type="text" placeholder={t('tonPlaceholder')} value={address} onChange={(e) => setAddress(e.target.value)} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('connectWalletDescTonConnect')}</p>
+        {walletAddress ? (
+          <div className="rounded-btn p-3 border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
+            <p className="text-[10px] mb-1" style={{ color: 'var(--text-muted)' }}>{t('connectedWallet')}</p>
+            <p className="text-xs break-all font-mono" style={{ color: 'var(--teal)' }}>{walletAddress}</p>
+          </div>
+        ) : null}
         {connect.isError && <p className="text-[11px]" style={{ color: '#FF3B30' }}>{connect.error.message}</p>}
-        <button onClick={() => { if (address.trim()) connect.mutate(address.trim(), { onSuccess: onClose }); }} disabled={!address.trim() || connect.isPending} className="w-full py-2.5 text-sm font-medium rounded-btn" style={{ backgroundColor: address.trim() ? 'var(--accent)' : 'var(--surface2)', color: address.trim() ? '#FFFFFF' : 'var(--text-muted)', border: 'none', cursor: address.trim() ? 'pointer' : 'default' }}>
-          {connect.isPending ? t('connecting2') : t('connect')}
+        <button
+          onClick={async () => {
+            await tonConnectUI.openModal();
+          }}
+          disabled={connect.isPending}
+          className="w-full py-2.5 text-sm font-medium rounded-btn"
+          style={{ backgroundColor: 'var(--accent)', color: '#FFFFFF', border: 'none', cursor: 'pointer' }}
+        >
+          {connect.isPending ? t('connecting2') : t('connectViaTonConnect')}
         </button>
       </div>
     </BottomSheet>

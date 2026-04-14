@@ -8,6 +8,7 @@ type TxClient = Prisma.TransactionClient;
 
 const WITHDRAWAL_FEE_RATE = 0.05;
 const MIN_WITHDRAWAL = 100;
+const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
 
 @Injectable()
 export class WalletService {
@@ -82,7 +83,12 @@ export class WalletService {
     return { tonWallet: null };
   }
 
-  async withdraw(userId: string, tonAddress: string, amount: number) {
+  async withdraw(
+    userId: string,
+    tonAddress: string,
+    amount: number,
+    idempotencyKey?: string,
+  ) {
     if (amount < MIN_WITHDRAWAL) {
       throw new BadRequestException(`Minimum withdrawal is ${MIN_WITHDRAWAL} BRB`);
     }
@@ -91,7 +97,28 @@ export class WalletService {
       throw new BadRequestException('Invalid TON address format');
     }
 
+    const normalizedKey = (idempotencyKey?.trim() || `auto_${Date.now()}_${amount}`)
+      .slice(0, 128);
+
     return this.prisma.$transaction(async (tx: TxClient) => {
+      const existing = await tx.withdrawalRequest.findFirst({
+        where: {
+          userId,
+          idempotencyKey: normalizedKey,
+          createdAt: { gte: new Date(Date.now() - IDEMPOTENCY_TTL_MS) },
+        },
+      });
+      if (existing) {
+        return {
+          netAmount: existing.netAmount,
+          fee: existing.feeAmount,
+          tonAddress: existing.tonAddress,
+          status: existing.status,
+          txId: existing.externalTxId ?? existing.id,
+          withdrawalId: existing.id,
+        };
+      }
+
       const user = await tx.user.findUniqueOrThrow({
         where: { id: userId },
       });
@@ -130,14 +157,80 @@ export class WalletService {
         },
       });
 
-      // Queue withdrawal for processing
-      const result = await this.tonService.createWithdrawalRequest(
-        userId,
-        tonAddress,
-        netAmount,
-      );
+      const request = await tx.withdrawalRequest.create({
+        data: {
+          userId,
+          tonAddress,
+          grossAmount: amount,
+          feeAmount: fee,
+          netAmount,
+          status: 'PENDING',
+          idempotencyKey: normalizedKey,
+        },
+      });
 
-      return { netAmount, fee, tonAddress, status: result.status, txId: result.txId };
+      return {
+        netAmount,
+        fee,
+        tonAddress,
+        status: request.status,
+        txId: request.id,
+        withdrawalId: request.id,
+      };
+    });
+  }
+
+  async listWithdrawalQueue(status?: 'PENDING' | 'APPROVED' | 'SENT' | 'FAILED', limit = 50) {
+    return this.prisma.withdrawalRequest.findMany({
+      where: status ? { status } : undefined,
+      include: {
+        user: {
+          select: { id: true, telegramId: true, username: true, firstName: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async approveWithdrawal(withdrawalId: string) {
+    return this.prisma.withdrawalRequest.update({
+      where: { id: withdrawalId },
+      data: { status: 'APPROVED', approvedAt: new Date(), failureReason: null },
+    });
+  }
+
+  async markWithdrawalFailed(withdrawalId: string, reason?: string) {
+    return this.prisma.withdrawalRequest.update({
+      where: { id: withdrawalId },
+      data: {
+        status: 'FAILED',
+        failureReason: reason?.trim() || 'Unknown failure',
+        failedAt: new Date(),
+      },
+    });
+  }
+
+  async sendApprovedWithdrawal(withdrawalId: string) {
+    return this.prisma.$transaction(async (tx: TxClient) => {
+      const request = await tx.withdrawalRequest.findUniqueOrThrow({ where: { id: withdrawalId } });
+      if (request.status !== 'APPROVED') {
+        throw new BadRequestException('Withdrawal must be APPROVED before sending');
+      }
+      const result = await this.tonService.createWithdrawalRequest(
+        request.userId,
+        request.tonAddress,
+        request.netAmount,
+      );
+      return tx.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: 'SENT',
+          externalTxId: result.txId,
+          sentAt: new Date(),
+          failureReason: null,
+        },
+      });
     });
   }
 }

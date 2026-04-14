@@ -53,7 +53,7 @@ export function useDisconnectWallet() {
 export function useWithdraw() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { tonAddress: string; amount: number }) =>
+    mutationFn: (data: { tonAddress: string; amount: number; idempotencyKey?: string }) =>
       api.post<{ netAmount: number; fee: number; status: string; txId: string }>(
         '/wallet/withdraw',
         data,

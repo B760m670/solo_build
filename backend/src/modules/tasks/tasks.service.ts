@@ -8,6 +8,12 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 
 type TxClient = Prisma.TransactionClient;
+type ProofData = {
+  text?: string;
+  link?: string;
+  screenshotUrl?: string;
+  metadata?: Record<string, unknown>;
+};
 
 const USER_TASK_STATUS = {
   PENDING: 'PENDING',
@@ -72,22 +78,45 @@ export class TasksService {
     totalSlots?: number;
     expiresAt?: string;
     verificationType?: string;
+    verificationPolicy?: Record<string, unknown> | null;
+    sponsorName?: string;
+    sponsorType?: string;
+    kpiName?: string;
+    kpiTarget?: number;
+    kpiUnit?: string;
+    audienceRules?: Record<string, unknown> | null;
+    cooldownSeconds?: number;
+    minReputation?: number;
+    minAccountAgeDays?: number;
   }) {
-    return this.prisma.task.create({
-      data: {
-        title: data.title,
-        description: data.description,
-        category: data.category,
-        verificationType: data.verificationType ?? TASK_VERIFICATION.MANUAL,
-        reward: data.reward,
-        timeMinutes: data.timeMinutes,
-        brand: data.brand,
-        brandLogo: data.brandLogo ?? null,
-        isActive: data.isActive ?? true,
-        totalSlots: data.totalSlots ?? 100,
-        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
-      },
-    });
+    const createData: Prisma.TaskCreateInput = {
+      title: data.title,
+      description: data.description,
+      category: data.category,
+      verificationType: data.verificationType ?? TASK_VERIFICATION.MANUAL,
+      reward: data.reward,
+      timeMinutes: data.timeMinutes,
+      brand: data.brand,
+      sponsorName: data.sponsorName ?? null,
+      sponsorType: data.sponsorType ?? null,
+      kpiName: data.kpiName ?? null,
+      kpiTarget: data.kpiTarget ?? null,
+      kpiUnit: data.kpiUnit ?? null,
+      cooldownSeconds: data.cooldownSeconds ?? 0,
+      minReputation: data.minReputation ?? 0,
+      minAccountAgeDays: data.minAccountAgeDays ?? 0,
+      brandLogo: data.brandLogo ?? null,
+      isActive: data.isActive ?? true,
+      totalSlots: data.totalSlots ?? 100,
+      expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+    };
+    if (data.verificationPolicy) {
+      createData.verificationPolicy = data.verificationPolicy as Prisma.InputJsonValue;
+    }
+    if (data.audienceRules) {
+      createData.audienceRules = data.audienceRules as Prisma.InputJsonValue;
+    }
+    return this.prisma.task.create({ data: createData });
   }
 
   async adminUpdate(taskId: string, data: {
@@ -103,6 +132,16 @@ export class TasksService {
     filledSlots?: number;
     expiresAt?: string | null;
     verificationType?: string;
+    verificationPolicy?: Record<string, unknown> | null;
+    sponsorName?: string;
+    sponsorType?: string;
+    kpiName?: string;
+    kpiTarget?: number;
+    kpiUnit?: string;
+    audienceRules?: Record<string, unknown> | null;
+    cooldownSeconds?: number;
+    minReputation?: number;
+    minAccountAgeDays?: number;
   }) {
     await this.findById(taskId);
 
@@ -113,9 +152,19 @@ export class TasksService {
         ...(typeof data.description === 'string' ? { description: data.description } : {}),
         ...(typeof data.category === 'string' ? { category: data.category } : {}),
         ...(typeof data.verificationType === 'string' ? { verificationType: data.verificationType } : {}),
+        ...(data.verificationPolicy ? { verificationPolicy: data.verificationPolicy as Prisma.InputJsonValue } : {}),
         ...(typeof data.reward === 'number' ? { reward: data.reward } : {}),
         ...(typeof data.timeMinutes === 'number' ? { timeMinutes: data.timeMinutes } : {}),
         ...(typeof data.brand === 'string' ? { brand: data.brand } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'sponsorName') ? { sponsorName: data.sponsorName ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'sponsorType') ? { sponsorType: data.sponsorType ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'kpiName') ? { kpiName: data.kpiName ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'kpiTarget') ? { kpiTarget: data.kpiTarget ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'kpiUnit') ? { kpiUnit: data.kpiUnit ?? null } : {}),
+        ...(data.audienceRules ? { audienceRules: data.audienceRules as Prisma.InputJsonValue } : {}),
+        ...(typeof data.cooldownSeconds === 'number' ? { cooldownSeconds: data.cooldownSeconds } : {}),
+        ...(typeof data.minReputation === 'number' ? { minReputation: data.minReputation } : {}),
+        ...(typeof data.minAccountAgeDays === 'number' ? { minAccountAgeDays: data.minAccountAgeDays } : {}),
         ...(typeof data.brandLogo === 'string' ? { brandLogo: data.brandLogo } : {}),
         ...(typeof data.isActive === 'boolean' ? { isActive: data.isActive } : {}),
         ...(typeof data.totalSlots === 'number' ? { totalSlots: data.totalSlots } : {}),
@@ -125,6 +174,66 @@ export class TasksService {
           : {}),
       },
     });
+  }
+
+  private async computeRisk(userId: string, task: { reward: number }, deviceFingerprint?: string): Promise<{ score: number; flags: string[] }> {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const flags: string[] = [];
+    let score = 0;
+
+    const accountAgeMs = Date.now() - new Date(user.createdAt).getTime();
+    if (accountAgeMs < 3 * 24 * 60 * 60 * 1000) {
+      score += 25;
+      flags.push('NEW_ACCOUNT');
+    }
+    if (!user.tonWallet) {
+      score += 10;
+      flags.push('NO_WALLET_LINKED');
+    }
+    if (task.reward >= 100) {
+      score += 20;
+      flags.push('HIGH_PAYOUT_TASK');
+    }
+    if (deviceFingerprint) {
+      const otherUsersWithDevice = await this.prisma.userTask.count({
+        where: { deviceFingerprint, NOT: { userId } },
+      });
+      if (otherUsersWithDevice > 0) {
+        score += 30;
+        flags.push('SHARED_DEVICE_FINGERPRINT');
+      }
+    }
+
+    return { score, flags };
+  }
+
+  private async enforceTaskEligibility(userId: string, task: { id: string; category: string; cooldownSeconds: number; minReputation: number; minAccountAgeDays: number }) {
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (user.reputationScore < task.minReputation) {
+      throw new BadRequestException('Reputation too low for this task');
+    }
+
+    const accountAgeDays = (Date.now() - new Date(user.createdAt).getTime()) / (24 * 60 * 60 * 1000);
+    if (accountAgeDays < task.minAccountAgeDays) {
+      throw new BadRequestException('Account is too new for this task');
+    }
+
+    if (task.cooldownSeconds > 0) {
+      const latestSameCategory = await this.prisma.userTask.findFirst({
+        where: {
+          userId,
+          task: { category: task.category },
+          status: { in: [USER_TASK_STATUS.ACTIVE, USER_TASK_STATUS.SUBMITTED, USER_TASK_STATUS.COMPLETED] },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+      if (latestSameCategory) {
+        const elapsedSeconds = (Date.now() - new Date(latestSameCategory.createdAt).getTime()) / 1000;
+        if (elapsedSeconds < task.cooldownSeconds) {
+          throw new BadRequestException('Task category cooldown is active');
+        }
+      }
+    }
   }
 
   private async userMeetsAutoCondition(userId: string, verificationType: string): Promise<boolean> {
@@ -250,6 +359,7 @@ export class TasksService {
     if (task.filledSlots >= task.totalSlots) {
       throw new BadRequestException('No slots available');
     }
+    await this.enforceTaskEligibility(userId, task);
 
     const maxActive = readIntEnv('MAX_ACTIVE_TASKS_PER_USER', 3);
     const activeCount = await this.prisma.userTask.count({
@@ -324,7 +434,7 @@ export class TasksService {
     }
   }
 
-  async complete(userId: string, taskId: string, proof: string) {
+  async complete(userId: string, taskId: string, proof: string, proofData?: ProofData, deviceFingerprint?: string) {
     const userTask = await this.prisma.userTask.findUnique({
       where: { userId_taskId: { userId, taskId } },
     });
@@ -341,12 +451,31 @@ export class TasksService {
       throw new BadRequestException('Task expired');
     }
 
+    const policy = task.verificationPolicy as
+      | { proofType?: string; requiredFields?: string[]; autoCheckRules?: string[]; minTextLength?: number }
+      | null;
+    if (policy?.minTextLength && proof.trim().length < policy.minTextLength) {
+      throw new BadRequestException('Proof text is too short');
+    }
+    for (const requiredField of policy?.requiredFields ?? []) {
+      const value = proofData?.[requiredField as keyof ProofData];
+      if (value === undefined || value === null || value === '') {
+        throw new BadRequestException(`Missing required proof field: ${requiredField}`);
+      }
+    }
+
+    const risk = await this.computeRisk(userId, task, deviceFingerprint);
+
     // Submit for review. Reward is granted only after admin approval.
     await this.prisma.userTask.update({
       where: { id: userTask.id },
       data: {
         status: USER_TASK_STATUS.SUBMITTED,
         proof,
+        proofData: (proofData as Prisma.InputJsonValue) ?? null,
+        deviceFingerprint: deviceFingerprint ?? null,
+        riskScore: risk.score,
+        riskFlags: risk.flags,
         submittedAt: new Date(),
         completedAt: new Date(),
       },
@@ -457,6 +586,7 @@ export class TasksService {
         data: {
           brbBalance: { increment: task.reward },
           totalEarned: { increment: task.reward },
+          reputationScore: { increment: 1 },
         },
       });
 
@@ -509,6 +639,10 @@ export class TasksService {
         reviewedAt: new Date(),
         reviewNote: reason?.trim() ? reason.trim().slice(0, 500) : null,
       },
+    });
+    await this.prisma.user.update({
+      where: { id: userTask.userId },
+      data: { reputationScore: { decrement: 2 } },
     });
 
     // Fire and forget

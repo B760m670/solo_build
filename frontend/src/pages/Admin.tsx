@@ -36,6 +36,15 @@ function Admin({ onBack }: { onBack: () => void }) {
     reward: '10',
     timeMinutes: '5',
     brand: 'Brabble',
+    sponsorName: '',
+    sponsorType: 'PLATFORM',
+    kpiName: '',
+    kpiTarget: '',
+    kpiUnit: '',
+    minReputation: '0',
+    minAccountAgeDays: '0',
+    cooldownSeconds: '0',
+    requiredProofFields: 'text',
     totalSlots: '100',
     expiresAt: '',
     isActive: true,
@@ -347,6 +356,21 @@ function Admin({ onBack }: { onBack: () => void }) {
                 </select>
                 <input value={taskForm.brand} onChange={(e) => setTaskForm((s) => ({ ...s, brand: e.target.value }))} placeholder={t('brand')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <input value={taskForm.sponsorName} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorName: e.target.value }))} placeholder="Sponsor name" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.sponsorType} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorType: e.target.value }))} placeholder="Sponsor type" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <input value={taskForm.kpiName} onChange={(e) => setTaskForm((s) => ({ ...s, kpiName: e.target.value }))} placeholder="KPI name" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.kpiTarget} onChange={(e) => setTaskForm((s) => ({ ...s, kpiTarget: e.target.value }))} placeholder="KPI target" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.kpiUnit} onChange={(e) => setTaskForm((s) => ({ ...s, kpiUnit: e.target.value }))} placeholder="KPI unit" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <input value={taskForm.minReputation} onChange={(e) => setTaskForm((s) => ({ ...s, minReputation: e.target.value }))} placeholder="Min rep" inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.minAccountAgeDays} onChange={(e) => setTaskForm((s) => ({ ...s, minAccountAgeDays: e.target.value }))} placeholder="Min age days" inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+                <input value={taskForm.cooldownSeconds} onChange={(e) => setTaskForm((s) => ({ ...s, cooldownSeconds: e.target.value }))} placeholder="Cooldown sec" inputMode="numeric" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
+              <input value={taskForm.requiredProofFields} onChange={(e) => setTaskForm((s) => ({ ...s, requiredProofFields: e.target.value }))} placeholder="Required proof fields (comma separated)" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
               <select value={taskForm.verificationType} onChange={(e) => setTaskForm((s) => ({ ...s, verificationType: e.target.value }))} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }}>
                 <option value="MANUAL">{t('verifyManual')}</option>
                 <option value="AUTO_CONNECT_WALLET">{t('verifyWallet')}</option>
@@ -372,6 +396,20 @@ function Admin({ onBack }: { onBack: () => void }) {
                     reward: parseFloat(taskForm.reward) || 0,
                     timeMinutes: parseInt(taskForm.timeMinutes, 10) || 1,
                     brand: taskForm.brand.trim() || 'Brabble',
+                    sponsorName: taskForm.sponsorName.trim() || undefined,
+                    sponsorType: taskForm.sponsorType.trim() || undefined,
+                    kpiName: taskForm.kpiName.trim() || undefined,
+                    kpiTarget: taskForm.kpiTarget.trim() ? parseFloat(taskForm.kpiTarget) : undefined,
+                    kpiUnit: taskForm.kpiUnit.trim() || undefined,
+                    minReputation: parseInt(taskForm.minReputation, 10) || 0,
+                    minAccountAgeDays: parseInt(taskForm.minAccountAgeDays, 10) || 0,
+                    cooldownSeconds: parseInt(taskForm.cooldownSeconds, 10) || 0,
+                    verificationPolicy: {
+                      proofType: 'TEXT' as const,
+                      requiredFields: taskForm.requiredProofFields.split(',').map((x) => x.trim()).filter(Boolean),
+                      autoCheckRules: [],
+                      minTextLength: 10,
+                    },
                     totalSlots: parseInt(taskForm.totalSlots, 10) || 100,
                     expiresAt: taskForm.expiresAt.trim() ? taskForm.expiresAt.trim() : undefined,
                     isActive: taskForm.isActive,

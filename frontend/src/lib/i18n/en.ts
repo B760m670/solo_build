@@ -174,8 +174,10 @@ const en = {
   disconnecting: 'Disconnecting...',
   disconnectWallet: 'Disconnect wallet',
   connectWalletDesc: 'Enter your TON wallet address to receive BRB withdrawals.',
+  connectWalletDescTonConnect: 'Connect your wallet using TON Connect to link a verified address.',
   connecting2: 'Connecting...',
   connect: 'Connect',
+  connectViaTonConnect: 'Connect via TON Connect',
 
   // Admin
   platformStats: 'Platform statistics',

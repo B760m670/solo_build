@@ -45,8 +45,22 @@ export function useStartTask() {
 export function useCompleteTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ taskId, proof }: { taskId: string; proof: string }) =>
-      api.post<{ status: string }>(`/tasks/${taskId}/complete`, { proof }),
+    mutationFn: ({
+      taskId,
+      proof,
+      proofData,
+      deviceFingerprint,
+    }: {
+      taskId: string;
+      proof: string;
+      proofData?: Record<string, unknown>;
+      deviceFingerprint?: string;
+    }) =>
+      api.post<{ status: string }>(`/tasks/${taskId}/complete`, {
+        proof,
+        proofData,
+        deviceFingerprint,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['tasks'] });
       qc.invalidateQueries({ queryKey: ['userTasks'] });

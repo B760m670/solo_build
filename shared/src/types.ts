@@ -29,15 +29,32 @@ export interface Task {
   description: string;
   category: TaskCategory;
   verificationType?: 'MANUAL' | 'AUTO_CONNECT_WALLET' | 'AUTO_FIRST_LISTING' | 'AUTO_FIRST_PURCHASE';
+  verificationPolicy: VerificationPolicy | null;
   reward: number;
   timeMinutes: number;
   brand: string;
+  sponsorName: string | null;
+  sponsorType: string | null;
+  kpiName: string | null;
+  kpiTarget: number | null;
+  kpiUnit: string | null;
+  audienceRules: Record<string, unknown> | null;
+  cooldownSeconds: number;
+  minReputation: number;
+  minAccountAgeDays: number;
   brandLogo: string | null;
   isActive: boolean;
   totalSlots: number;
   filledSlots: number;
   expiresAt: string | null;
   createdAt: string;
+}
+
+export interface VerificationPolicy {
+  proofType: 'TEXT' | 'LINK' | 'SCREENSHOT_URL' | 'JSON';
+  requiredFields: string[];
+  autoCheckRules: string[];
+  minTextLength?: number;
 }
 
 export type TaskCategory = 'survey' | 'review' | 'test' | 'subscribe';
@@ -48,12 +65,23 @@ export interface UserTask {
   taskId: string;
   status: UserTaskStatus;
   proof: string | null;
+  proofData: TaskProofData | null;
+  deviceFingerprint?: string | null;
+  riskScore?: number;
+  riskFlags?: string[];
   submittedAt?: string | null;
   reviewedAt?: string | null;
   reviewNote?: string | null;
   completedAt: string | null;
   createdAt: string;
   task?: Task;
+}
+
+export interface TaskProofData {
+  text?: string;
+  link?: string;
+  screenshotUrl?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export type UserTaskStatus =
@@ -117,6 +145,26 @@ export interface WalletInfo {
   balance: number;
   totalEarned: number;
   recentTransactions: Transaction[];
+}
+
+export type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'SENT' | 'FAILED';
+
+export interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  tonAddress: string;
+  grossAmount: number;
+  feeAmount: number;
+  netAmount: number;
+  status: WithdrawalStatus;
+  idempotencyKey: string;
+  externalTxId: string | null;
+  failureReason: string | null;
+  approvedAt: string | null;
+  sentAt: string | null;
+  failedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // ─── Subscription ────────────────────────────────────

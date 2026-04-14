@@ -46,6 +46,6 @@ export class TasksController {
     @Param('id') taskId: string,
     @Body() dto: CompleteTaskDto,
   ) {
-    return this.tasksService.complete(userId, taskId, dto.proof);
+    return this.tasksService.complete(userId, taskId, dto.proof, dto.proofData, dto.deviceFingerprint);
   }
 }

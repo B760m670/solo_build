@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@tanstack/react-query": "^5.28.0",
+    "@tonconnect/ui-react": "^2.4.4",
     "@twa-dev/sdk": "^7.2.0",
     "framer-motion": "^11.0.0",
     "react": "^18.2.0",

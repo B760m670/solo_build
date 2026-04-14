@@ -176,8 +176,10 @@ const ru: Record<TranslationKeys, string> = {
   disconnecting: 'Отключение...',
   disconnectWallet: 'Отключить кошелёк',
   connectWalletDesc: 'Введите адрес вашего TON кошелька для получения BRB.',
+  connectWalletDescTonConnect: 'Подключите кошелек через TON Connect для привязки верифицированного адреса.',
   connecting2: 'Подключение...',
   connect: 'Подключить',
+  connectViaTonConnect: 'Подключить через TON Connect',
 
   // Admin
   platformStats: 'Статистика платформы',

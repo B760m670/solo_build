@@ -72,9 +72,23 @@ export function useAdminCreateTask() {
       description: string;
       category: string;
       verificationType?: string;
+      verificationPolicy?: {
+        proofType: 'TEXT' | 'LINK' | 'SCREENSHOT_URL' | 'JSON';
+        requiredFields: string[];
+        autoCheckRules: string[];
+        minTextLength?: number;
+      };
       reward: number;
       timeMinutes: number;
       brand: string;
+      sponsorName?: string;
+      sponsorType?: string;
+      kpiName?: string;
+      kpiTarget?: number;
+      kpiUnit?: string;
+      minReputation?: number;
+      minAccountAgeDays?: number;
+      cooldownSeconds?: number;
       totalSlots?: number;
       expiresAt?: string;
       isActive?: boolean;
