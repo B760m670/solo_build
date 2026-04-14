@@ -17,9 +17,10 @@
     "build:frontend": "npm run build -w frontend",
     "build:backend": "npm run build -w backend",
     "db:migrate": "npm run db:migrate -w backend",
+    "db:migrate:prod": "npm run db:migrate:prod -w backend",
     "db:seed": "npm run db:seed -w backend",
     "deploy:frontend": "cd frontend && npx vercel --prod",
-    "deploy:backend": "echo 'Deploy via Railway CLI or GitHub push'"
+    "deploy:backend": "echo 'Deploy via Railway/Render. For Render use backend build: npm run build:render and start: npm run start:render'"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^5.22.0",
