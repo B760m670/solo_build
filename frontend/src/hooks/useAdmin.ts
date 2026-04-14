@@ -37,6 +37,26 @@ interface AdminTaskSubmission {
   user: { id: string; telegramId: number; username: string | null; firstName: string; avatarUrl: string | null; brbBalance: number };
 }
 
+type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'SENT' | 'FAILED';
+
+interface AdminWithdrawal {
+  id: string;
+  userId: string;
+  tonAddress: string;
+  grossAmount: number;
+  feeAmount: number;
+  netAmount: number;
+  status: WithdrawalStatus;
+  idempotencyKey: string;
+  externalTxId: string | null;
+  failureReason: string | null;
+  approvedAt: string | null;
+  sentAt: string | null;
+  failedAt: string | null;
+  createdAt: string;
+  user: { id: string; telegramId: number; username: string | null; firstName: string };
+}
+
 export function useAdminDashboard() {
   return useQuery({
     queryKey: ['admin', 'dashboard'],
@@ -139,6 +159,52 @@ export function useAdminRejectSubmission() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
       qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+    },
+  });
+}
+
+export function useAdminWithdrawals(status?: WithdrawalStatus, limit = 50) {
+  const qs = new URLSearchParams();
+  if (status) qs.set('status', status);
+  qs.set('limit', String(limit));
+  const url = `/admin/withdrawals?${qs.toString()}`;
+
+  return useQuery({
+    queryKey: ['admin', 'withdrawals', status, limit],
+    queryFn: () => api.get<AdminWithdrawal[]>(url),
+    enabled: !!getAuthToken(),
+    retry: false,
+    refetchInterval: 15000,
+  });
+}
+
+export function useAdminApproveWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (withdrawalId: string) => api.post(`/admin/withdrawals/${withdrawalId}/approve`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
+    },
+  });
+}
+
+export function useAdminSendWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (withdrawalId: string) => api.post(`/admin/withdrawals/${withdrawalId}/send`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
+    },
+  });
+}
+
+export function useAdminFailWithdrawal() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ withdrawalId, reason }: { withdrawalId: string; reason?: string }) =>
+      api.post(`/admin/withdrawals/${withdrawalId}/fail`, { reason }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
     },
   });
 }

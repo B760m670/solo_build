@@ -227,6 +227,12 @@ const ru: Record<TranslationKeys, string> = {
   rejectReasonTitle: 'Отклонить заявку',
   rejectReasonDesc: 'Добавьте короткую причину, чтобы пользователь мог исправить и отправить снова.',
   rejectReasonPlaceholder: 'Причина (необязательно)...',
+  withdrawalsQueue: 'Очередь выводов',
+  allStatuses: 'Все статусы',
+  noWithdrawals: 'Выводов пока нет',
+  sent: 'Отправлено',
+  fail: 'Пометить ошибкой',
+  failed: 'Ошибка',
 
   // Error
   failedLoadWallet: 'Не удалось загрузить кошелёк',

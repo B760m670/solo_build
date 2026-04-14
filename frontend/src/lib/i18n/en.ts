@@ -225,6 +225,12 @@ const en = {
   rejectReasonTitle: 'Reject submission',
   rejectReasonDesc: 'Add a short reason to help the user fix and resubmit.',
   rejectReasonPlaceholder: 'Reason (optional)...',
+  withdrawalsQueue: 'Withdrawals queue',
+  allStatuses: 'All statuses',
+  noWithdrawals: 'No withdrawals found',
+  sent: 'Sent',
+  fail: 'Fail',
+  failed: 'Failed',
 
   // Error
   failedLoadWallet: 'Failed to load wallet',

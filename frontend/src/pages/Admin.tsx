@@ -1,5 +1,18 @@
-import { useState } from 'react';
-import { useAdminApproveSubmission, useAdminCreateTask, useAdminDashboard, useAdminRejectSubmission, useAdminTaskSubmissions, useAdminTasks, useAdminToggleTask, useAdminUsers } from '../hooks/useAdmin';
+import { useEffect, useState } from 'react';
+import {
+  useAdminApproveSubmission,
+  useAdminApproveWithdrawal,
+  useAdminCreateTask,
+  useAdminDashboard,
+  useAdminFailWithdrawal,
+  useAdminRejectSubmission,
+  useAdminSendWithdrawal,
+  useAdminTaskSubmissions,
+  useAdminTasks,
+  useAdminToggleTask,
+  useAdminUsers,
+  useAdminWithdrawals,
+} from '../hooks/useAdmin';
 import ErrorState from '../components/ErrorState';
 import Skeleton from '../components/Skeleton';
 import { useTranslation } from '../lib/i18n';
@@ -24,6 +37,11 @@ function Admin({ onBack }: { onBack: () => void }) {
   const submissions = useAdminTaskSubmissions();
   const approve = useAdminApproveSubmission();
   const reject = useAdminRejectSubmission();
+  const [withdrawalStatus, setWithdrawalStatus] = useState<'PENDING' | 'APPROVED' | 'SENT' | 'FAILED' | undefined>(undefined);
+  const withdrawals = useAdminWithdrawals(withdrawalStatus);
+  const approveWithdrawal = useAdminApproveWithdrawal();
+  const sendWithdrawal = useAdminSendWithdrawal();
+  const failWithdrawal = useAdminFailWithdrawal();
   const [rejectModalId, setRejectModalId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
   const [toast, setToast] = useState<string | null>(null);
@@ -49,6 +67,12 @@ function Admin({ onBack }: { onBack: () => void }) {
     expiresAt: '',
     isActive: true,
   });
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(null), 2500);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   if (dashboard.isError) {
     return <ErrorState message={t('adminRequired')} onRetry={onBack} />;
@@ -261,6 +285,93 @@ function Admin({ onBack }: { onBack: () => void }) {
               </div>
             ) : (
               <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('noSubmissions')}</p>
+            )}
+          </div>
+
+          {/* Withdrawals Queue */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('withdrawalsQueue')}</p>
+              <select
+                value={withdrawalStatus ?? ''}
+                onChange={(e) => setWithdrawalStatus((e.target.value || undefined) as typeof withdrawalStatus)}
+                className="px-2 py-1 text-[11px] rounded-btn border"
+                style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }}
+              >
+                <option value="">{t('allStatuses')}</option>
+                <option value="PENDING">PENDING</option>
+                <option value="APPROVED">APPROVED</option>
+                <option value="SENT">SENT</option>
+                <option value="FAILED">FAILED</option>
+              </select>
+            </div>
+            {withdrawals.isLoading ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => <Skeleton key={i} height={64} rounded="card" />)}
+              </div>
+            ) : withdrawals.data && withdrawals.data.length > 0 ? (
+              <div className="rounded-card border overflow-hidden" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
+                {withdrawals.data.map((w, i) => (
+                  <div
+                    key={w.id}
+                    className="px-3 py-2.5"
+                    style={{ borderBottom: i < withdrawals.data!.length - 1 ? '1px solid var(--border)' : 'none' }}
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>
+                          {w.user.username ? `@${w.user.username}` : w.user.firstName} • {w.netAmount.toFixed(2)} BRB
+                        </p>
+                        <p className="text-[10px] font-mono truncate" style={{ color: 'var(--text-muted)' }}>{w.tonAddress}</p>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          {w.status} • {new Date(w.createdAt).toLocaleString()}
+                        </p>
+                        {w.externalTxId && (
+                          <p className="text-[10px] font-mono truncate" style={{ color: 'var(--teal)' }}>
+                            TX: {w.externalTxId}
+                          </p>
+                        )}
+                        {w.failureReason && (
+                          <p className="text-[10px]" style={{ color: '#FF3B30' }}>
+                            {w.failureReason}
+                          </p>
+                        )}
+                      </div>
+                      <div className="shrink-0 flex gap-2">
+                        {w.status === 'PENDING' && (
+                          <button
+                            onClick={() => approveWithdrawal.mutate(w.id, { onSuccess: () => setToast(t('approved')) })}
+                            className="px-3 py-1.5 text-[11px] font-medium rounded-btn"
+                            style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}
+                          >
+                            {t('approve')}
+                          </button>
+                        )}
+                        {w.status === 'APPROVED' && (
+                          <button
+                            onClick={() => sendWithdrawal.mutate(w.id, { onSuccess: () => setToast(t('sent')) })}
+                            className="px-3 py-1.5 text-[11px] font-medium rounded-btn"
+                            style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+                          >
+                            {t('send')}
+                          </button>
+                        )}
+                        {w.status !== 'FAILED' && w.status !== 'SENT' && (
+                          <button
+                            onClick={() => failWithdrawal.mutate({ withdrawalId: w.id, reason: 'Marked failed by admin' }, { onSuccess: () => setToast(t('failed')) })}
+                            className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
+                            style={{ borderColor: '#FF3B30', color: '#FF3B30', background: 'transparent', cursor: 'pointer' }}
+                          >
+                            {t('fail')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('noWithdrawals')}</p>
             )}
           </div>
         </>
