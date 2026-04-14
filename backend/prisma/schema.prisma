@@ -65,6 +65,9 @@ model Task {
   brand       String
   sponsorName String?
   sponsorType String?
+  sponsorBudgetCurrency String?
+  sponsorBudgetAmount   Float?
+  sponsorBudgetSpent    Float        @default(0)
   kpiName     String?
   kpiTarget   Float?
   kpiUnit     String?

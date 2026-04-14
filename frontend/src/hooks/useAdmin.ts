@@ -103,6 +103,8 @@ export function useAdminCreateTask() {
       brand: string;
       sponsorName?: string;
       sponsorType?: string;
+      sponsorBudgetCurrency?: 'TON' | 'STARS';
+      sponsorBudgetAmount?: number;
       kpiName?: string;
       kpiTarget?: number;
       kpiUnit?: string;

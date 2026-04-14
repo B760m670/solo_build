@@ -14,6 +14,10 @@ type ProofData = {
   screenshotUrl?: string;
   metadata?: Record<string, unknown>;
 };
+type BudgetSettlement = {
+  currency: 'TON' | 'STARS';
+  cost: number;
+};
 
 const USER_TASK_STATUS = {
   PENDING: 'PENDING',
@@ -81,6 +85,8 @@ export class TasksService {
     verificationPolicy?: Record<string, unknown> | null;
     sponsorName?: string;
     sponsorType?: string;
+    sponsorBudgetCurrency?: 'TON' | 'STARS';
+    sponsorBudgetAmount?: number;
     kpiName?: string;
     kpiTarget?: number;
     kpiUnit?: string;
@@ -99,6 +105,9 @@ export class TasksService {
       brand: data.brand,
       sponsorName: data.sponsorName ?? null,
       sponsorType: data.sponsorType ?? null,
+      sponsorBudgetCurrency: data.sponsorBudgetCurrency ?? null,
+      sponsorBudgetAmount: data.sponsorBudgetAmount ?? null,
+      sponsorBudgetSpent: 0,
       kpiName: data.kpiName ?? null,
       kpiTarget: data.kpiTarget ?? null,
       kpiUnit: data.kpiUnit ?? null,
@@ -135,6 +144,8 @@ export class TasksService {
     verificationPolicy?: Record<string, unknown> | null;
     sponsorName?: string;
     sponsorType?: string;
+    sponsorBudgetCurrency?: 'TON' | 'STARS';
+    sponsorBudgetAmount?: number;
     kpiName?: string;
     kpiTarget?: number;
     kpiUnit?: string;
@@ -158,6 +169,8 @@ export class TasksService {
         ...(typeof data.brand === 'string' ? { brand: data.brand } : {}),
         ...(Object.prototype.hasOwnProperty.call(data, 'sponsorName') ? { sponsorName: data.sponsorName ?? null } : {}),
         ...(Object.prototype.hasOwnProperty.call(data, 'sponsorType') ? { sponsorType: data.sponsorType ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'sponsorBudgetCurrency') ? { sponsorBudgetCurrency: data.sponsorBudgetCurrency ?? null } : {}),
+        ...(Object.prototype.hasOwnProperty.call(data, 'sponsorBudgetAmount') ? { sponsorBudgetAmount: data.sponsorBudgetAmount ?? null } : {}),
         ...(Object.prototype.hasOwnProperty.call(data, 'kpiName') ? { kpiName: data.kpiName ?? null } : {}),
         ...(Object.prototype.hasOwnProperty.call(data, 'kpiTarget') ? { kpiTarget: data.kpiTarget ?? null } : {}),
         ...(Object.prototype.hasOwnProperty.call(data, 'kpiUnit') ? { kpiUnit: data.kpiUnit ?? null } : {}),
@@ -172,6 +185,41 @@ export class TasksService {
         ...(Object.prototype.hasOwnProperty.call(data, 'expiresAt')
           ? { expiresAt: data.expiresAt ? new Date(String(data.expiresAt)) : null }
           : {}),
+      },
+    });
+  }
+
+  private getTaskSettlementCost(task: {
+    reward: number;
+    sponsorBudgetCurrency: string | null;
+  }): BudgetSettlement | null {
+    if (!task.sponsorBudgetCurrency) return null;
+    if (task.sponsorBudgetCurrency === 'TON') {
+      const rate = readFloatEnv('TASK_BRB_TO_TON_RATE', 0.01);
+      return { currency: 'TON', cost: task.reward * rate };
+    }
+    if (task.sponsorBudgetCurrency === 'STARS') {
+      const rate = readFloatEnv('TASK_BRB_TO_STARS_RATE', 1);
+      return { currency: 'STARS', cost: task.reward * rate };
+    }
+    return null;
+  }
+
+  private ensureTaskBudgetAndConsume(
+    tx: TxClient,
+    task: { id: string; sponsorBudgetAmount: number | null; sponsorBudgetSpent: number; sponsorBudgetCurrency: string | null },
+    settlement: BudgetSettlement | null,
+  ) {
+    if (!settlement || task.sponsorBudgetAmount === null) {
+      return Promise.resolve();
+    }
+    if (task.sponsorBudgetSpent + settlement.cost > task.sponsorBudgetAmount) {
+      throw new BadRequestException('Task sponsor budget exceeded');
+    }
+    return tx.task.update({
+      where: { id: task.id },
+      data: {
+        sponsorBudgetSpent: { increment: settlement.cost },
       },
     });
   }
@@ -290,6 +338,7 @@ export class TasksService {
       if (earnedToday + task.reward > maxDailyReward) {
         throw new BadRequestException('Daily task reward limit reached');
       }
+      const settlement = this.getTaskSettlementCost(task);
 
       await tx.userTask.update({
         where: { id: userTask.id },
@@ -305,6 +354,7 @@ export class TasksService {
         where: { id: task.id },
         data: { filledSlots: { increment: 1 } },
       });
+      await this.ensureTaskBudgetAndConsume(tx, task, settlement);
 
       await tx.user.update({
         where: { id: user.id },
@@ -321,7 +371,13 @@ export class TasksService {
           amount: task.reward,
           balanceBefore: user.brbBalance,
           balanceAfter: user.brbBalance + task.reward,
-          meta: { taskId: task.id, taskTitle: task.title, userTaskId: userTask.id, auto: true },
+          meta: {
+            taskId: task.id,
+            taskTitle: task.title,
+            userTaskId: userTask.id,
+            auto: true,
+            sponsorSettlement: settlement,
+          },
         },
       });
 
@@ -565,6 +621,7 @@ export class TasksService {
       if (earnedToday + task.reward > maxDailyReward) {
         throw new BadRequestException('Daily task reward limit reached');
       }
+      const settlement = this.getTaskSettlementCost(task);
 
       await tx.userTask.update({
         where: { id: userTaskId },
@@ -580,6 +637,7 @@ export class TasksService {
         where: { id: task.id },
         data: { filledSlots: { increment: 1 } },
       });
+      await this.ensureTaskBudgetAndConsume(tx, task, settlement);
 
       await tx.user.update({
         where: { id: user.id },
@@ -601,6 +659,7 @@ export class TasksService {
             taskId: task.id,
             taskTitle: task.title,
             userTaskId: userTaskId,
+            sponsorSettlement: settlement,
           },
         },
       });

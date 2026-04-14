@@ -118,6 +118,15 @@ export class CreateTaskDto {
   sponsorType?: string;
 
   @IsOptional()
+  @IsIn(['TON', 'STARS'])
+  sponsorBudgetCurrency?: 'TON' | 'STARS';
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  sponsorBudgetAmount?: number;
+
+  @IsOptional()
   @IsString()
   @MaxLength(120)
   kpiName?: string;
@@ -218,6 +227,15 @@ export class UpdateTaskDto {
   @IsString()
   @MaxLength(40)
   sponsorType?: string;
+
+  @IsOptional()
+  @IsIn(['TON', 'STARS'])
+  sponsorBudgetCurrency?: 'TON' | 'STARS';
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  sponsorBudgetAmount?: number;
 
   @IsOptional()
   @IsString()

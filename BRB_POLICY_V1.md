@@ -16,6 +16,7 @@ External settlement rails:
 - Access utility and feature utility
 - Verified task rewards
 - Seller fee-tier discounts based on BRB balance
+- Task payouts backed by sponsor budgets in TON or Stars (off-chain accounting)
 
 ## Disallowed Uses
 
@@ -35,3 +36,10 @@ External settlement rails:
 - Minimum withdrawal: 100 BRB
 - Fee: 5%
 - Queue statuses: PENDING -> APPROVED -> SENT / FAILED
+
+## Task Sponsor Budgets
+
+- Sponsors define a task budget currency: `TON` or `STARS`
+- Sponsors define a max task budget amount
+- Each approved reward consumes budget based on configured BRB conversion rates
+- Rewards are blocked when sponsor budget is exhausted

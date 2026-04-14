@@ -35,6 +35,9 @@ export interface Task {
   brand: string;
   sponsorName: string | null;
   sponsorType: string | null;
+  sponsorBudgetCurrency: 'TON' | 'STARS' | null;
+  sponsorBudgetAmount: number | null;
+  sponsorBudgetSpent: number;
   kpiName: string | null;
   kpiTarget: number | null;
   kpiUnit: string | null;

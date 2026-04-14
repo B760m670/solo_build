@@ -56,6 +56,8 @@ function Admin({ onBack }: { onBack: () => void }) {
     brand: 'Brabble',
     sponsorName: '',
     sponsorType: 'PLATFORM',
+    sponsorBudgetCurrency: 'TON',
+    sponsorBudgetAmount: '',
     kpiName: '',
     kpiTarget: '',
     kpiUnit: '',
@@ -471,6 +473,13 @@ function Admin({ onBack }: { onBack: () => void }) {
                 <input value={taskForm.sponsorName} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorName: e.target.value }))} placeholder="Sponsor name" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
                 <input value={taskForm.sponsorType} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorType: e.target.value }))} placeholder="Sponsor type" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
               </div>
+              <div className="grid grid-cols-2 gap-2">
+                <select value={taskForm.sponsorBudgetCurrency} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorBudgetCurrency: e.target.value }))} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }}>
+                  <option value="TON">TON</option>
+                  <option value="STARS">STARS</option>
+                </select>
+                <input value={taskForm.sponsorBudgetAmount} onChange={(e) => setTaskForm((s) => ({ ...s, sponsorBudgetAmount: e.target.value }))} placeholder="Sponsor budget amount" inputMode="decimal" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 <input value={taskForm.kpiName} onChange={(e) => setTaskForm((s) => ({ ...s, kpiName: e.target.value }))} placeholder="KPI name" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
                 <input value={taskForm.kpiTarget} onChange={(e) => setTaskForm((s) => ({ ...s, kpiTarget: e.target.value }))} placeholder="KPI target" className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
@@ -509,6 +518,8 @@ function Admin({ onBack }: { onBack: () => void }) {
                     brand: taskForm.brand.trim() || 'Brabble',
                     sponsorName: taskForm.sponsorName.trim() || undefined,
                     sponsorType: taskForm.sponsorType.trim() || undefined,
+                    sponsorBudgetCurrency: (taskForm.sponsorBudgetAmount.trim() ? taskForm.sponsorBudgetCurrency : undefined) as 'TON' | 'STARS' | undefined,
+                    sponsorBudgetAmount: taskForm.sponsorBudgetAmount.trim() ? parseFloat(taskForm.sponsorBudgetAmount) : undefined,
                     kpiName: taskForm.kpiName.trim() || undefined,
                     kpiTarget: taskForm.kpiTarget.trim() ? parseFloat(taskForm.kpiTarget) : undefined,
                     kpiUnit: taskForm.kpiUnit.trim() || undefined,
