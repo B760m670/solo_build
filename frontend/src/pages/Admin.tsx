@@ -194,28 +194,54 @@ function Admin({ onBack }: { onBack: () => void }) {
                 {tasks.data.map((task, i) => (
                   <div
                     key={task.id}
-                    className="flex items-center justify-between gap-3 px-3 py-2.5"
+                    className="px-3 py-2.5"
                     style={{ borderBottom: i < tasks.data!.length - 1 ? '1px solid var(--border)' : 'none' }}
                   >
-                    <div className="min-w-0">
-                      <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>{task.title}</p>
-                      <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-                        {task.brand} • {task.category} • +{task.reward} BRB
-                      </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium truncate" style={{ color: 'var(--text)' }}>{task.title}</p>
+                        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+                          {task.brand} • {task.category} • +{task.reward} BRB
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => toggleTask.mutate(task.id)}
+                        disabled={toggleTask.isPending}
+                        className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
+                        style={{
+                          borderColor: task.isActive ? 'var(--teal)' : 'var(--border)',
+                          color: task.isActive ? 'var(--teal)' : 'var(--text-secondary)',
+                          background: 'transparent',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {task.isActive ? t('active') : t('inactive')}
+                      </button>
                     </div>
-                    <button
-                      onClick={() => toggleTask.mutate(task.id)}
-                      disabled={toggleTask.isPending}
-                      className="px-3 py-1.5 text-[11px] font-medium rounded-btn border"
-                      style={{
-                        borderColor: task.isActive ? 'var(--teal)' : 'var(--border)',
-                        color: task.isActive ? 'var(--teal)' : 'var(--text-secondary)',
-                        background: 'transparent',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {task.isActive ? t('active') : t('inactive')}
-                    </button>
+                    {(task.sponsorBudgetAmount ?? null) !== null && task.sponsorBudgetCurrency && (
+                      <div className="mt-2 rounded-btn border p-2" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span style={{ color: 'var(--text-muted)' }}>{t('sponsorBudget')}</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {task.sponsorBudgetSpent.toFixed(2)} / {task.sponsorBudgetAmount!.toFixed(2)} {task.sponsorBudgetCurrency}
+                          </span>
+                        </div>
+                        <div className="h-1.5 rounded-full mt-1" style={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                          <div
+                            className="h-1.5 rounded-full"
+                            style={{
+                              width: `${Math.min(100, (task.sponsorBudgetSpent / (task.sponsorBudgetAmount || 1)) * 100)}%`,
+                              backgroundColor: task.sponsorBudgetSpent >= (task.sponsorBudgetAmount || 0) ? '#FF3B30' : 'var(--teal)',
+                            }}
+                          />
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: task.sponsorBudgetSpent >= (task.sponsorBudgetAmount || 0) ? '#FF3B30' : 'var(--text-muted)' }}>
+                          {task.sponsorBudgetSpent >= (task.sponsorBudgetAmount || 0)
+                            ? t('budgetExhausted')
+                            : t('budgetRemaining', { amount: ((task.sponsorBudgetAmount || 0) - task.sponsorBudgetSpent).toFixed(2), currency: task.sponsorBudgetCurrency })}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
