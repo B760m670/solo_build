@@ -23,6 +23,11 @@ export class WalletController {
     return this.walletService.getWallet(userId);
   }
 
+  @Get('policy')
+  getPolicy() {
+    return this.walletService.getPolicy();
+  }
+
   @Get('transactions')
   getTransactions(
     @CurrentUser('id') userId: string,

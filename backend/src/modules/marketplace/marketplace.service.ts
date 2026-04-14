@@ -12,7 +12,14 @@ import { TasksService } from '../tasks/tasks.service';
 type TxClient = Prisma.TransactionClient;
 import { CreateListingDto, UpdateListingDto } from './listing.dto';
 
-const COMMISSION_RATE = 0.03;
+const BASE_COMMISSION_RATE = 0.03;
+
+function resolveSellerCommissionRate(sellerBrbBalance: number): number {
+  if (sellerBrbBalance >= 3000) return 0.015;
+  if (sellerBrbBalance >= 1000) return 0.02;
+  if (sellerBrbBalance >= 300) return 0.025;
+  return BASE_COMMISSION_RATE;
+}
 
 @Injectable()
 export class MarketplaceService {
@@ -107,12 +114,12 @@ export class MarketplaceService {
         throw new BadRequestException('Insufficient BRB balance');
       }
 
-      const commission = listing.price * COMMISSION_RATE;
-      const sellerAmount = listing.price - commission;
-
       const seller = await tx.user.findUniqueOrThrow({
         where: { id: listing.sellerId },
       });
+      const commissionRate = resolveSellerCommissionRate(seller.brbBalance);
+      const commission = listing.price * commissionRate;
+      const sellerAmount = listing.price - commission;
 
       // Deduct from buyer
       await tx.user.update({
@@ -160,7 +167,14 @@ export class MarketplaceService {
           amount: sellerAmount,
           balanceBefore: seller.brbBalance,
           balanceAfter: seller.brbBalance + sellerAmount,
-          meta: { listingId, listingTitle: listing.title, commission },
+          meta: {
+            listingId,
+            listingTitle: listing.title,
+            commission,
+            commissionRate,
+            baseCommissionRate: BASE_COMMISSION_RATE,
+            sellerFeeTierBrbBalance: seller.brbBalance,
+          },
         },
       });
 

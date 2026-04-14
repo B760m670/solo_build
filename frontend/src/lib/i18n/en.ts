@@ -117,6 +117,7 @@ const en = {
   yourBalance: 'Your balance',
   insufficientBalance: 'Insufficient balance',
   buyNow: 'Buy now',
+  brbSellerFeeTiers: 'Sellers with higher BRB utility balance get lower platform fee tiers.',
   createListing: 'Create listing',
   title: 'Title',
   description: 'Description',

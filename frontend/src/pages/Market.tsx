@@ -85,6 +85,9 @@ function Market() {
       </div>
 
       {/* Listings Grid */}
+      <div className="rounded-btn px-3 py-2 border" style={{ borderColor: 'var(--border)', backgroundColor: 'var(--surface)' }}>
+        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('brbSellerFeeTiers')}</p>
+      </div>
       {listingsQuery.isLoading ? (
         <div className="grid grid-cols-2 gap-3">
           {[1, 2, 3, 4].map((i) => <ListingSkeleton key={i} />)}

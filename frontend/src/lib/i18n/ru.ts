@@ -119,6 +119,7 @@ const ru: Record<TranslationKeys, string> = {
   yourBalance: 'Ваш баланс',
   insufficientBalance: 'Недостаточно средств',
   buyNow: 'Купить',
+  brbSellerFeeTiers: 'Продавцы с большим BRB utility-балансом получают пониженную комиссию платформы.',
   createListing: 'Создать объявление',
   title: 'Название',
   description: 'Описание',

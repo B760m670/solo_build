@@ -60,6 +60,37 @@ export class WalletService {
     };
   }
 
+  getPolicy() {
+    return {
+      model: 'OFF_CHAIN_UTILITY',
+      description:
+        'BRB is an internal utility credit. External settlement rails are TON and Telegram Stars.',
+      settlementRails: ['TON', 'TELEGRAM_STARS'],
+      allowedUses: [
+        'Marketplace internal payments',
+        'Commission discounts for sellers by BRB tier',
+        'Task rewards for verified actions',
+        'Premium/feature utility access',
+      ],
+      disallowedUses: [
+        'Investment return promises',
+        'Price speculation messaging',
+        'Randomized gambling mechanics',
+      ],
+      sellerCommissionTiers: [
+        { minBrbBalance: 0, commissionRate: 0.03 },
+        { minBrbBalance: 300, commissionRate: 0.025 },
+        { minBrbBalance: 1000, commissionRate: 0.02 },
+        { minBrbBalance: 3000, commissionRate: 0.015 },
+      ],
+      withdrawal: {
+        minBrb: MIN_WITHDRAWAL,
+        feeRate: WITHDRAWAL_FEE_RATE,
+        requiresQueueApproval: true,
+      },
+    };
+  }
+
   async connectWallet(userId: string, tonAddress: string) {
     if (!this.tonService.validateAddress(tonAddress)) {
       throw new BadRequestException('Invalid TON address format');
