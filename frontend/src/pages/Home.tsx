@@ -8,7 +8,7 @@ import ErrorState from '../components/ErrorState';
 import { useTranslation } from '../lib/i18n';
 import type { TranslationKeys } from '../lib/i18n/en';
 
-type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin';
+type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin' | 'services';
 
 function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
   const { t } = useTranslation();
@@ -39,7 +39,7 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
     { name: t('moduleTasks'), desc: t('moduleTasksDesc'), status: t('statusActive'), page: 'tasks' as Page | null, Icon: TasksModuleIcon, color: 'var(--accent)' },
     { name: t('moduleMarket'), desc: t('moduleMarketDesc'), status: t('statusActive'), page: 'market' as Page | null, Icon: MarketModuleIcon, color: 'var(--teal)' },
     { name: t('moduleKnowledge'), desc: t('moduleKnowledgeDesc'), status: t('statusSoon'), page: null, Icon: KnowledgeIcon, color: 'var(--gold)' },
-    { name: t('moduleServices'), desc: t('moduleServicesDesc'), status: t('statusSoon'), page: null, Icon: ServicesIcon, color: 'var(--text-muted)' },
+    { name: t('moduleServices'), desc: t('moduleServicesDesc'), status: t('statusActive'), page: 'services' as Page, Icon: ServicesIcon, color: 'var(--teal)' },
   ];
 
   const txTypeMap: Record<string, TranslationKeys> = {

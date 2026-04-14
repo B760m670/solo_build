@@ -11,6 +11,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { ServicesModule } from './modules/services/services.module';
 import { HealthController } from './health.controller';
 import { VersionController } from './version.controller';
 
@@ -28,6 +29,7 @@ import { VersionController } from './version.controller';
     PaymentsModule,
     ReferralsModule,
     AdminModule,
+    ServicesModule,
   ],
   controllers: [HealthController, VersionController],
 })
