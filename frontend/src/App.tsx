@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
+import { useUser } from './hooks/useUser';
 import { useScrollDirection } from './hooks/useScrollDirection';
 import { isTelegramContext } from './lib/telegram';
 import { I18nContext, getStoredLang, setStoredLang, createT, type Lang } from './lib/i18n';
@@ -28,6 +29,7 @@ function App() {
   const [lang, setLangState] = useState<Lang>(getStoredLang);
   useTheme();
   const auth = useAuth();
+  const userQuery = useUser();
   const navHidden = useScrollDirection(10);
 
   const i18n = useMemo(() => {
@@ -40,6 +42,7 @@ function App() {
   }, [lang]);
 
   const { t } = i18n;
+  const canOpenAdmin = userQuery.data?.role === 'ADMIN' || userQuery.data?.role === 'MODERATOR';
 
   const handleOnboardingDone = () => {
     localStorage.setItem('brabble_onboarded', '1');
@@ -102,7 +105,7 @@ function App() {
       case 'home': return <Home onNavigate={setPage} />;
       case 'tasks': return <Tasks />;
       case 'market': return <Market />;
-      case 'admin': return <Admin onBack={() => setPage('profile')} />;
+      case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile />;
       case 'profile': return <Profile onAdminOpen={() => setPage('admin')} />;
     }
   };

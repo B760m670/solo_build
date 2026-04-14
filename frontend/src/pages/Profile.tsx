@@ -60,6 +60,7 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
 
   const user = userQuery.data;
   if (!user) return <ProfileSkeleton />;
+  const canOpenAdmin = !!onAdminOpen && (user.role === 'ADMIN' || user.role === 'MODERATOR');
 
   const balance = walletQuery.data?.balance ?? user.brbBalance;
   const totalEarned = walletQuery.data?.totalEarned ?? user.totalEarned;
@@ -73,7 +74,7 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
     { key: 'referrals', label: t('referrals') },
     { key: 'language', label: t('language') },
     { key: 'about', label: t('aboutBrabble') },
-    ...(onAdminOpen ? [{ key: 'admin', label: t('adminPanel') }] : []),
+    ...(canOpenAdmin ? [{ key: 'admin', label: t('adminPanel') }] : []),
   ];
 
   return (
