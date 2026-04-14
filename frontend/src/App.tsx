@@ -14,9 +14,8 @@ import Tasks from './pages/Tasks';
 import Market from './pages/Market';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
-import Services from './pages/Services';
 
-type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin' | 'services';
+type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -101,14 +100,13 @@ function App() {
     );
   }
 
-  const navPage = page === 'admin' ? 'profile' : page === 'services' ? 'home' : page;
+  const navPage = page === 'admin' ? 'profile' : page;
 
   const renderPage = () => {
     switch (page) {
       case 'home': return <Home onNavigate={setPage} />;
       case 'tasks': return <Tasks />;
       case 'market': return <Market />;
-      case 'services': return <Services />;
       case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile />;
       case 'profile': return <Profile onAdminOpen={() => setPage('admin')} />;
     }
