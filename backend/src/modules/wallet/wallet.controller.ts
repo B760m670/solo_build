@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { WithdrawDto, ConnectWalletDto } from './withdraw.dto';
+import { SendBrbDto } from './transfer.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -51,5 +52,10 @@ export class WalletController {
   @Post('withdraw')
   withdraw(@CurrentUser('id') userId: string, @Body() dto: WithdrawDto) {
     return this.walletService.withdraw(userId, dto.tonAddress, dto.amount, dto.idempotencyKey);
+  }
+
+  @Post('send')
+  sendBrb(@CurrentUser('id') userId: string, @Body() dto: SendBrbDto) {
+    return this.walletService.sendBrb(userId, dto.recipient, dto.amount, dto.note);
   }
 }

@@ -9,6 +9,7 @@ type TxClient = Prisma.TransactionClient;
 const WITHDRAWAL_FEE_RATE = 0.05;
 const MIN_WITHDRAWAL = 100;
 const IDEMPOTENCY_TTL_MS = 24 * 60 * 60 * 1000;
+const MAX_DAILY_SEND_BRB = 1000;
 
 @Injectable()
 export class WalletService {
@@ -176,6 +177,89 @@ export class WalletService {
         status: request.status,
         txId: request.id,
         withdrawalId: request.id,
+      };
+    });
+  }
+
+  async sendBrb(userId: string, recipient: string, amount: number, note?: string) {
+    const normalizedRecipient = recipient.trim();
+    if (amount <= 0) {
+      throw new BadRequestException('Amount must be greater than zero');
+    }
+
+    return this.prisma.$transaction(async (tx: TxClient) => {
+      const sender = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+
+      const receiver = await tx.user.findFirst({
+        where: {
+          OR: [
+            { id: normalizedRecipient },
+            { username: normalizedRecipient.startsWith('@') ? normalizedRecipient.slice(1) : normalizedRecipient },
+            { referralCode: normalizedRecipient },
+          ],
+        },
+      });
+      if (!receiver) throw new BadRequestException('Recipient not found');
+      if (receiver.id === sender.id) throw new BadRequestException('Cannot send to yourself');
+      if (sender.brbBalance < amount) throw new BadRequestException('Insufficient balance');
+
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const sentTodayAgg = await tx.transaction.aggregate({
+        where: { userId: sender.id, type: 'BRB_TRANSFER_OUT', createdAt: { gte: startOfDay } },
+        _sum: { amount: true },
+      });
+      const sentTodayAbs = Math.abs(sentTodayAgg._sum.amount ?? 0);
+      if (sentTodayAbs + amount > MAX_DAILY_SEND_BRB) {
+        throw new BadRequestException(`Daily send limit is ${MAX_DAILY_SEND_BRB} BRB`);
+      }
+
+      await tx.user.update({
+        where: { id: sender.id },
+        data: { brbBalance: { decrement: amount } },
+      });
+      await tx.user.update({
+        where: { id: receiver.id },
+        data: { brbBalance: { increment: amount } },
+      });
+
+      await tx.transaction.create({
+        data: {
+          userId: sender.id,
+          type: 'BRB_TRANSFER_OUT',
+          amount: -amount,
+          balanceBefore: sender.brbBalance,
+          balanceAfter: sender.brbBalance - amount,
+          meta: {
+            toUserId: receiver.id,
+            toUsername: receiver.username,
+            note: note?.trim() || null,
+          },
+        },
+      });
+
+      await tx.transaction.create({
+        data: {
+          userId: receiver.id,
+          type: 'BRB_TRANSFER_IN',
+          amount,
+          balanceBefore: receiver.brbBalance,
+          balanceAfter: receiver.brbBalance + amount,
+          meta: {
+            fromUserId: sender.id,
+            fromUsername: sender.username,
+            note: note?.trim() || null,
+          },
+        },
+      });
+
+      return {
+        amount,
+        recipient: {
+          id: receiver.id,
+          username: receiver.username,
+          firstName: receiver.firstName,
+        },
       };
     });
   }

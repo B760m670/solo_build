@@ -138,6 +138,8 @@ export type TransactionType =
   | 'REFERRAL_BONUS'
   | 'WITHDRAWAL'
   | 'WITHDRAWAL_FEE'
+  | 'BRB_TRANSFER_OUT'
+  | 'BRB_TRANSFER_IN'
   | 'PREMIUM_PURCHASE'
   | 'DEPOSIT';
 

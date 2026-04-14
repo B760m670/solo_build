@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getTelegramUser } from '../lib/telegram';
 import { SendIcon, ReceiveIcon, SwapIcon, ChevronRightIcon, TasksModuleIcon, MarketModuleIcon, KnowledgeIcon, ServicesIcon } from '../components/Icons';
-import { useWallet } from '../hooks/useWallet';
+import { useSendBrb, useWallet } from '../hooks/useWallet';
 import { useUserTasks } from '../hooks/useTasks';
 import { WalletSkeleton, CardSkeleton } from '../components/Skeleton';
 import ErrorState from '../components/ErrorState';
@@ -17,6 +17,11 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
   const walletQuery = useWallet();
   const activeTasksQuery = useUserTasks('ACTIVE');
   const [toast, setToast] = useState<string | null>(null);
+  const [modal, setModal] = useState<null | 'send' | 'receive'>(null);
+  const [recipient, setRecipient] = useState('');
+  const [sendAmount, setSendAmount] = useState('');
+  const [sendNote, setSendNote] = useState('');
+  const sendBrb = useSendBrb();
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -45,6 +50,8 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
     REFERRAL_BONUS: 'txReferralBonus',
     WITHDRAWAL: 'txWithdrawal',
     WITHDRAWAL_FEE: 'txWithdrawalFee',
+    BRB_TRANSFER_OUT: 'txTransferOut',
+    BRB_TRANSFER_IN: 'txTransferIn',
     PREMIUM_PURCHASE: 'txPremium',
     DEPOSIT: 'txDeposit',
   };
@@ -86,13 +93,13 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
 
           <div className="flex gap-2 mt-4">
             {[
-              { label: t('send'), Icon: SendIcon },
-              { label: t('receive'), Icon: ReceiveIcon },
+              { label: t('send'), Icon: SendIcon, onClick: () => setModal('send') },
+              { label: t('receive'), Icon: ReceiveIcon, onClick: () => setModal('receive') },
               { label: t('swap'), Icon: SwapIcon },
-            ].map(({ label, Icon }) => (
+            ].map(({ label, Icon, onClick }) => (
               <button
                 key={label}
-                onClick={() => showToast(t('comingSoon', { name: label }))}
+                onClick={() => (onClick ? onClick() : showToast(t('comingSoon', { name: label })))}
                 className="tap-target flex-1 flex items-center justify-center gap-1.5 py-2 rounded-btn text-xs font-medium border"
                 style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}
               >
@@ -198,6 +205,71 @@ function Home({ onNavigate }: { onNavigate?: (page: Page) => void }) {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {modal === 'receive' && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setModal(null)}>
+          <div className="w-full max-w-md rounded-t-2xl p-6 space-y-4 safe-bottom" style={{ backgroundColor: 'var(--surface)' }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('receive')}</p>
+            {walletQuery.data?.tonWallet ? (
+              <>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('receiveDesc')}</p>
+                <div className="rounded-btn p-3 border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
+                  <p className="text-xs break-all font-mono" style={{ color: 'var(--teal)' }}>{walletQuery.data.tonWallet}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(walletQuery.data!.tonWallet!);
+                    showToast(t('copied'));
+                  }}
+                  className="w-full py-2.5 text-sm font-medium rounded-btn"
+                  style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+                >
+                  {t('copyAddress')}
+                </button>
+              </>
+            ) : (
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('connectWalletToReceive')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {modal === 'send' && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setModal(null)}>
+          <div className="w-full max-w-md rounded-t-2xl p-6 space-y-4 safe-bottom" style={{ backgroundColor: 'var(--surface)' }} onClick={(e) => e.stopPropagation()}>
+            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('sendBrb')}</p>
+            <input value={recipient} onChange={(e) => setRecipient(e.target.value)} placeholder={t('recipientPlaceholder')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+            <input value={sendAmount} onChange={(e) => setSendAmount(e.target.value)} inputMode="decimal" placeholder={t('amount')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+            <input value={sendNote} onChange={(e) => setSendNote(e.target.value)} placeholder={t('noteOptional')} className="w-full px-3 py-2.5 rounded-btn text-sm outline-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)' }} />
+            {sendBrb.isError && (
+              <p className="text-[11px]" style={{ color: '#FF3B30' }}>{sendBrb.error.message}</p>
+            )}
+            <button
+              onClick={() => {
+                const amount = parseFloat(sendAmount);
+                if (!recipient.trim() || !Number.isFinite(amount) || amount <= 0) return;
+                sendBrb.mutate(
+                  { recipient: recipient.trim(), amount, note: sendNote.trim() || undefined },
+                  {
+                    onSuccess: () => {
+                      setModal(null);
+                      setRecipient('');
+                      setSendAmount('');
+                      setSendNote('');
+                      showToast(t('transferSent'));
+                    },
+                  },
+                );
+              }}
+              disabled={sendBrb.isPending}
+              className="w-full py-2.5 text-sm font-medium rounded-btn"
+              style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              {sendBrb.isPending ? t('processing') : t('send')}
+            </button>
           </div>
         </div>
       )}

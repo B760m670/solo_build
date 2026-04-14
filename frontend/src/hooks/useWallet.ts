@@ -65,3 +65,19 @@ export function useWithdraw() {
     },
   });
 }
+
+export function useSendBrb() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { recipient: string; amount: number; note?: string }) =>
+      api.post<{
+        amount: number;
+        recipient: { id: string; username: string | null; firstName: string };
+      }>('/wallet/send', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['wallet'] });
+      qc.invalidateQueries({ queryKey: ['transactions'] });
+      qc.invalidateQueries({ queryKey: ['user'] });
+    },
+  });
+}

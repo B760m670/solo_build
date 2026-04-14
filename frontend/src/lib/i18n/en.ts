@@ -67,6 +67,8 @@ const en = {
   txReferralBonus: 'Referral bonus',
   txWithdrawal: 'Withdrawal',
   txWithdrawalFee: 'Withdrawal fee',
+  txTransferOut: 'Transfer sent',
+  txTransferIn: 'Transfer received',
   txPremium: 'Premium',
   txDeposit: 'Deposit',
 
@@ -178,6 +180,13 @@ const en = {
   connecting2: 'Connecting...',
   connect: 'Connect',
   connectViaTonConnect: 'Connect via TON Connect',
+  sendBrb: 'Send BRB',
+  recipientPlaceholder: 'Recipient (@username / referral code / user id)',
+  noteOptional: 'Note (optional)',
+  transferSent: 'Transfer sent',
+  receiveDesc: 'Share this TON address to receive external transfers.',
+  copyAddress: 'Copy address',
+  connectWalletToReceive: 'Connect TON wallet in Profile to receive external transfers.',
 
   // Admin
   platformStats: 'Platform statistics',

@@ -69,6 +69,8 @@ const ru: Record<TranslationKeys, string> = {
   txReferralBonus: 'Реферальный бонус',
   txWithdrawal: 'Вывод',
   txWithdrawalFee: 'Комиссия за вывод',
+  txTransferOut: 'Перевод отправлен',
+  txTransferIn: 'Перевод получен',
   txPremium: 'Премиум',
   txDeposit: 'Пополнение',
 
@@ -180,6 +182,13 @@ const ru: Record<TranslationKeys, string> = {
   connecting2: 'Подключение...',
   connect: 'Подключить',
   connectViaTonConnect: 'Подключить через TON Connect',
+  sendBrb: 'Отправить BRB',
+  recipientPlaceholder: 'Получатель (@username / referral code / user id)',
+  noteOptional: 'Комментарий (необязательно)',
+  transferSent: 'Перевод отправлен',
+  receiveDesc: 'Поделитесь этим TON-адресом, чтобы получать внешние переводы.',
+  copyAddress: 'Скопировать адрес',
+  connectWalletToReceive: 'Подключите TON кошелёк в Профиле, чтобы получать внешние переводы.',
 
   // Admin
   platformStats: 'Статистика платформы',
