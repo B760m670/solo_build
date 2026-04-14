@@ -9,10 +9,26 @@ interface WalletData {
   recentTransactions: Transaction[];
 }
 
+interface WalletPolicy {
+  model: string;
+  description: string;
+  settlementRails: string[];
+  sellerCommissionTiers: Array<{ minBrbBalance: number; commissionRate: number }>;
+  withdrawal: { minBrb: number; feeRate: number; requiresQueueApproval: boolean };
+}
+
 export function useWallet() {
   return useQuery({
     queryKey: ['wallet'],
     queryFn: () => api.get<WalletData>('/wallet'),
+    enabled: !!getAuthToken(),
+  });
+}
+
+export function useWalletPolicy() {
+  return useQuery({
+    queryKey: ['walletPolicy'],
+    queryFn: () => api.get<WalletPolicy>('/wallet/policy'),
     enabled: !!getAuthToken(),
   });
 }
