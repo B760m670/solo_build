@@ -42,7 +42,9 @@ function App() {
   }, [lang]);
 
   const { t } = i18n;
-  const canOpenAdmin = userQuery.data?.role === 'ADMIN' || userQuery.data?.role === 'MODERATOR';
+  const canOpenAdmin = !!userQuery.data?.isAdmin
+    || userQuery.data?.role === 'ADMIN'
+    || userQuery.data?.role === 'MODERATOR';
 
   const handleOnboardingDone = () => {
     localStorage.setItem('brabble_onboarded', '1');

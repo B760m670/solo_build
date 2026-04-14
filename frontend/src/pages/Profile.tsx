@@ -60,7 +60,7 @@ function Profile({ onAdminOpen }: { onAdminOpen?: () => void }) {
 
   const user = userQuery.data;
   if (!user) return <ProfileSkeleton />;
-  const canOpenAdmin = !!onAdminOpen && (user.role === 'ADMIN' || user.role === 'MODERATOR');
+  const canOpenAdmin = !!onAdminOpen && (user.isAdmin || user.role === 'ADMIN' || user.role === 'MODERATOR');
 
   const balance = walletQuery.data?.balance ?? user.brbBalance;
   const totalEarned = walletQuery.data?.totalEarned ?? user.totalEarned;

@@ -9,6 +9,7 @@ export interface User {
   isPremium: boolean;
   premiumExpiry: string | null;
   role?: 'USER' | 'ADMIN' | 'MODERATOR';
+  isAdmin?: boolean;
   brbBalance: number;
   totalEarned: number;
   tonWallet: string | null;
