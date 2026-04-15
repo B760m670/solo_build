@@ -8,7 +8,7 @@
     "dev": "nest start --watch",
     "start": "node dist/main.js",
     "start:prod": "node dist/main.js",
-    "start:render": "npm run db:migrate:prod && node dist/main.js",
+    "start:render": "npx prisma db push --accept-data-loss --skip-generate && node dist/main.js",
     "db:migrate": "npx prisma migrate dev",
     "db:migrate:prod": "npx prisma migrate deploy",
     "db:seed": "npx ts-node --esm prisma/seed.ts",

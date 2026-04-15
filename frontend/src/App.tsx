@@ -15,8 +15,9 @@ const Tasks = lazy(() => import('./pages/Tasks'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Orders = lazy(() => import('./pages/Orders'));
 
-type Page = NavPage | 'admin';
+type Page = NavPage | 'admin' | 'orders';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -101,15 +102,16 @@ function App() {
     );
   }
 
-  const navPage: NavPage = page === 'admin' ? 'profile' : page;
+  const navPage: NavPage = page === 'admin' || page === 'orders' ? 'profile' : page;
 
   const renderPage = () => {
     switch (page) {
       case 'market': return <Market />;
       case 'tasks': return <Tasks />;
       case 'wallet': return <Wallet />;
-      case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={false} />;
-      case 'profile': return <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={canOpenAdmin} />;
+      case 'orders': return <Orders onBack={() => setPage('profile')} />;
+      case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile onAdminOpen={() => setPage('admin')} onOrdersOpen={() => setPage('orders')} canOpenAdmin={false} />;
+      case 'profile': return <Profile onAdminOpen={() => setPage('admin')} onOrdersOpen={() => setPage('orders')} canOpenAdmin={canOpenAdmin} />;
     }
   };
 

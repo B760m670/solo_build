@@ -7,6 +7,7 @@ import type { ReputationTier } from '@unisouq/shared';
 
 interface ProfileProps {
   onAdminOpen: () => void;
+  onOrdersOpen: () => void;
   canOpenAdmin: boolean;
 }
 
@@ -20,7 +21,7 @@ function TierBadge({ tier }: { tier: ReputationTier }) {
   );
 }
 
-function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
+function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
   const { t, lang, setLang } = useTranslation();
   const userQ = useUser();
   const refQ = useReferrals();
@@ -178,6 +179,14 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
           </div>
         </div>
       </div>
+
+      <button
+        onClick={onOrdersOpen}
+        className="w-full py-3 text-sm font-semibold rounded-btn mb-3"
+        style={{ backgroundColor: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)', cursor: 'pointer' }}
+      >
+        {t('myOrders')}
+      </button>
 
       {canOpenAdmin && (
         <button
