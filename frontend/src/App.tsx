@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { lazy, Suspense, useState, useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from './hooks/useTheme';
 import { useAuth } from './hooks/useAuth';
@@ -9,11 +9,12 @@ import { I18nContext, getStoredLang, setStoredLang, createT, type Lang } from '.
 import Header from './components/Header';
 import BottomNav, { type NavPage } from './components/BottomNav';
 import Onboarding from './components/Onboarding';
-import Market from './pages/Market';
-import Tasks from './pages/Tasks';
-import Wallet from './pages/Wallet';
-import Profile from './pages/Profile';
-import Admin from './pages/Admin';
+
+const Market = lazy(() => import('./pages/Market'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const Wallet = lazy(() => import('./pages/Wallet'));
+const Profile = lazy(() => import('./pages/Profile'));
+const Admin = lazy(() => import('./pages/Admin'));
 
 type Page = NavPage | 'admin';
 
@@ -125,7 +126,18 @@ function App() {
             exit="exit"
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
-            {renderPage()}
+            <Suspense
+              fallback={
+                <div className="flex items-center justify-center py-20">
+                  <div
+                    className="w-5 h-5 border-2 rounded-full animate-spin"
+                    style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }}
+                  />
+                </div>
+              }
+            >
+              {renderPage()}
+            </Suspense>
           </motion.div>
         </AnimatePresence>
       </main>
