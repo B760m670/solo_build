@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
 import { useUser, useUpdateSettings } from '../hooks/useUser';
 import { useReferrals } from '../hooks/useReferrals';
-import { useMyListings } from '../hooks/useMarketplace';
+import { useMyListings, useDeleteListing } from '../hooks/useMarketplace';
 import { useBoostListing, usePurchasePremium } from '../hooks/usePurchases';
 import { toggleTheme } from '../hooks/useTheme';
 import type { Listing, ReputationTier } from '@unisouq/shared';
@@ -26,7 +26,9 @@ function TierBadge({ tier }: { tier: ReputationTier }) {
 function MyListingRow({ listing }: { listing: Listing }) {
   const { t } = useTranslation();
   const boost = useBoostListing();
+  const del = useDeleteListing();
   const [err, setErr] = useState<string | null>(null);
+  const [confirming, setConfirming] = useState(false);
   const activeBoost = listing.featuredUntil && new Date(listing.featuredUntil) > new Date();
 
   const handleBoost = async () => {
@@ -40,33 +42,81 @@ function MyListingRow({ listing }: { listing: Listing }) {
     }
   };
 
+  const handleDelete = async () => {
+    setErr(null);
+    try {
+      await del.mutateAsync(listing.id);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Error');
+    }
+  };
+
   return (
     <div
-      className="rounded-btn p-2.5 mb-2 flex items-center justify-between gap-2"
+      className="rounded-btn p-2.5 mb-2"
       style={{ backgroundColor: 'var(--surface2)', border: '1px solid var(--border)' }}
     >
-      <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>{listing.title}</p>
-        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-          {listing.priceStars} ★
-          {activeBoost && ` · ${t('boosted')}`}
-        </p>
-        {err && <p className="text-[10px] mt-1" style={{ color: '#ff6b6b' }}>{err}</p>}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>{listing.title}</p>
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+            {listing.priceStars} ★
+            {activeBoost && ` · ${t('boosted')}`}
+          </p>
+        </div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={handleBoost}
+            disabled={boost.isPending}
+            className="text-[11px] font-semibold px-2.5 py-1 rounded-btn whitespace-nowrap"
+            style={{
+              backgroundColor: 'var(--gold)',
+              color: '#000',
+              border: 'none',
+              cursor: 'pointer',
+              opacity: boost.isPending ? 0.6 : 1,
+            }}
+          >
+            {t('boost')}
+          </button>
+          <button
+            onClick={() => setConfirming(true)}
+            disabled={del.isPending}
+            className="text-[11px] font-semibold px-2.5 py-1 rounded-btn whitespace-nowrap"
+            style={{
+              backgroundColor: 'var(--surface)',
+              color: '#ff6b6b',
+              border: '1px solid var(--border)',
+              cursor: 'pointer',
+              opacity: del.isPending ? 0.6 : 1,
+            }}
+          >
+            {t('delete')}
+          </button>
+        </div>
       </div>
-      <button
-        onClick={handleBoost}
-        disabled={boost.isPending}
-        className="text-[11px] font-semibold px-2.5 py-1 rounded-btn whitespace-nowrap"
-        style={{
-          backgroundColor: 'var(--gold)',
-          color: '#000',
-          border: 'none',
-          cursor: 'pointer',
-          opacity: boost.isPending ? 0.6 : 1,
-        }}
-      >
-        {t('boost')}
-      </button>
+      {confirming && (
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('confirmDelete')}</p>
+          <div className="flex gap-1.5">
+            <button
+              onClick={() => setConfirming(false)}
+              className="text-[11px] px-2 py-1 rounded-btn"
+              style={{ backgroundColor: 'var(--surface)', color: 'var(--text)', border: '1px solid var(--border)', cursor: 'pointer' }}
+            >
+              {t('cancel')}
+            </button>
+            <button
+              onClick={handleDelete}
+              className="text-[11px] font-semibold px-2 py-1 rounded-btn"
+              style={{ backgroundColor: '#ff6b6b', color: '#fff', border: 'none', cursor: 'pointer' }}
+            >
+              {t('delete')}
+            </button>
+          </div>
+        </div>
+      )}
+      {err && <p className="text-[10px] mt-1" style={{ color: '#ff6b6b' }}>{err}</p>}
     </div>
   );
 }
@@ -141,6 +191,9 @@ function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
             )}
           </div>
           {u.username && <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>@{u.username}</p>}
+          <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            {t('memberSince')} {new Date(u.createdAt).toLocaleDateString()}
+          </p>
         </div>
       </div>
 
