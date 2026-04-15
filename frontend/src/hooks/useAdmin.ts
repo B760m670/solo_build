@@ -1,6 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import type { Order, ReputationTier, UserTask } from '@unisouq/shared';
+import type { Order, ReputationTier, Task, TaskProofType, UserTask } from '@unisouq/shared';
+
+export interface CreateBrandTaskInput {
+  brandName: string;
+  brandLogo?: string;
+  title: string;
+  description: string;
+  proofType: TaskProofType;
+  rewardStars: number;
+  totalSlots: number;
+  fundedTon: number;
+}
 
 export interface AdminDashboard {
   users: { total: number; recentSignups: number; tiers: Record<ReputationTier, number> };
@@ -37,6 +48,17 @@ export function useAdminApproveTask() {
     mutationFn: (userTaskId: string) => api.post<UserTask>(`/admin/tasks/${userTaskId}/approve`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin'] });
+    },
+  });
+}
+
+export function useAdminCreateBrandTask() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateBrandTaskInput) => api.post<Task>('/admin/tasks', input),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['admin'] });
+      qc.invalidateQueries({ queryKey: ['tasks'] });
     },
   });
 }
