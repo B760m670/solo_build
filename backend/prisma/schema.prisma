@@ -82,6 +82,17 @@ enum WithdrawalStatus {
   FAILED
 }
 
+enum StarsPurchaseType {
+  BOOST_LISTING
+  PREMIUM_BADGE
+}
+
+enum StarsPurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 // ─── Core ────────────────────────────────────────────
 
 model User {
@@ -305,4 +316,21 @@ model WithdrawalRequest {
 
   @@unique([userId, idempotencyKey])
   @@index([status, createdAt])
+}
+
+model StarsPurchase {
+  id               String              @id @default(uuid())
+  userId           String
+  type             StarsPurchaseType
+  priceStars       Int
+  status           StarsPurchaseStatus @default(PENDING)
+  invoicePayload   String              @unique
+  telegramChargeId String?
+  listingId        String?
+  durationDays     Int
+  paidAt           DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  @@index([userId, type])
 }

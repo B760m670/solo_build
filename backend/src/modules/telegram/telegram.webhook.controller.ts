@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { OrdersService } from '../orders/orders.service';
+import { PurchasesService } from '../purchases/purchases.service';
 import { TelegramService } from './telegram.service';
 
 // Minimal shapes of the Telegram Update fields we care about.
@@ -49,6 +50,7 @@ export class TelegramWebhookController {
     config: ConfigService,
     private telegram: TelegramService,
     private orders: OrdersService,
+    private purchases: PurchasesService,
   ) {
     this.secret = config.get<string>('BOT_WEBHOOK_SECRET') ?? '';
     this.webappUrl = config.get<string>('WEBAPP_URL') ?? '';
@@ -96,13 +98,19 @@ export class TelegramWebhookController {
     if (sp.currency !== 'XTR') return;
     try {
       await this.orders.markPaidByPayload(sp.invoice_payload, sp.telegram_payment_charge_id);
+      return;
     } catch (e) {
-      this.logger.error(`markPaidByPayload failed: ${(e as Error).message}`);
-      // Best-effort: tell the buyer something went wrong.
+      // Not an order — try StarsPurchase fallback.
+      this.logger.log(`Order lookup failed for payload ${sp.invoice_payload}, trying purchases`);
+    }
+    try {
+      await this.purchases.fulfillByPayload(sp.invoice_payload, sp.telegram_payment_charge_id);
+    } catch (e) {
+      this.logger.error(`purchase fulfill failed: ${(e as Error).message}`);
       if (msg.from) {
         await this.telegram.sendMessage(
           msg.from.id,
-          'Payment received but order could not be matched. Contact support with this reference: ' +
+          'Payment received but could not be matched. Contact support with this reference: ' +
             sp.invoice_payload,
         );
       }

@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
 import { useUser, useUpdateSettings } from '../hooks/useUser';
 import { useReferrals } from '../hooks/useReferrals';
+import { useMyListings } from '../hooks/useMarketplace';
+import { useBoostListing, usePurchasePremium } from '../hooks/usePurchases';
 import { toggleTheme } from '../hooks/useTheme';
-import type { ReputationTier } from '@unisouq/shared';
+import type { Listing, ReputationTier } from '@unisouq/shared';
 
 interface ProfileProps {
   onAdminOpen: () => void;
@@ -21,13 +23,64 @@ function TierBadge({ tier }: { tier: ReputationTier }) {
   );
 }
 
+function MyListingRow({ listing }: { listing: Listing }) {
+  const { t } = useTranslation();
+  const boost = useBoostListing();
+  const [err, setErr] = useState<string | null>(null);
+  const activeBoost = listing.featuredUntil && new Date(listing.featuredUntil) > new Date();
+
+  const handleBoost = async () => {
+    setErr(null);
+    try {
+      const status = await boost.mutateAsync(listing.id);
+      if (status === 'failed') setErr(t('paymentFailed'));
+      if (status === 'cancelled') setErr(t('paymentCancelled'));
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Error');
+    }
+  };
+
+  return (
+    <div
+      className="rounded-btn p-2.5 mb-2 flex items-center justify-between gap-2"
+      style={{ backgroundColor: 'var(--surface2)', border: '1px solid var(--border)' }}
+    >
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold truncate" style={{ color: 'var(--text)' }}>{listing.title}</p>
+        <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+          {listing.priceStars} ★
+          {activeBoost && ` · ${t('boosted')}`}
+        </p>
+        {err && <p className="text-[10px] mt-1" style={{ color: '#ff6b6b' }}>{err}</p>}
+      </div>
+      <button
+        onClick={handleBoost}
+        disabled={boost.isPending}
+        className="text-[11px] font-semibold px-2.5 py-1 rounded-btn whitespace-nowrap"
+        style={{
+          backgroundColor: 'var(--gold)',
+          color: '#000',
+          border: 'none',
+          cursor: 'pointer',
+          opacity: boost.isPending ? 0.6 : 1,
+        }}
+      >
+        {t('boost')}
+      </button>
+    </div>
+  );
+}
+
 function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
   const { t, lang, setLang } = useTranslation();
   const userQ = useUser();
   const refQ = useReferrals();
+  const myListingsQ = useMyListings();
+  const premium = usePurchasePremium();
   const update = useUpdateSettings();
   const [tonInput, setTonInput] = useState('');
   const [copied, setCopied] = useState(false);
+  const [premiumErr, setPremiumErr] = useState<string | null>(null);
 
   if (userQ.isLoading) {
     return <p className="text-xs text-center py-20" style={{ color: 'var(--text-muted)' }}>{t('loading')}</p>;
@@ -38,6 +91,18 @@ function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
 
   const u = userQ.data;
   const tonDisplay = tonInput || u.tonAddress || '';
+  const isPremium = !!u.premiumBadgeUntil && new Date(u.premiumBadgeUntil) > new Date();
+
+  const handlePremium = async () => {
+    setPremiumErr(null);
+    try {
+      const status = await premium.mutateAsync();
+      if (status === 'failed') setPremiumErr(t('paymentFailed'));
+      if (status === 'cancelled') setPremiumErr(t('paymentCancelled'));
+    } catch (e) {
+      setPremiumErr(e instanceof Error ? e.message : 'Error');
+    }
+  };
 
   const handleSaveTon = async () => {
     if (!tonInput) return;
@@ -63,9 +128,17 @@ function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
           </div>
         )}
         <div className="flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>{u.firstName}</p>
             <TierBadge tier={u.reputationTier} />
+            {isPremium && (
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{ backgroundColor: 'var(--gold)', color: '#000' }}
+              >
+                {t('premium')}
+              </span>
+            )}
           </div>
           {u.username && <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>@{u.username}</p>}
         </div>
@@ -179,6 +252,29 @@ function Profile({ onAdminOpen, onOrdersOpen, canOpenAdmin }: ProfileProps) {
           </div>
         </div>
       </div>
+
+      {myListingsQ.data && myListingsQ.data.length > 0 && (
+        <>
+          <p className="text-[11px] font-semibold mt-4 mb-2" style={{ color: 'var(--text-muted)' }}>{t('myListings')}</p>
+          <div className="rounded-card p-3 mb-3" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+            {myListingsQ.data.map((l) => (
+              <MyListingRow key={l.id} listing={l} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {!isPremium && (
+        <button
+          onClick={handlePremium}
+          disabled={premium.isPending}
+          className="w-full py-3 text-sm font-semibold rounded-btn mb-2"
+          style={{ backgroundColor: 'var(--gold)', color: '#000', border: 'none', cursor: 'pointer', opacity: premium.isPending ? 0.6 : 1 }}
+        >
+          {premium.isPending ? t('processing') : t('getPremiumBadge')}
+        </button>
+      )}
+      {premiumErr && <p className="text-[11px] mb-2" style={{ color: '#ff6b6b' }}>{premiumErr}</p>}
 
       <button
         onClick={onOrdersOpen}
