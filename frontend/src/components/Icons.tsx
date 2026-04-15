@@ -148,6 +148,103 @@ export function BellIcon({ size = 24, color = 'currentColor', className }: IconP
   );
 }
 
+// Studio section icons
+export function StudioIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+export function CryptoIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="9" cy="9" r="6" />
+      <circle cx="15" cy="15" r="6" />
+    </svg>
+  );
+}
+
+export function SparklesIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+      <path d="M19 3v4" />
+      <path d="M17 5h4" />
+      <path d="M5 17v4" />
+      <path d="M3 19h4" />
+    </svg>
+  );
+}
+
+export function GamepadIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="6" y1="11" x2="10" y2="11" />
+      <line x1="8" y1="9" x2="8" y2="13" />
+      <line x1="15" y1="12" x2="15.01" y2="12" />
+      <line x1="18" y1="10" x2="18.01" y2="10" />
+      <rect x="2" y="6" width="20" height="12" rx="6" />
+    </svg>
+  );
+}
+
+export function UsersIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 00-3-3.87" />
+      <path d="M16 3.13a4 4 0 010 7.75" />
+    </svg>
+  );
+}
+
+export function GiftIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <polyline points="20 12 20 22 4 22 4 12" />
+      <rect x="2" y="7" width="20" height="5" />
+      <line x1="12" y1="22" x2="12" y2="7" />
+      <path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z" />
+      <path d="M12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z" />
+    </svg>
+  );
+}
+
+export function PaletteIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="13.5" cy="6.5" r="1.5" />
+      <circle cx="17.5" cy="10.5" r="1.5" />
+      <circle cx="8.5" cy="7.5" r="1.5" />
+      <circle cx="6.5" cy="12.5" r="1.5" />
+      <path d="M12 2a10 10 0 100 20 2.5 2.5 0 002-4c-.55-.84-.55-1.94 0-2.78A2.5 2.5 0 0116 13h2a4 4 0 004-4A10 10 0 0012 2z" />
+    </svg>
+  );
+}
+
+export function CrownIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M2 18h20" />
+      <path d="M3 7l5 5 4-7 4 7 5-5-2 11H5z" />
+    </svg>
+  );
+}
+
+export function ShieldIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  );
+}
+
 // Module icons
 export function TasksModuleIcon({ size = 24, color = 'currentColor', className }: IconProps) {
   return (

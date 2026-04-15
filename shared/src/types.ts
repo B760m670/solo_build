@@ -4,13 +4,6 @@ export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
 
 export type ReputationTier = 'NEW' | 'TRUSTED' | 'EXPERT' | 'ELITE';
 
-export const TIER_COMMISSION_RATE: Record<ReputationTier, number> = {
-  NEW: 0.07,
-  TRUSTED: 0.05,
-  EXPERT: 0.04,
-  ELITE: 0.03,
-};
-
 export const TIER_THRESHOLDS: Record<ReputationTier, { min: number; max: number }> = {
   NEW: { min: 0, max: 99 },
   TRUSTED: { min: 100, max: 299 },
@@ -33,11 +26,9 @@ export interface User {
 
   reputationScore: number;
   reputationTier: ReputationTier;
-  completedDeals: number;
-  averageRating: number;
-  reviewCount: number;
 
   premiumBadgeUntil: string | null;
+  activeThemeId: string | null;
   tonAddress: string | null;
   language: string;
   theme: string;
@@ -47,120 +38,111 @@ export interface User {
 
   createdAt: string;
   updatedAt: string;
+
+  // Flag populated by auth response (`ADMIN | MODERATOR`)
+  isAdmin?: boolean;
 }
 
-// ─── Marketplace ─────────────────────────────────────
+// ─── Gifts ───────────────────────────────────────────
 
-export type ListingCategory =
-  | 'DESIGN'
-  | 'WRITING'
-  | 'DEVELOPMENT'
-  | 'MARKETING'
-  | 'VIDEO'
-  | 'OTHER';
+export type GiftRarity = 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY';
 
-export interface Listing {
+export interface Gift {
   id: string;
-  sellerId: string;
-  title: string;
+  name: string;
   description: string;
-  category: ListingCategory;
-  priceStars: number;
-  deliveryDays: number;
-  coverImage: string | null;
-  images: string[];
+  imageUrl: string;
+  rarity: GiftRarity;
+  priceStars: number | null;
+  priceTon: number | null;
+  editionSize: number | null;
+  editionMinted: number;
   isActive: boolean;
-  featuredUntil: string | null;
-  orderCount: number;
-  averageRating: number;
-  reviewCount: number;
-  createdAt: string;
-  updatedAt: string;
-  seller?: Pick<
-    User,
-    'id' | 'username' | 'firstName' | 'avatarUrl' | 'reputationTier' | 'reputationScore' | 'averageRating' | 'reviewCount'
-  >;
-}
-
-export type OrderStatus =
-  | 'PENDING'
-  | 'PAID'
-  | 'IN_PROGRESS'
-  | 'DELIVERED'
-  | 'COMPLETED'
-  | 'DISPUTED'
-  | 'CANCELLED'
-  | 'REFUNDED';
-
-export interface Order {
-  id: string;
-  listingId: string;
-  buyerId: string;
-  sellerId: string;
-  priceStars: number;
-  commissionStars: number;
-  payoutStars: number;
-  commissionRate: number;
-  status: OrderStatus;
-  deliverable: string | null;
-  deliveredAt: string | null;
-  completedAt: string | null;
-  cancelledAt: string | null;
-  disputeReason: string | null;
-  invoicePayload: string | null;
-  telegramChargeId: string | null;
-  paidAt: string | null;
-  refundedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-  listing?: Listing;
-  buyer?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
-  seller?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl' | 'reputationTier'>;
-}
-
-export interface Review {
-  id: string;
-  orderId: string;
-  authorId: string;
-  targetId: string;
-  rating: number; // 1..5
-  comment: string | null;
-  createdAt: string;
-  author?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
-}
-
-// ─── Tasks ───────────────────────────────────────────
-
-export type TaskProofType = 'SCREENSHOT' | 'LINK' | 'TEXT';
-
-export interface Task {
-  id: string;
-  brandName: string;
-  brandLogo: string | null;
-  title: string;
-  description: string;
-  proofType: TaskProofType;
-  rewardStars: number;
-  totalSlots: number;
-  filledSlots: number;
-  isActive: boolean;
-  expiresAt: string | null;
   createdAt: string;
 }
 
-export type UserTaskStatus = 'ACTIVE' | 'DELIVERED' | 'APPROVED' | 'REJECTED';
-
-export interface UserTask {
+export interface UserGift {
   id: string;
   userId: string;
-  taskId: string;
-  status: UserTaskStatus;
-  proof: string | null;
-  rejectReason: string | null;
-  deliveredAt: string | null;
-  approvedAt: string | null;
+  giftId: string;
+  serialNo: number;
+  acquiredAt: string;
+  gift?: Gift;
+}
+
+// ─── Themes ──────────────────────────────────────────
+
+export interface ThemePalette {
+  bg: string;
+  surface: string;
+  surface2: string;
+  border: string;
+  accent: string;
+  teal: string;
+  gold: string;
+  text: string;
+  textMuted: string;
+}
+
+export interface Theme {
+  id: string;
+  name: string;
+  description: string | null;
+  previewUrl: string | null;
+  palette: ThemePalette;
+  priceStars: number | null;
+  priceTon: number | null;
+  plusOnly: boolean;
+  isActive: boolean;
+}
+
+// ─── Plus subscription ──────────────────────────────
+
+export interface PlusPlan {
+  id: string;
+  name: string;
+  durationDays: number;
+  priceStars: number | null;
+  priceTon: number | null;
+  priceFiat: number | null;
+  isActive: boolean;
+}
+
+export interface PlusSubscription {
+  id: string;
+  userId: string;
+  planId: string;
+  startsAt: string;
+  endsAt: string;
   createdAt: string;
-  task?: Task;
+}
+
+// ─── Social ──────────────────────────────────────────
+
+export type PostStatus = 'PUBLISHED' | 'HIDDEN' | 'REMOVED';
+
+export interface Post {
+  id: string;
+  authorId: string;
+  body: string;
+  imageUrl: string | null;
+  status: PostStatus;
+  likeCount: number;
+  commentCount: number;
+  boostedUntil: string | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl' | 'reputationTier'>;
+  likedByMe?: boolean;
+}
+
+export interface PostComment {
+  id: string;
+  postId: string;
+  userId: string;
+  body: string;
+  createdAt: string;
+  user?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
 }
 
 // ─── Wallet ──────────────────────────────────────────
@@ -168,14 +150,12 @@ export interface UserTask {
 export type Currency = 'STARS' | 'TON';
 
 export type TransactionType =
-  | 'SALE_INCOME'
-  | 'PURCHASE'
-  | 'TASK_REWARD'
-  | 'COMMISSION'
+  | 'GIFT_PURCHASE'
+  | 'PLUS_SUBSCRIPTION'
+  | 'THEME_PURCHASE'
+  | 'SOCIAL_BOOST'
+  | 'AI_USAGE'
   | 'REFERRAL_BONUS'
-  | 'FEATURED_BOOST'
-  | 'PREMIUM_BADGE'
-  | 'BRAND_TASK_FUNDING'
   | 'TON_WITHDRAWAL'
   | 'TON_DEPOSIT';
 
@@ -224,13 +204,6 @@ export interface ReferralInfo {
   link: string;
   count: number;
   earnedStars: number;
-}
-
-// ─── Order placement (Telegram Stars invoice) ───────
-
-export interface PlaceOrderResponse {
-  order: Order;
-  invoiceLink: string;
 }
 
 // ─── Auth ────────────────────────────────────────────

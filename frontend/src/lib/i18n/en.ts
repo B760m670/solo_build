@@ -22,8 +22,35 @@ const en = {
   // Nav
   navMarket: 'Market',
   navTasks: 'Tasks',
+  navStudio: 'Studio',
   navWallet: 'Wallet',
   navProfile: 'Profile',
+
+  // Studio hub
+  studioTitle: 'Studio',
+  studioSubtitle: 'Everything Unisouq in one place',
+  comingSoon: 'Coming soon',
+  sectionCrypto: 'Crypto',
+  sectionCryptoDesc: 'Hold, send, receive Stars and TON',
+  sectionAi: 'AI Tools',
+  sectionAiDesc: 'Smart helpers and automations',
+  sectionGames: 'Games',
+  sectionGamesDesc: 'Skill-based mini games and prizes',
+  sectionSocial: 'Social',
+  sectionSocialDesc: 'Post, follow, build your audience',
+  sectionGifts: 'Gifts',
+  sectionGiftsDesc: 'Original Unisouq NFT collectibles',
+  sectionThemes: 'Themes',
+  sectionThemesDesc: 'Premium visual styles for the app',
+  sectionPlus: 'Unisouq Plus',
+  sectionPlusDesc: 'Unlock every premium feature',
+
+  // Profile extras
+  unisouqPlus: 'Unisouq Plus',
+  unisouqPlusPitch: 'Unlimited AI, premium themes, gift discounts',
+  edit: 'Edit',
+  add: 'Add',
+  notSet: 'Not set',
 
   // Onboarding
   onboardTitle1: 'Welcome to Unisouq',

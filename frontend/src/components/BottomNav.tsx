@@ -1,7 +1,7 @@
-import { MarketIcon, TasksIcon, WalletIcon, ProfileIcon } from './Icons';
+import { StudioIcon, WalletIcon, ProfileIcon } from './Icons';
 import { useTranslation } from '../lib/i18n';
 
-export type NavPage = 'market' | 'tasks' | 'wallet' | 'profile';
+export type NavPage = 'studio' | 'wallet' | 'profile';
 
 interface BottomNavProps {
   active: NavPage;
@@ -9,9 +9,8 @@ interface BottomNavProps {
   hidden?: boolean;
 }
 
-const tabs: { key: NavPage; labelKey: 'navMarket' | 'navTasks' | 'navWallet' | 'navProfile'; icon: typeof MarketIcon }[] = [
-  { key: 'market', labelKey: 'navMarket', icon: MarketIcon },
-  { key: 'tasks', labelKey: 'navTasks', icon: TasksIcon },
+const tabs: { key: NavPage; labelKey: 'navStudio' | 'navWallet' | 'navProfile'; icon: typeof StudioIcon }[] = [
+  { key: 'studio', labelKey: 'navStudio', icon: StudioIcon },
   { key: 'wallet', labelKey: 'navWallet', icon: WalletIcon },
   { key: 'profile', labelKey: 'navProfile', icon: ProfileIcon },
 ];

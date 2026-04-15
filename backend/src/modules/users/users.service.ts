@@ -34,9 +34,7 @@ export class UsersService {
         avatarUrl: true,
         reputationScore: true,
         reputationTier: true,
-        completedDeals: true,
-        averageRating: true,
-        reviewCount: true,
+        premiumBadgeUntil: true,
         createdAt: true,
       },
     });

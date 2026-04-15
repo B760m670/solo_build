@@ -7,8 +7,6 @@ import {
   Post,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { OrdersService } from '../orders/orders.service';
-import { PurchasesService } from '../purchases/purchases.service';
 import { TelegramService } from './telegram.service';
 
 // Minimal shapes of the Telegram Update fields we care about.
@@ -49,8 +47,6 @@ export class TelegramWebhookController {
   constructor(
     config: ConfigService,
     private telegram: TelegramService,
-    private orders: OrdersService,
-    private purchases: PurchasesService,
   ) {
     this.secret = config.get<string>('BOT_WEBHOOK_SECRET') ?? '';
     this.webappUrl = config.get<string>('WEBAPP_URL') ?? '';
@@ -85,7 +81,6 @@ export class TelegramWebhookController {
       await this.telegram.answerPreCheckoutQuery(q.id, false, 'Unsupported currency');
       return;
     }
-    // Lightweight sanity check — full validation happens on successful_payment.
     try {
       await this.telegram.answerPreCheckoutQuery(q.id, true);
     } catch (e) {
@@ -96,25 +91,11 @@ export class TelegramWebhookController {
   private async handleSuccessfulPayment(msg: TgMessage) {
     const sp = msg.successful_payment!;
     if (sp.currency !== 'XTR') return;
-    try {
-      await this.orders.markPaidByPayload(sp.invoice_payload, sp.telegram_payment_charge_id);
-      return;
-    } catch (e) {
-      // Not an order — try StarsPurchase fallback.
-      this.logger.log(`Order lookup failed for payload ${sp.invoice_payload}, trying purchases`);
-    }
-    try {
-      await this.purchases.fulfillByPayload(sp.invoice_payload, sp.telegram_payment_charge_id);
-    } catch (e) {
-      this.logger.error(`purchase fulfill failed: ${(e as Error).message}`);
-      if (msg.from) {
-        await this.telegram.sendMessage(
-          msg.from.id,
-          'Payment received but could not be matched. Contact support with this reference: ' +
-            sp.invoice_payload,
-        );
-      }
-    }
+    // Purchase fulfillment is pending rebuild on the new schema (Gifts/Themes/Plus/Boost).
+    // For now we just log — the purchase modules will pick this up by invoice_payload.
+    this.logger.log(
+      `Received successful_payment payload=${sp.invoice_payload} charge=${sp.telegram_payment_charge_id}`,
+    );
   }
 
   private async handleCommand(msg: TgMessage) {
@@ -123,12 +104,10 @@ export class TelegramWebhookController {
     const cmd = text.split(/\s+/)[0].split('@')[0];
 
     if (cmd === '/start') {
-      const button = this.webappUrl
-        ? `\n\nOpen: ${this.webappUrl}`
-        : '';
+      const button = this.webappUrl ? `\n\nOpen: ${this.webappUrl}` : '';
       await this.telegram.sendMessage(
         msg.chat.id,
-        `<b>Unisouq</b> — the universal digital marketplace inside Telegram.\n\nBuy and sell services paid in Telegram Stars, complete brand tasks, build your reputation.${button}`,
+        `<b>Unisouq</b> — the creative Web3 studio inside Telegram.\n\nCrypto, AI tools, games, social, NFT gifts — all in one place.${button}`,
       );
       return;
     }
@@ -141,5 +120,4 @@ export class TelegramWebhookController {
       return;
     }
   }
-
 }
