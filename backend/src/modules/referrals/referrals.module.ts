@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
-import { ReferralsController } from './referrals.controller';
 import { ReferralsService } from './referrals.service';
+import { ReferralsController } from './referrals.controller';
+import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
-  controllers: [ReferralsController],
+  imports: [PrismaModule],
   providers: [ReferralsService],
+  controllers: [ReferralsController],
   exports: [ReferralsService],
 })
 export class ReferralsModule {}

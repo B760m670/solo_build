@@ -1,52 +1,41 @@
 import {
-  IsString,
-  IsNumber,
   IsArray,
+  IsBoolean,
+  IsEnum,
+  IsInt,
   IsOptional,
+  IsString,
+  Length,
+  Max,
   Min,
-  MaxLength,
 } from 'class-validator';
+import { ListingCategory } from '@prisma/client';
 
 export class CreateListingDto {
   @IsString()
-  @MaxLength(200)
+  @Length(4, 120)
   title!: string;
 
   @IsString()
-  @MaxLength(2000)
+  @Length(20, 2000)
   description!: string;
 
-  @IsNumber()
+  @IsEnum(ListingCategory)
+  category!: ListingCategory;
+
+  @IsInt()
   @Min(1)
-  price!: number;
+  @Max(1_000_000)
+  priceStars!: number;
 
-  @IsString()
-  category!: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  images!: string[];
-}
-
-export class UpdateListingDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(200)
-  title?: string;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(2000)
-  description?: string;
-
-  @IsOptional()
-  @IsNumber()
+  @IsInt()
   @Min(1)
-  price?: number;
+  @Max(90)
+  deliveryDays!: number;
 
   @IsOptional()
   @IsString()
-  category?: string;
+  coverImage?: string;
 
   @IsOptional()
   @IsArray()
@@ -54,12 +43,37 @@ export class UpdateListingDto {
   images?: string[];
 }
 
-export class ListingFilterDto {
+export class UpdateListingDto {
   @IsOptional()
   @IsString()
-  search?: string;
+  @Length(4, 120)
+  title?: string;
 
   @IsOptional()
   @IsString()
-  category?: string;
+  @Length(20, 2000)
+  description?: string;
+
+  @IsOptional()
+  @IsEnum(ListingCategory)
+  category?: ListingCategory;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  priceStars?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  @Max(90)
+  deliveryDays?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsString()
+  coverImage?: string;
 }

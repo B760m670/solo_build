@@ -7,11 +7,11 @@ export type Lang = 'en' | 'ru';
 const translations: Record<Lang, Record<TranslationKeys, string>> = { en, ru };
 
 export function getStoredLang(): Lang {
-  return (localStorage.getItem('brabble_lang') as Lang) || 'en';
+  return (localStorage.getItem('unisouq_lang') as Lang) || 'en';
 }
 
 export function setStoredLang(lang: Lang) {
-  localStorage.setItem('brabble_lang', lang);
+  localStorage.setItem('unisouq_lang', lang);
 }
 
 export type TFunction = (key: TranslationKeys, params?: Record<string, string | number>) => string;

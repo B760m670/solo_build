@@ -1,21 +1,26 @@
-import { Controller, Get, Patch, Body, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserDto } from './user.dto';
+import { UpdateSettingsDto } from './user.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
-  constructor(private usersService: UsersService) {}
+  constructor(private users: UsersService) {}
 
   @Get('me')
-  me(@CurrentUser('id') userId: string) {
-    return this.usersService.findById(userId);
+  me(@CurrentUser() user: { id: string }) {
+    return this.users.getProfile(user.id);
   }
 
   @Patch('me')
-  update(@CurrentUser('id') userId: string, @Body() dto: UpdateUserDto) {
-    return this.usersService.update(userId, dto);
+  updateMe(@CurrentUser() user: { id: string }, @Body() dto: UpdateSettingsDto) {
+    return this.users.updateSettings(user.id, dto);
+  }
+
+  @Get(':id')
+  publicProfile(@Param('id') id: string) {
+    return this.users.getPublicProfile(id);
   }
 }

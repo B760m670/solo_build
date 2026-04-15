@@ -45,18 +45,12 @@ export class AuthService {
       });
     }
 
-    let referredBy: string | undefined;
+    let referredById: string | undefined;
     if (referralCode) {
       const referrer = await this.prisma.user.findUnique({
         where: { referralCode },
       });
-      if (referrer) {
-        referredBy = referrer.id;
-        await this.prisma.user.update({
-          where: { id: referrer.id },
-          data: { referralCount: { increment: 1 } },
-        });
-      }
+      if (referrer) referredById = referrer.id;
     }
 
     return this.prisma.user.create({
@@ -66,8 +60,7 @@ export class AuthService {
         firstName: telegramUser.first_name,
         lastName: telegramUser.last_name,
         avatarUrl: telegramUser.photo_url,
-        isPremium: false,
-        referredBy,
+        referredById,
       },
     });
   }

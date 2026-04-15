@@ -1,212 +1,53 @@
-import { useQuery } from '@tanstack/react-query';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, getAuthToken } from '../lib/api';
-import type { Task } from '@brabble/shared';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../lib/api';
+import type { Order, ReputationTier, UserTask } from '@unisouq/shared';
 
-interface DashboardData {
-  users: { total: number; premium: number; recentSignups: number };
-  tasks: {
-    total: number;
-    completed: number;
-    topTasks: { id: string; title: string; brand: string; filledSlots: number; totalSlots: number; reward: number }[];
-  };
-  marketplace: { activeListings: number; totalOrders: number; commissionRevenue: number };
-  economy: { totalBrbInCirculation: number; totalBrbEarned: number; totalTransactions: number };
-}
-
-interface AdminUser {
-  id: string;
-  telegramId: number;
-  username: string | null;
-  firstName: string;
-  brbBalance: number;
-  isPremium: boolean;
-  createdAt: string;
-  _count: { tasks: number; listings: number };
-}
-
-interface AdminTaskSubmission {
-  id: string;
-  userId: string;
-  taskId: string;
-  status: string;
-  proof: string | null;
-  completedAt: string | null;
-  createdAt: string;
-  task: { id: string; title: string; brand: string; reward: number; category: string };
-  user: { id: string; telegramId: number; username: string | null; firstName: string; avatarUrl: string | null; brbBalance: number };
-}
-
-type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'SENT' | 'FAILED';
-
-interface AdminWithdrawal {
-  id: string;
-  userId: string;
-  tonAddress: string;
-  grossAmount: number;
-  feeAmount: number;
-  netAmount: number;
-  status: WithdrawalStatus;
-  idempotencyKey: string;
-  externalTxId: string | null;
-  failureReason: string | null;
-  approvedAt: string | null;
-  sentAt: string | null;
-  failedAt: string | null;
-  createdAt: string;
-  user: { id: string; telegramId: number; username: string | null; firstName: string };
+export interface AdminDashboard {
+  users: { total: number; recentSignups: number; tiers: Record<ReputationTier, number> };
+  listings: { total: number; active: number };
+  orders: { total: number; completed: number };
+  economy: { gmvStars: number; commissionStars: number };
+  tasks: { total: number; active: number; pendingReview: number };
 }
 
 export function useAdminDashboard() {
-  return useQuery({
+  return useQuery<AdminDashboard>({
     queryKey: ['admin', 'dashboard'],
-    queryFn: () => api.get<DashboardData>('/admin/dashboard'),
-    enabled: !!getAuthToken(),
-    retry: false,
+    queryFn: () => api.get<AdminDashboard>('/admin/dashboard'),
   });
 }
 
-export function useAdminUsers(limit = 20) {
-  return useQuery({
-    queryKey: ['admin', 'users', limit],
-    queryFn: () => api.get<AdminUser[]>(`/admin/users?limit=${limit}`),
-    enabled: !!getAuthToken(),
-    retry: false,
+export function useAdminPendingTasks() {
+  return useQuery<UserTask[]>({
+    queryKey: ['admin', 'tasks', 'pending'],
+    queryFn: () => api.get<UserTask[]>('/admin/tasks/pending'),
   });
 }
 
-export function useAdminTasks(limit = 50) {
-  return useQuery({
-    queryKey: ['admin', 'tasks', limit],
-    queryFn: () => api.get<Task[]>(`/admin/tasks?limit=${limit}`),
-    enabled: !!getAuthToken(),
-    retry: false,
+export function useAdminDisputes() {
+  return useQuery<Order[]>({
+    queryKey: ['admin', 'disputes'],
+    queryFn: () => api.get<Order[]>('/admin/disputes'),
   });
 }
 
-export function useAdminCreateTask() {
+export function useAdminApproveTask() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: {
-      title: string;
-      description: string;
-      category: string;
-      verificationType?: string;
-      verificationPolicy?: {
-        proofType: 'TEXT' | 'LINK' | 'SCREENSHOT_URL' | 'JSON';
-        requiredFields: string[];
-        autoCheckRules: string[];
-        minTextLength?: number;
-      };
-      reward: number;
-      timeMinutes: number;
-      brand: string;
-      sponsorName?: string;
-      sponsorType?: string;
-      sponsorBudgetCurrency?: 'TON' | 'STARS';
-      sponsorBudgetAmount?: number;
-      kpiName?: string;
-      kpiTarget?: number;
-      kpiUnit?: string;
-      minReputation?: number;
-      minAccountAgeDays?: number;
-      cooldownSeconds?: number;
-      totalSlots?: number;
-      expiresAt?: string;
-      isActive?: boolean;
-    }) => api.post<Task>('/admin/tasks', data),
+    mutationFn: (userTaskId: string) => api.post<UserTask>(`/admin/tasks/${userTaskId}/approve`),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'tasks'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
+      qc.invalidateQueries({ queryKey: ['admin'] });
     },
   });
 }
 
-export function useAdminToggleTask() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (taskId: string) => api.post<Task>(`/admin/tasks/${taskId}/toggle`, {}),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'tasks'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
-    },
-  });
-}
-
-export function useAdminTaskSubmissions(limit = 50) {
-  return useQuery({
-    queryKey: ['admin', 'taskSubmissions', limit],
-    queryFn: () => api.get<AdminTaskSubmission[]>(`/admin/tasks/submissions?limit=${limit}`),
-    enabled: !!getAuthToken(),
-    retry: false,
-  });
-}
-
-export function useAdminApproveSubmission() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (userTaskId: string) => api.post(`/admin/tasks/submissions/${userTaskId}/approve`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
-    },
-  });
-}
-
-export function useAdminRejectSubmission() {
+export function useAdminRejectTask() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ userTaskId, reason }: { userTaskId: string; reason?: string }) =>
-      api.post(`/admin/tasks/submissions/${userTaskId}/reject`, { reason }),
+      api.post<UserTask>(`/admin/tasks/${userTaskId}/reject`, { reason }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'taskSubmissions'] });
-      qc.invalidateQueries({ queryKey: ['admin', 'dashboard'] });
-    },
-  });
-}
-
-export function useAdminWithdrawals(status?: WithdrawalStatus, limit = 50) {
-  const qs = new URLSearchParams();
-  if (status) qs.set('status', status);
-  qs.set('limit', String(limit));
-  const url = `/admin/withdrawals?${qs.toString()}`;
-
-  return useQuery({
-    queryKey: ['admin', 'withdrawals', status, limit],
-    queryFn: () => api.get<AdminWithdrawal[]>(url),
-    enabled: !!getAuthToken(),
-    retry: false,
-    refetchInterval: 15000,
-  });
-}
-
-export function useAdminApproveWithdrawal() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (withdrawalId: string) => api.post(`/admin/withdrawals/${withdrawalId}/approve`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
-    },
-  });
-}
-
-export function useAdminSendWithdrawal() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (withdrawalId: string) => api.post(`/admin/withdrawals/${withdrawalId}/send`),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
-    },
-  });
-}
-
-export function useAdminFailWithdrawal() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ withdrawalId, reason }: { withdrawalId: string; reason?: string }) =>
-      api.post(`/admin/withdrawals/${withdrawalId}/fail`, { reason }),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'withdrawals'] });
+      qc.invalidateQueries({ queryKey: ['admin'] });
     },
   });
 }

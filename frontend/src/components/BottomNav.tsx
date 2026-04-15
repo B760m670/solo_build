@@ -1,18 +1,18 @@
-import { HomeIcon, TasksIcon, MarketIcon, ProfileIcon } from './Icons';
+import { MarketIcon, TasksIcon, WalletIcon, ProfileIcon } from './Icons';
 import { useTranslation } from '../lib/i18n';
 
-type Page = 'home' | 'tasks' | 'market' | 'profile';
+export type NavPage = 'market' | 'tasks' | 'wallet' | 'profile';
 
 interface BottomNavProps {
-  active: Page;
-  onNavigate: (page: Page) => void;
+  active: NavPage;
+  onNavigate: (page: NavPage) => void;
   hidden?: boolean;
 }
 
-const tabs: { key: Page; labelKey: 'navHome' | 'navTasks' | 'navMarket' | 'navProfile'; icon: typeof HomeIcon }[] = [
-  { key: 'home', labelKey: 'navHome', icon: HomeIcon },
-  { key: 'tasks', labelKey: 'navTasks', icon: TasksIcon },
+const tabs: { key: NavPage; labelKey: 'navMarket' | 'navTasks' | 'navWallet' | 'navProfile'; icon: typeof MarketIcon }[] = [
   { key: 'market', labelKey: 'navMarket', icon: MarketIcon },
+  { key: 'tasks', labelKey: 'navTasks', icon: TasksIcon },
+  { key: 'wallet', labelKey: 'navWallet', icon: WalletIcon },
   { key: 'profile', labelKey: 'navProfile', icon: ProfileIcon },
 ];
 
@@ -45,15 +45,10 @@ function BottomNav({ active, onNavigate, hidden }: BottomNavProps) {
             className="tap-target flex flex-col items-center gap-0.5"
             style={{ background: 'none', border: 'none', cursor: 'pointer' }}
           >
-            <Icon
-              size={22}
-              color={isActive ? 'var(--accent)' : 'var(--text-muted)'}
-            />
+            <Icon size={22} color={isActive ? 'var(--accent)' : 'var(--text-muted)'} />
             <span
               className="text-[10px] font-medium"
-              style={{
-                color: isActive ? 'var(--accent)' : 'var(--text-muted)',
-              }}
+              style={{ color: isActive ? 'var(--accent)' : 'var(--text-muted)' }}
             >
               {t(labelKey)}
             </span>

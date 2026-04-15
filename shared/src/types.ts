@@ -1,4 +1,23 @@
 // ─── User ────────────────────────────────────────────
+
+export type UserRole = 'USER' | 'ADMIN' | 'MODERATOR';
+
+export type ReputationTier = 'NEW' | 'TRUSTED' | 'EXPERT' | 'ELITE';
+
+export const TIER_COMMISSION_RATE: Record<ReputationTier, number> = {
+  NEW: 0.07,
+  TRUSTED: 0.05,
+  EXPERT: 0.04,
+  ELITE: 0.03,
+};
+
+export const TIER_THRESHOLDS: Record<ReputationTier, { min: number; max: number }> = {
+  NEW: { min: 0, max: 99 },
+  TRUSTED: { min: 100, max: 299 },
+  EXPERT: { min: 300, max: 699 },
+  ELITE: { min: 700, max: 1000 },
+};
+
 export interface User {
   id: string;
   telegramId: number;
@@ -6,62 +25,130 @@ export interface User {
   firstName: string;
   lastName: string | null;
   avatarUrl: string | null;
-  isPremium: boolean;
-  premiumExpiry: string | null;
-  role?: 'USER' | 'ADMIN' | 'MODERATOR';
-  isAdmin?: boolean;
-  brbBalance: number;
-  totalEarned: number;
-  tonWallet: string | null;
-  referralCode: string;
-  referredBy: string | null;
-  referralCount: number;
-  referralEarned: number;
+  role: UserRole;
+
+  starsBalance: number;
+  tonBalance: number;
+  totalEarnedStars: number;
+
+  reputationScore: number;
+  reputationTier: ReputationTier;
+  completedDeals: number;
+  averageRating: number;
+  reviewCount: number;
+
+  premiumBadgeUntil: string | null;
+  tonAddress: string | null;
   language: string;
   theme: string;
+
+  referralCode: string;
+  referredById: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
 
-// ─── Task ────────────────────────────────────────────
-export interface Task {
+// ─── Marketplace ─────────────────────────────────────
+
+export type ListingCategory =
+  | 'DESIGN'
+  | 'WRITING'
+  | 'DEVELOPMENT'
+  | 'MARKETING'
+  | 'VIDEO'
+  | 'OTHER';
+
+export interface Listing {
   id: string;
+  sellerId: string;
   title: string;
   description: string;
-  category: TaskCategory;
-  verificationType?: 'MANUAL' | 'AUTO_CONNECT_WALLET' | 'AUTO_FIRST_LISTING' | 'AUTO_FIRST_PURCHASE';
-  verificationPolicy: VerificationPolicy | null;
-  reward: number;
-  timeMinutes: number;
-  brand: string;
-  sponsorName: string | null;
-  sponsorType: string | null;
-  sponsorBudgetCurrency: 'TON' | 'STARS' | null;
-  sponsorBudgetAmount: number | null;
-  sponsorBudgetSpent: number;
-  kpiName: string | null;
-  kpiTarget: number | null;
-  kpiUnit: string | null;
-  audienceRules: Record<string, unknown> | null;
-  cooldownSeconds: number;
-  minReputation: number;
-  minAccountAgeDays: number;
-  brandLogo: string | null;
+  category: ListingCategory;
+  priceStars: number;
+  deliveryDays: number;
+  coverImage: string | null;
+  images: string[];
   isActive: boolean;
+  featuredUntil: string | null;
+  orderCount: number;
+  averageRating: number;
+  reviewCount: number;
+  createdAt: string;
+  updatedAt: string;
+  seller?: Pick<
+    User,
+    'id' | 'username' | 'firstName' | 'avatarUrl' | 'reputationTier' | 'reputationScore' | 'averageRating' | 'reviewCount'
+  >;
+}
+
+export type OrderStatus =
+  | 'PENDING'
+  | 'PAID'
+  | 'IN_PROGRESS'
+  | 'DELIVERED'
+  | 'COMPLETED'
+  | 'DISPUTED'
+  | 'CANCELLED'
+  | 'REFUNDED';
+
+export interface Order {
+  id: string;
+  listingId: string;
+  buyerId: string;
+  sellerId: string;
+  priceStars: number;
+  commissionStars: number;
+  payoutStars: number;
+  commissionRate: number;
+  status: OrderStatus;
+  deliverable: string | null;
+  deliveredAt: string | null;
+  completedAt: string | null;
+  cancelledAt: string | null;
+  disputeReason: string | null;
+  invoicePayload: string | null;
+  telegramChargeId: string | null;
+  paidAt: string | null;
+  refundedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  listing?: Listing;
+  buyer?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
+  seller?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl' | 'reputationTier'>;
+}
+
+export interface Review {
+  id: string;
+  orderId: string;
+  authorId: string;
+  targetId: string;
+  rating: number; // 1..5
+  comment: string | null;
+  createdAt: string;
+  author?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
+}
+
+// ─── Tasks ───────────────────────────────────────────
+
+export type TaskProofType = 'SCREENSHOT' | 'LINK' | 'TEXT';
+
+export interface Task {
+  id: string;
+  brandName: string;
+  brandLogo: string | null;
+  title: string;
+  description: string;
+  proofType: TaskProofType;
+  rewardStars: number;
   totalSlots: number;
   filledSlots: number;
+  isActive: boolean;
   expiresAt: string | null;
   createdAt: string;
 }
 
-export interface VerificationPolicy {
-  proofType: 'TEXT' | 'LINK' | 'SCREENSHOT_URL' | 'JSON';
-  requiredFields: string[];
-  autoCheckRules: string[];
-  minTextLength?: number;
-}
-
-export type TaskCategory = 'survey' | 'review' | 'test' | 'subscribe';
+export type UserTaskStatus = 'ACTIVE' | 'DELIVERED' | 'APPROVED' | 'REJECTED';
 
 export interface UserTask {
   id: string;
@@ -69,87 +156,44 @@ export interface UserTask {
   taskId: string;
   status: UserTaskStatus;
   proof: string | null;
-  proofData: TaskProofData | null;
-  deviceFingerprint?: string | null;
-  riskScore?: number;
-  riskFlags?: string[];
-  submittedAt?: string | null;
-  reviewedAt?: string | null;
-  reviewNote?: string | null;
-  completedAt: string | null;
+  rejectReason: string | null;
+  deliveredAt: string | null;
+  approvedAt: string | null;
   createdAt: string;
   task?: Task;
 }
 
-export interface TaskProofData {
-  text?: string;
-  link?: string;
-  screenshotUrl?: string;
-  metadata?: Record<string, unknown>;
-}
-
-export type UserTaskStatus =
-  | 'PENDING'
-  | 'ACTIVE'
-  | 'SUBMITTED'
-  | 'COMPLETED'
-  | 'REJECTED';
-
-// ─── Marketplace ─────────────────────────────────────
-export interface Listing {
-  id: string;
-  sellerId: string;
-  title: string;
-  description: string;
-  price: number;
-  category: string;
-  images: string[];
-  isActive: boolean;
-  createdAt: string;
-  seller?: Pick<User, 'id' | 'username' | 'firstName' | 'avatarUrl'>;
-}
-
-export interface Order {
-  id: string;
-  buyerId: string;
-  listingId: string;
-  amount: number;
-  commission: number;
-  status: OrderStatus;
-  createdAt: string;
-  listing?: Listing;
-}
-
-export type OrderStatus = 'PENDING' | 'COMPLETED' | 'CANCELLED' | 'DISPUTED';
-
 // ─── Wallet ──────────────────────────────────────────
+
+export type Currency = 'STARS' | 'TON';
+
+export type TransactionType =
+  | 'SALE_INCOME'
+  | 'PURCHASE'
+  | 'TASK_REWARD'
+  | 'COMMISSION'
+  | 'REFERRAL_BONUS'
+  | 'FEATURED_BOOST'
+  | 'PREMIUM_BADGE'
+  | 'BRAND_TASK_FUNDING'
+  | 'TON_WITHDRAWAL'
+  | 'TON_DEPOSIT';
+
 export interface Transaction {
   id: string;
   userId: string;
   type: TransactionType;
+  currency: Currency;
   amount: number;
-  balanceBefore: number;
   balanceAfter: number;
   meta: Record<string, unknown> | null;
   createdAt: string;
 }
 
-export type TransactionType =
-  | 'TASK_REWARD'
-  | 'MARKETPLACE_PURCHASE'
-  | 'MARKETPLACE_SALE'
-  | 'MARKETPLACE_COMMISSION'
-  | 'REFERRAL_BONUS'
-  | 'WITHDRAWAL'
-  | 'WITHDRAWAL_FEE'
-  | 'BRB_TRANSFER_OUT'
-  | 'BRB_TRANSFER_IN'
-  | 'PREMIUM_PURCHASE'
-  | 'DEPOSIT';
-
 export interface WalletInfo {
-  balance: number;
-  totalEarned: number;
+  starsBalance: number;
+  tonBalance: number;
+  totalEarnedStars: number;
   recentTransactions: Transaction[];
 }
 
@@ -173,25 +217,36 @@ export interface WithdrawalRequest {
   updatedAt: string;
 }
 
-// ─── Subscription ────────────────────────────────────
-export interface Subscription {
-  id: string;
-  userId: string;
-  plan: 'PREMIUM';
-  startsAt: string;
-  expiresAt: string;
-  isActive: boolean;
-}
-
 // ─── Referral ────────────────────────────────────────
+
 export interface ReferralInfo {
   code: string;
   link: string;
   count: number;
-  earned: number;
+  earnedStars: number;
 }
 
-// ─── API Response ────────────────────────────────────
+// ─── Order placement (Telegram Stars invoice) ───────
+
+export interface PlaceOrderResponse {
+  order: Order;
+  invoiceLink: string;
+}
+
+// ─── Auth ────────────────────────────────────────────
+
+export interface LoginRequest {
+  initData: string;
+  referralCode?: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+  user: User;
+}
+
+// ─── API envelope ────────────────────────────────────
+
 export interface ApiSuccess<T> {
   data: T;
 }
@@ -204,18 +259,6 @@ export interface ApiError {
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiError;
 
-// ─── Auth ────────────────────────────────────────────
-export interface LoginRequest {
-  initData: string;
-  referralCode?: string;
-}
-
-export interface LoginResponse {
-  accessToken: string;
-  user: User;
-}
-
-// ─── Pagination ──────────────────────────────────────
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;

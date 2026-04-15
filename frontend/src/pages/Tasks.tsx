@@ -1,270 +1,216 @@
 import { useState } from 'react';
-import { ClockIcon } from '../components/Icons';
-import { useTasks, useUserTasks, useStartTask, useCompleteTask } from '../hooks/useTasks';
-import { CardSkeleton } from '../components/Skeleton';
-import ErrorState, { EmptyState } from '../components/ErrorState';
 import { useTranslation } from '../lib/i18n';
-import type { Task, UserTask } from '@brabble/shared';
+import {
+  useAvailableTasks,
+  useMyTasks,
+  useStartTask,
+  useSubmitTaskProof,
+} from '../hooks/useTasks';
+import type { Task, UserTask, UserTaskStatus, TaskProofType } from '@unisouq/shared';
 
-type Tab = 'all' | 'active' | 'completed';
+type Tab = 'available' | UserTaskStatus;
+const TABS: Tab[] = ['available', 'ACTIVE', 'DELIVERED', 'APPROVED', 'REJECTED'];
+
+function proofLabel(t: (k: any) => string, p: TaskProofType) {
+  return t(`proof${p}`);
+}
+
+function TaskCard({ task, onStart, starting }: { task: Task; onStart: () => void; starting: boolean }) {
+  const { t } = useTranslation();
+  const full = task.filledSlots >= task.totalSlots;
+  return (
+    <div className="rounded-card p-3 flex flex-col gap-2" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <p className="text-[10px] uppercase font-semibold" style={{ color: 'var(--text-muted)' }}>{task.brandName}</p>
+          <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text)' }}>{task.title}</p>
+        </div>
+        <span className="text-sm font-bold shrink-0" style={{ color: 'var(--gold)' }}>+{task.rewardStars} ★</span>
+      </div>
+      <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{task.description}</p>
+      <div className="flex items-center justify-between mt-1">
+        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
+          {proofLabel(t, task.proofType)} · {t('slotsLeft', { count: Math.max(0, task.totalSlots - task.filledSlots) })}
+        </span>
+        <button
+          onClick={onStart}
+          disabled={full || starting}
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-btn"
+          style={{
+            backgroundColor: full ? 'var(--surface2)' : 'var(--accent)',
+            color: '#fff',
+            border: 'none',
+            cursor: full ? 'not-allowed' : 'pointer',
+            opacity: starting ? 0.6 : 1,
+          }}
+        >
+          {full ? t('full') : starting ? t('processing') : t('startTask')}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MyTaskCard({ ut, onSubmit }: { ut: UserTask; onSubmit: (id: string) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-card p-3 flex flex-col gap-2" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <p className="text-[10px] uppercase font-semibold" style={{ color: 'var(--text-muted)' }}>{ut.task?.brandName}</p>
+          <p className="text-sm font-semibold mt-0.5" style={{ color: 'var(--text)' }}>{ut.task?.title}</p>
+        </div>
+        <span className="text-sm font-bold shrink-0" style={{ color: 'var(--gold)' }}>+{ut.task?.rewardStars ?? 0} ★</span>
+      </div>
+      {ut.rejectReason && (
+        <p className="text-[11px]" style={{ color: '#ff6b6b' }}>
+          {t('rejectedReason')}: {ut.rejectReason}
+        </p>
+      )}
+      {(ut.status === 'ACTIVE' || ut.status === 'REJECTED') && (
+        <button
+          onClick={() => onSubmit(ut.id)}
+          className="text-[11px] font-semibold px-3 py-1.5 rounded-btn self-start"
+          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+        >
+          {t('submitProof')}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function ProofSheet({ userTaskId, onClose }: { userTaskId: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  const submit = useSubmitTaskProof();
+  const [proof, setProof] = useState('');
+  const [err, setErr] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    setErr(null);
+    try {
+      await submit.mutateAsync({ userTaskId, proof });
+      onClose();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Error');
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-40 flex items-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={onClose}>
+      <div
+        className="w-full rounded-t-card p-5"
+        style={{ backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p className="text-base font-bold mb-3" style={{ color: 'var(--text)' }}>{t('submitProof')}</p>
+        <textarea
+          value={proof}
+          onChange={(e) => setProof(e.target.value)}
+          placeholder={t('proofPlaceholder')}
+          rows={4}
+          className="w-full px-3 py-2 text-sm rounded-btn outline-none resize-none"
+          style={{ backgroundColor: 'var(--surface2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+        />
+        {err && <p className="text-[11px] mt-2" style={{ color: '#ff6b6b' }}>{err}</p>}
+        <button
+          onClick={handleSubmit}
+          disabled={submit.isPending || !proof.trim()}
+          className="w-full mt-3 py-3 text-sm font-semibold rounded-btn"
+          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: submit.isPending ? 0.6 : 1 }}
+        >
+          {submit.isPending ? t('submitting') : t('submit')}
+        </button>
+        <button
+          onClick={onClose}
+          className="w-full py-2 text-xs mt-2"
+          style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+        >
+          {t('close')}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function Tasks() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<Tab>('all');
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [proofModal, setProofModal] = useState<string | null>(null);
-  const [proof, setProof] = useState('');
-  const [proofLink, setProofLink] = useState('');
-  const [proofScreenshotUrl, setProofScreenshotUrl] = useState('');
-  const [submittedTaskId, setSubmittedTaskId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('available');
+  const [proofFor, setProofFor] = useState<string | null>(null);
 
-  const tabs: { key: Tab; label: string }[] = [
-    { key: 'all', label: t('tabAll') },
-    { key: 'active', label: t('tabActive') },
-    { key: 'completed', label: t('tabCompleted') },
-  ];
+  const availableQ = useAvailableTasks();
+  const mineQ = useMyTasks(tab === 'available' ? undefined : (tab as UserTaskStatus));
+  const start = useStartTask();
 
-  const categories = [
-    { key: 'survey', label: t('catSurvey') },
-    { key: 'review', label: t('catReview') },
-    { key: 'test', label: t('catTest') },
-    { key: 'subscribe', label: t('catSubscribe') },
-  ];
-
-  const tasksQuery = useTasks(activeCategory ?? undefined);
-  const userTasksQuery = useUserTasks(
-    activeTab === 'active' ? 'ACTIVE,SUBMITTED' : activeTab === 'completed' ? 'COMPLETED,REJECTED' : undefined,
-  );
-  const startTask = useStartTask();
-  const completeTask = useCompleteTask();
-
-  const showUserTasks = activeTab !== 'all';
-  const query = showUserTasks ? userTasksQuery : tasksQuery;
-
-  const handleStart = (taskId: string) => startTask.mutate(taskId);
-  const handleRetry = (taskId: string) =>
-    startTask.mutate(taskId, {
-      onSuccess: () => {
-        setProofModal(taskId);
-        setProof('');
-        setProofLink('');
-        setProofScreenshotUrl('');
-      },
-    });
-
-  const handleComplete = () => {
-    if (!proofModal || !proof.trim()) return;
-    const deviceFingerprint = localStorage.getItem('brabble_device_fp')
-      || `${navigator.userAgent.slice(0, 40)}_${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
-    localStorage.setItem('brabble_device_fp', deviceFingerprint);
-    completeTask.mutate(
-      {
-        taskId: proofModal,
-        proof: proof.trim(),
-        proofData: {
-          text: proof.trim(),
-          ...(proofLink.trim() ? { link: proofLink.trim() } : {}),
-          ...(proofScreenshotUrl.trim() ? { screenshotUrl: proofScreenshotUrl.trim() } : {}),
-        },
-        deviceFingerprint,
-      },
-      {
-        onSuccess: () => {
-          setSubmittedTaskId(proofModal);
-          setProofModal(null);
-          setProof('');
-          setProofLink('');
-          setProofScreenshotUrl('');
-          setTimeout(() => setSubmittedTaskId(null), 2500);
-        },
-      },
-    );
+  const tabLabel = (x: Tab) => {
+    if (x === 'available') return t('availableTasks');
+    if (x === 'ACTIVE') return t('tabActive');
+    if (x === 'DELIVERED') return t('tabDelivered');
+    if (x === 'APPROVED') return t('tabApproved');
+    return t('tabRejected');
   };
 
-  const userTaskMap = new Map<string, UserTask>();
-  if (userTasksQuery.data) {
-    for (const ut of userTasksQuery.data) userTaskMap.set(ut.taskId, ut);
-  }
-
   return (
-    <div className="px-4 py-4 space-y-4">
-      {submittedTaskId && (
-        <div className="fixed top-4 left-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-card" style={{ backgroundColor: 'var(--teal)', color: '#000' }}>
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-          <span className="text-sm font-medium">{t('taskSubmitted')}</span>
-        </div>
-      )}
-
-      <div className="flex gap-1 p-0.5 rounded-btn" style={{ backgroundColor: 'var(--surface)' }}>
-        {tabs.map((tab) => (
-          <button key={tab.key} onClick={() => setActiveTab(tab.key)} className="flex-1 py-2 text-xs font-medium rounded-btn transition-colors" style={{ backgroundColor: activeTab === tab.key ? 'var(--surface2)' : 'transparent', color: activeTab === tab.key ? 'var(--text)' : 'var(--text-muted)', border: 'none', cursor: 'pointer' }}>
-            {tab.label}
-          </button>
-        ))}
+    <div className="px-4 pt-2 pb-24">
+      <div className="flex gap-1.5 overflow-x-auto mb-4 -mx-4 px-4 no-scrollbar">
+        {TABS.map((x) => {
+          const isActive = tab === x;
+          return (
+            <button
+              key={x}
+              onClick={() => setTab(x)}
+              className="text-[11px] font-medium px-3 py-1.5 rounded-full whitespace-nowrap"
+              style={{
+                backgroundColor: isActive ? 'var(--accent)' : 'var(--surface2)',
+                color: isActive ? '#fff' : 'var(--text-muted)',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+              }}
+            >
+              {tabLabel(x)}
+            </button>
+          );
+        })}
       </div>
 
-      {activeTab === 'all' && (
-        <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-          {categories.map((cat) => (
-            <button key={cat.key} onClick={() => setActiveCategory(activeCategory === cat.key ? null : cat.key)} className="shrink-0 px-3 py-1.5 text-[11px] font-medium rounded-full border capitalize" style={{ borderColor: activeCategory === cat.key ? 'var(--accent)' : 'var(--border)', color: activeCategory === cat.key ? 'var(--accent)' : 'var(--text-secondary)', background: activeCategory === cat.key ? 'rgba(108, 99, 255, 0.08)' : 'transparent', cursor: 'pointer' }}>
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {query.isLoading ? (
-        <div className="space-y-3">{[1, 2, 3].map((i) => <CardSkeleton key={i} />)}</div>
-      ) : query.isError ? (
-        <ErrorState message={t('failedLoadTasks')} onRetry={() => query.refetch()} />
-      ) : showUserTasks ? (
-        (userTasksQuery.data?.length ?? 0) === 0 ? (
-          <EmptyState message={t('noTasks', { tab: tabs.find((tb) => tb.key === activeTab)?.label ?? '' })} />
-        ) : (
-          <div className="space-y-3">
-            {userTasksQuery.data!.map((ut) => (
-              <UserTaskCard
-                key={ut.id}
-                userTask={ut}
-                onComplete={() => { setProofModal(ut.taskId); setProof(''); setProofLink(''); setProofScreenshotUrl(''); }}
-                onRetry={() => handleRetry(ut.taskId)}
-              />
-            ))}
-          </div>
-        )
-      ) : (
-        (tasksQuery.data?.length ?? 0) === 0 ? (
-          <EmptyState message={t('noTasksAvailable')} />
-        ) : (
-          <div className="space-y-3">
-            {tasksQuery.data!.map((task) => (
+      {tab === 'available' && (
+        <>
+          {availableQ.isLoading && <p className="text-xs text-center py-8" style={{ color: 'var(--text-muted)' }}>{t('loading')}</p>}
+          {availableQ.isError && <p className="text-xs text-center py-8" style={{ color: '#ff6b6b' }}>{t('failedLoadTasks')}</p>}
+          {availableQ.data && availableQ.data.length === 0 && <p className="text-xs text-center py-8" style={{ color: 'var(--text-muted)' }}>{t('noTasks')}</p>}
+          <div className="flex flex-col gap-3">
+            {availableQ.data?.map((task) => (
               <TaskCard
                 key={task.id}
                 task={task}
-                userTask={userTaskMap.get(task.id)}
-                onStart={() => handleStart(task.id)}
-                onRetry={() => handleRetry(task.id)}
-                onComplete={() => { setProofModal(task.id); setProof(''); setProofLink(''); setProofScreenshotUrl(''); }}
-                isStarting={startTask.isPending}
+                onStart={async () => {
+                  try {
+                    await start.mutateAsync(task.id);
+                    setTab('ACTIVE');
+                  } catch {
+                    /* noop */
+                  }
+                }}
+                starting={start.isPending}
               />
             ))}
           </div>
-        )
+        </>
       )}
 
-      {proofModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={() => setProofModal(null)}>
-          <div className="w-full max-w-md rounded-t-2xl p-6 space-y-4 safe-bottom" style={{ backgroundColor: 'var(--surface)' }} onClick={(e) => e.stopPropagation()}>
-            <p className="text-base font-semibold" style={{ color: 'var(--text)' }}>{t('submitProof')}</p>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('proofDescription')}</p>
-            <textarea value={proof} onChange={(e) => setProof(e.target.value)} placeholder={t('proofPlaceholder')} rows={3} className="w-full p-3 rounded-btn text-sm outline-none resize-none border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
-            <input value={proofLink} onChange={(e) => setProofLink(e.target.value)} placeholder="https://proof-link" className="w-full p-3 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
-            <input value={proofScreenshotUrl} onChange={(e) => setProofScreenshotUrl(e.target.value)} placeholder="https://screenshot-url" className="w-full p-3 rounded-btn text-sm outline-none border font-mono" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)', color: 'var(--text)', caretColor: 'var(--accent)' }} />
-            <div className="flex gap-3">
-              <button onClick={() => setProofModal(null)} className="flex-1 py-2.5 text-sm font-medium rounded-btn border" style={{ borderColor: 'var(--border)', color: 'var(--text-secondary)', background: 'transparent', cursor: 'pointer' }}>{t('cancel')}</button>
-              <button onClick={handleComplete} disabled={!proof.trim() || completeTask.isPending} className="flex-1 py-2.5 text-sm font-medium rounded-btn" style={{ backgroundColor: proof.trim() ? 'var(--accent)' : 'var(--surface2)', color: proof.trim() ? '#FFFFFF' : 'var(--text-muted)', border: 'none', cursor: proof.trim() ? 'pointer' : 'default' }}>
-                {completeTask.isPending ? t('submitting') : t('submit')}
-              </button>
-            </div>
+      {tab !== 'available' && (
+        <>
+          {mineQ.isLoading && <p className="text-xs text-center py-8" style={{ color: 'var(--text-muted)' }}>{t('loading')}</p>}
+          {mineQ.data && mineQ.data.length === 0 && <p className="text-xs text-center py-8" style={{ color: 'var(--text-muted)' }}>{t('noTasks')}</p>}
+          <div className="flex flex-col gap-3">
+            {mineQ.data?.map((ut) => (
+              <MyTaskCard key={ut.id} ut={ut} onSubmit={setProofFor} />
+            ))}
           </div>
-        </div>
+        </>
       )}
-    </div>
-  );
-}
 
-function TaskCard({ task, userTask, onStart, onRetry, onComplete, isStarting }: { task: Task; userTask?: UserTask; onStart: () => void; onRetry: () => void; onComplete: () => void; isStarting: boolean }) {
-  const { t } = useTranslation();
-  const status = userTask?.status;
-  const slotsLeft = task.totalSlots - task.filledSlots;
-  const showRejected = status === 'REJECTED';
-
-  return (
-    <div className="rounded-card p-4 border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{task.brand}</p>
-          <span className="inline-block text-[9px] px-1.5 py-0.5 rounded-full mt-1 capitalize" style={{ backgroundColor: 'rgba(108, 99, 255, 0.08)', color: 'var(--accent)' }}>{task.category}</span>
-        </div>
-        <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>+{task.reward} BRB</span>
-      </div>
-      <p className="text-sm font-medium mb-1" style={{ color: 'var(--text)' }}>{task.title}</p>
-      <p className="text-[11px] mb-3" style={{ color: 'var(--text-muted)' }}>{task.description}</p>
-      {showRejected && userTask?.reviewNote && (
-        <div className="mb-3 p-2 rounded-btn border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
-          <p className="text-[10px] font-medium mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('rejectedReason')}</p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{userTask.reviewNote}</p>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
-            <ClockIcon size={12} />
-            <span className="text-[11px]">{t('min', { count: task.timeMinutes })}</span>
-          </div>
-          <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{t('slotsLeft', { count: slotsLeft })}</span>
-        </div>
-        {status === 'COMPLETED' ? (
-          <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('completed')}</span>
-        ) : status === 'SUBMITTED' ? (
-          <span className="text-[11px] font-medium" style={{ color: 'var(--text-muted)' }}>{t('pendingReview')}</span>
-        ) : status === 'REJECTED' ? (
-          <button onClick={onRetry} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('resubmit')}</button>
-        ) : status === 'ACTIVE' ? (
-          <button onClick={onComplete} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}>{t('complete')}</button>
-        ) : (
-          <button onClick={onStart} disabled={isStarting || slotsLeft <= 0} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: slotsLeft > 0 ? 'var(--accent)' : 'var(--surface2)', color: slotsLeft > 0 ? '#FFFFFF' : 'var(--text-muted)', border: 'none', cursor: slotsLeft > 0 ? 'pointer' : 'default' }}>
-            {isStarting ? t('starting') : slotsLeft > 0 ? t('start') : t('full')}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function UserTaskCard({ userTask, onComplete, onRetry }: { userTask: UserTask; onComplete: () => void; onRetry: () => void }) {
-  const { t } = useTranslation();
-  const task = userTask.task;
-  if (!task) return null;
-
-  const showRejected = userTask.status === 'REJECTED';
-
-  return (
-    <div className="rounded-card p-4 border" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>{task.brand}</p>
-          <span className="inline-block text-[9px] px-1.5 py-0.5 rounded-full mt-1 capitalize" style={{ backgroundColor: 'rgba(108, 99, 255, 0.08)', color: 'var(--accent)' }}>{task.category}</span>
-        </div>
-        <span className="text-sm font-bold" style={{ color: 'var(--gold)' }}>+{task.reward} BRB</span>
-      </div>
-      <p className="text-sm font-medium mb-3" style={{ color: 'var(--text)' }}>{task.title}</p>
-      {showRejected && userTask.reviewNote && (
-        <div className="mb-3 p-2 rounded-btn border" style={{ backgroundColor: 'var(--surface2)', borderColor: 'var(--border)' }}>
-          <p className="text-[10px] font-medium mb-0.5" style={{ color: 'var(--text-secondary)' }}>{t('rejectedReason')}</p>
-          <p className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{userTask.reviewNote}</p>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
-          {userTask.status === 'COMPLETED' && userTask.completedAt
-            ? `${t('completed')} ${new Date(userTask.completedAt).toLocaleDateString()}`
-            : userTask.status === 'SUBMITTED'
-              ? t('pendingReview')
-              : userTask.status === 'REJECTED'
-                ? t('rejected')
-              : t('inProgress')}
-        </span>
-        {userTask.status === 'ACTIVE' && (
-          <button onClick={onComplete} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}>{t('complete')}</button>
-        )}
-        {userTask.status === 'COMPLETED' && (
-          <span className="text-[11px] font-medium" style={{ color: 'var(--teal)' }}>{t('done')}</span>
-        )}
-        {userTask.status === 'REJECTED' && (
-          <button onClick={onRetry} className="px-4 py-1.5 text-xs font-medium rounded-btn" style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}>{t('resubmit')}</button>
-        )}
-      </div>
+      {proofFor && <ProofSheet userTaskId={proofFor} onClose={() => setProofFor(null)} />}
     </div>
   );
 }

@@ -1,203 +1,103 @@
 import {
+  ForbiddenException,
   Injectable,
   NotFoundException,
-  BadRequestException,
-  ForbiddenException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { ListingCategory, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
-import { TasksService } from '../tasks/tasks.service';
-
-type TxClient = Prisma.TransactionClient;
 import { CreateListingDto, UpdateListingDto } from './listing.dto';
 
-const BASE_COMMISSION_RATE = 0.03;
-
-function resolveSellerCommissionRate(sellerBrbBalance: number): number {
-  if (sellerBrbBalance >= 3000) return 0.015;
-  if (sellerBrbBalance >= 1000) return 0.02;
-  if (sellerBrbBalance >= 300) return 0.025;
-  return BASE_COMMISSION_RATE;
-}
+const SELLER_SELECT = {
+  id: true,
+  username: true,
+  firstName: true,
+  avatarUrl: true,
+  reputationTier: true,
+  reputationScore: true,
+  averageRating: true,
+  reviewCount: true,
+} as const;
 
 @Injectable()
 export class MarketplaceService {
-  constructor(
-    private prisma: PrismaService,
-    private notifications: NotificationsService,
-    private tasksService: TasksService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async findAll(search?: string, category?: string) {
-    return this.prisma.listing.findMany({
-      where: {
-        isActive: true,
-        ...(category ? { category } : {}),
-        ...(search
-          ? {
-              OR: [
-                { title: { contains: search, mode: 'insensitive' } },
-                { description: { contains: search, mode: 'insensitive' } },
-              ],
-            }
-          : {}),
-      },
-      include: {
-        seller: {
-          select: { id: true, username: true, firstName: true, avatarUrl: true },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
+  async list(params: {
+    category?: ListingCategory;
+    search?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const where: Prisma.ListingWhereInput = { isActive: true };
+    if (params.category) where.category = params.category;
+    if (params.search) {
+      where.OR = [
+        { title: { contains: params.search, mode: 'insensitive' } },
+        { description: { contains: params.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const listings = await this.prisma.listing.findMany({
+      where,
+      include: { seller: { select: SELLER_SELECT } },
+      orderBy: [{ featuredUntil: { sort: 'desc', nulls: 'last' } }, { createdAt: 'desc' }],
+      take: params.limit ?? 30,
+      skip: params.offset ?? 0,
     });
+
+    return listings;
   }
 
-  async findById(id: string) {
+  async getById(id: string) {
     const listing = await this.prisma.listing.findUnique({
       where: { id },
-      include: {
-        seller: {
-          select: { id: true, username: true, firstName: true, avatarUrl: true },
-        },
-      },
+      include: { seller: { select: SELLER_SELECT } },
     });
     if (!listing) throw new NotFoundException('Listing not found');
     return listing;
   }
 
-  async create(sellerId: string, dto: CreateListingDto) {
-    const listing = await this.prisma.listing.create({
-      data: { ...dto, sellerId },
-    });
-
-    // Fire and forget: auto-complete "first listing" tasks if started.
-    this.tasksService.autoCompleteActiveTasks(sellerId, 'AUTO_FIRST_LISTING');
-
-    return listing;
-  }
-
-  async update(userId: string, listingId: string, dto: UpdateListingDto) {
-    const listing = await this.findById(listingId);
-    if (listing.sellerId !== userId) {
-      throw new ForbiddenException('Not your listing');
-    }
-    return this.prisma.listing.update({
-      where: { id: listingId },
-      data: dto,
-    });
-  }
-
-  async remove(userId: string, listingId: string) {
-    const listing = await this.findById(listingId);
-    if (listing.sellerId !== userId) {
-      throw new ForbiddenException('Not your listing');
-    }
-    return this.prisma.listing.update({
-      where: { id: listingId },
-      data: { isActive: false },
-    });
-  }
-
-  async buy(buyerId: string, listingId: string) {
-    const listing = await this.findById(listingId);
-
-    if (listing.sellerId === buyerId) {
-      throw new BadRequestException('Cannot buy your own listing');
-    }
-
-    const order = await this.prisma.$transaction(async (tx: TxClient) => {
-      const buyer = await tx.user.findUniqueOrThrow({
-        where: { id: buyerId },
-      });
-
-      if (buyer.brbBalance < listing.price) {
-        throw new BadRequestException('Insufficient BRB balance');
-      }
-
-      const seller = await tx.user.findUniqueOrThrow({
-        where: { id: listing.sellerId },
-      });
-      const commissionRate = resolveSellerCommissionRate(seller.brbBalance);
-      const commission = listing.price * commissionRate;
-      const sellerAmount = listing.price - commission;
-
-      // Deduct from buyer
-      await tx.user.update({
-        where: { id: buyerId },
-        data: { brbBalance: { decrement: listing.price } },
-      });
-
-      // Credit seller (minus commission)
-      await tx.user.update({
-        where: { id: listing.sellerId },
-        data: {
-          brbBalance: { increment: sellerAmount },
-          totalEarned: { increment: sellerAmount },
-        },
-      });
-
-      // Create order
-      const order = await tx.order.create({
-        data: {
-          buyerId,
-          listingId,
-          amount: listing.price,
-          commission,
-          status: 'COMPLETED',
-        },
-      });
-
-      // Buyer transaction
-      await tx.transaction.create({
-        data: {
-          userId: buyerId,
-          type: 'MARKETPLACE_PURCHASE',
-          amount: -listing.price,
-          balanceBefore: buyer.brbBalance,
-          balanceAfter: buyer.brbBalance - listing.price,
-          meta: { listingId, listingTitle: listing.title },
-        },
-      });
-
-      // Seller transaction
-      await tx.transaction.create({
-        data: {
-          userId: listing.sellerId,
-          type: 'MARKETPLACE_SALE',
-          amount: sellerAmount,
-          balanceBefore: seller.brbBalance,
-          balanceAfter: seller.brbBalance + sellerAmount,
-          meta: {
-            listingId,
-            listingTitle: listing.title,
-            commission,
-            commissionRate,
-            baseCommissionRate: BASE_COMMISSION_RATE,
-            sellerFeeTierBrbBalance: seller.brbBalance,
-          },
-        },
-      });
-
-      // Notify seller
-      this.notifications.sendMarketplaceSale(
-        seller.telegramId,
-        listing.title,
-        sellerAmount,
-      );
-
-      return order;
-    });
-
-    // Fire and forget: auto-complete "first purchase" tasks if started.
-    this.tasksService.autoCompleteActiveTasks(buyerId, 'AUTO_FIRST_PURCHASE');
-
-    return order;
-  }
-
-  async getMyListings(sellerId: string) {
+  async mine(sellerId: string) {
     return this.prisma.listing.findMany({
-      where: { sellerId, isActive: true },
+      where: { sellerId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async create(sellerId: string, dto: CreateListingDto) {
+    return this.prisma.listing.create({
+      data: {
+        sellerId,
+        title: dto.title,
+        description: dto.description,
+        category: dto.category,
+        priceStars: dto.priceStars,
+        deliveryDays: dto.deliveryDays,
+        coverImage: dto.coverImage,
+        images: dto.images ?? [],
+      },
+    });
+  }
+
+  async update(sellerId: string, id: string, dto: UpdateListingDto) {
+    const existing = await this.prisma.listing.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Listing not found');
+    if (existing.sellerId !== sellerId) {
+      throw new ForbiddenException('Not your listing');
+    }
+    return this.prisma.listing.update({ where: { id }, data: dto });
+  }
+
+  async remove(sellerId: string, id: string) {
+    const existing = await this.prisma.listing.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Listing not found');
+    if (existing.sellerId !== sellerId) {
+      throw new ForbiddenException('Not your listing');
+    }
+    await this.prisma.listing.update({
+      where: { id },
+      data: { isActive: false },
+    });
+    return { ok: true };
   }
 }

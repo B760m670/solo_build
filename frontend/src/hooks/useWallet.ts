@@ -1,83 +1,35 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { api, getAuthToken } from '../lib/api';
-import type { PaginatedResponse, Transaction } from '@brabble/shared';
-
-interface WalletData {
-  balance: number;
-  totalEarned: number;
-  tonWallet: string | null;
-  recentTransactions: Transaction[];
-}
+import { api } from '../lib/api';
+import type { Transaction, WalletInfo, WithdrawalRequest } from '@unisouq/shared';
 
 export function useWallet() {
-  return useQuery({
+  return useQuery<WalletInfo>({
     queryKey: ['wallet'],
-    queryFn: () => api.get<WalletData>('/wallet'),
-    enabled: !!getAuthToken(),
+    queryFn: () => api.get<WalletInfo>('/wallet'),
   });
 }
 
-export function useTransactions(page = 1, limit = 20) {
-  return useQuery({
-    queryKey: ['transactions', page, limit],
-    queryFn: () =>
-      api.get<PaginatedResponse<Transaction>>(
-        `/wallet/transactions?page=${page}&limit=${limit}`,
-      ),
+export function useTransactions(limit = 50) {
+  return useQuery<Transaction[]>({
+    queryKey: ['wallet', 'transactions', limit],
+    queryFn: () => api.get<Transaction[]>(`/wallet/transactions?limit=${limit}`),
   });
 }
 
-export function useConnectWallet() {
+export interface WithdrawTonInput {
+  tonAddress: string;
+  amount: number;
+  idempotencyKey?: string;
+}
+
+export function useWithdrawTon() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (tonAddress: string) =>
-      api.post<{ tonWallet: string }>('/wallet/connect', { tonAddress }),
+    mutationFn: (input: WithdrawTonInput) =>
+      api.post<WithdrawalRequest>('/wallet/withdraw/ton', input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['wallet'] });
-      qc.invalidateQueries({ queryKey: ['user'] });
-    },
-  });
-}
-
-export function useDisconnectWallet() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api.delete<{ tonWallet: null }>('/wallet/connect'),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['wallet'] });
-      qc.invalidateQueries({ queryKey: ['user'] });
-    },
-  });
-}
-
-export function useWithdraw() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { tonAddress: string; amount: number; idempotencyKey?: string }) =>
-      api.post<{ netAmount: number; fee: number; status: string; txId: string }>(
-        '/wallet/withdraw',
-        data,
-      ),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['wallet'] });
-      qc.invalidateQueries({ queryKey: ['transactions'] });
-      qc.invalidateQueries({ queryKey: ['user'] });
-    },
-  });
-}
-
-export function useSendBrb() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (data: { recipient: string; amount: number; note?: string }) =>
-      api.post<{
-        amount: number;
-        recipient: { id: string; username: string | null; firstName: string };
-      }>('/wallet/send', data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['wallet'] });
-      qc.invalidateQueries({ queryKey: ['transactions'] });
-      qc.invalidateQueries({ queryKey: ['user'] });
+      qc.invalidateQueries({ queryKey: ['user', 'me'] });
     },
   });
 }

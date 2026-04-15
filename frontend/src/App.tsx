@@ -7,15 +7,15 @@ import { useScrollDirection } from './hooks/useScrollDirection';
 import { isTelegramContext } from './lib/telegram';
 import { I18nContext, getStoredLang, setStoredLang, createT, type Lang } from './lib/i18n';
 import Header from './components/Header';
-import BottomNav from './components/BottomNav';
+import BottomNav, { type NavPage } from './components/BottomNav';
 import Onboarding from './components/Onboarding';
-import Home from './pages/Home';
-import Tasks from './pages/Tasks';
 import Market from './pages/Market';
+import Tasks from './pages/Tasks';
+import Wallet from './pages/Wallet';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 
-type Page = 'home' | 'tasks' | 'market' | 'profile' | 'admin';
+type Page = NavPage | 'admin';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -24,8 +24,8 @@ const pageVariants = {
 };
 
 function App() {
-  const [page, setPage] = useState<Page>('home');
-  const [onboarded, setOnboarded] = useState(() => localStorage.getItem('brabble_onboarded') === '1');
+  const [page, setPage] = useState<Page>('market');
+  const [onboarded, setOnboarded] = useState(() => localStorage.getItem('unisouq_onboarded') === '1');
   const [lang, setLangState] = useState<Lang>(getStoredLang);
   useTheme();
   const auth = useAuth();
@@ -47,7 +47,7 @@ function App() {
     || userQuery.data?.role === 'MODERATOR';
 
   const handleOnboardingDone = () => {
-    localStorage.setItem('brabble_onboarded', '1');
+    localStorage.setItem('unisouq_onboarded', '1');
     setOnboarded(true);
   };
 
@@ -100,15 +100,15 @@ function App() {
     );
   }
 
-  const navPage = page === 'admin' ? 'profile' : page;
+  const navPage: NavPage = page === 'admin' ? 'profile' : page;
 
   const renderPage = () => {
     switch (page) {
-      case 'home': return <Home onNavigate={setPage} />;
-      case 'tasks': return <Tasks />;
       case 'market': return <Market />;
-      case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile />;
-      case 'profile': return <Profile onAdminOpen={() => setPage('admin')} />;
+      case 'tasks': return <Tasks />;
+      case 'wallet': return <Wallet />;
+      case 'admin': return canOpenAdmin ? <Admin onBack={() => setPage('profile')} /> : <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={false} />;
+      case 'profile': return <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={canOpenAdmin} />;
     }
   };
 
@@ -129,7 +129,7 @@ function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-      <BottomNav active={navPage} onNavigate={setPage} hidden={navHidden} />
+      <BottomNav active={navPage} onNavigate={(p) => setPage(p)} hidden={navHidden} />
     </I18nContext.Provider>
   );
 }

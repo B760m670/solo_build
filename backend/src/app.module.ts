@@ -2,14 +2,16 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
+import { TelegramModule } from './modules/telegram/telegram.module';
+import { TonModule } from './modules/ton/ton.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
-import { TasksModule } from './modules/tasks/tasks.module';
 import { MarketplaceModule } from './modules/marketplace/marketplace.module';
+import { OrdersModule } from './modules/orders/orders.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 import { WalletModule } from './modules/wallet/wallet.module';
-import { PaymentsModule } from './modules/payments/payments.module';
 import { ReferralsModule } from './modules/referrals/referrals.module';
-import { NotificationsModule } from './modules/notifications/notifications.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { HealthController } from './health.controller';
 import { VersionController } from './version.controller';
@@ -19,13 +21,15 @@ import { VersionController } from './version.controller';
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
     PrismaModule,
-    NotificationsModule,
+    TelegramModule,
+    TonModule,
     AuthModule,
     UsersModule,
-    TasksModule,
     MarketplaceModule,
+    OrdersModule,
+    ReviewsModule,
+    TasksModule,
     WalletModule,
-    PaymentsModule,
     ReferralsModule,
     AdminModule,
   ],

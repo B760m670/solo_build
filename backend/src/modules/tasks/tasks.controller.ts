@@ -1,51 +1,46 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
   Param,
-  Body,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { UserTaskStatus } from '@prisma/client';
 import { TasksService } from './tasks.service';
-import { CompleteTaskDto, TaskFilterDto } from './task.dto';
+import { SubmitProofDto } from './task.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('tasks')
-@UseGuards(JwtAuthGuard)
 export class TasksController {
-  constructor(private tasksService: TasksService) {}
+  constructor(private tasks: TasksService) {}
 
   @Get()
-  findAll(@Query() filter: TaskFilterDto) {
-    return this.tasksService.findAll(filter.category);
+  listAvailable() {
+    return this.tasks.listAvailable();
   }
 
-  @Get('history')
-  history(
-    @CurrentUser('id') userId: string,
-    @Query('status') status?: string,
-  ) {
-    return this.tasksService.getUserTasks(userId, status);
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.tasksService.findById(id);
+  @Get('mine')
+  @UseGuards(JwtAuthGuard)
+  mine(@CurrentUser() user: { id: string }, @Query('status') status?: UserTaskStatus) {
+    return this.tasks.mine(user.id, status);
   }
 
   @Post(':id/start')
-  start(@CurrentUser('id') userId: string, @Param('id') taskId: string) {
-    return this.tasksService.start(userId, taskId);
+  @UseGuards(JwtAuthGuard)
+  start(@CurrentUser() user: { id: string }, @Param('id') taskId: string) {
+    return this.tasks.start(user.id, taskId);
   }
 
-  @Post(':id/complete')
-  complete(
-    @CurrentUser('id') userId: string,
-    @Param('id') taskId: string,
-    @Body() dto: CompleteTaskDto,
+  @Post('mine/:id/submit')
+  @UseGuards(JwtAuthGuard)
+  submit(
+    @CurrentUser() user: { id: string },
+    @Param('id') userTaskId: string,
+    @Body() dto: SubmitProofDto,
   ) {
-    return this.tasksService.complete(userId, taskId, dto.proof, dto.proofData, dto.deviceFingerprint);
+    return this.tasks.submitProof(user.id, userTaskId, dto.proof);
   }
 }

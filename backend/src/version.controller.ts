@@ -11,7 +11,7 @@ export class VersionController {
       process.env.GIT_SHA;
 
     return {
-      service: 'brabble-backend',
+      service: 'unisouq-backend',
       commit: envCommit || 'unknown',
       nodeEnv: process.env.NODE_ENV || 'unknown',
       now: new Date().toISOString(),

@@ -1,66 +1,39 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Body,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { WithdrawDto, ConnectWalletDto } from './withdraw.dto';
-import { SendBrbDto } from './transfer.dto';
+import { WithdrawTonDto } from './wallet.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('wallet')
 @UseGuards(JwtAuthGuard)
 export class WalletController {
-  constructor(private walletService: WalletService) {}
+  constructor(private wallet: WalletService) {}
 
   @Get()
-  getWallet(@CurrentUser('id') userId: string) {
-    return this.walletService.getWallet(userId);
-  }
-
-  @Get('policy')
-  getPolicy() {
-    return this.walletService.getPolicy();
+  get(@CurrentUser() user: { id: string }) {
+    return this.wallet.getWallet(user.id);
   }
 
   @Get('transactions')
-  getTransactions(
-    @CurrentUser('id') userId: string,
-    @Query('page') page?: string,
+  transactions(
+    @CurrentUser() user: { id: string },
     @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
   ) {
-    return this.walletService.getTransactions(
-      userId,
-      page ? parseInt(page, 10) : 1,
-      limit ? parseInt(limit, 10) : 20,
+    return this.wallet.transactions(
+      user.id,
+      limit ? parseInt(limit, 10) : 50,
+      offset ? parseInt(offset, 10) : 0,
     );
   }
 
-  @Post('connect')
-  connectWallet(
-    @CurrentUser('id') userId: string,
-    @Body() dto: ConnectWalletDto,
-  ) {
-    return this.walletService.connectWallet(userId, dto.tonAddress);
-  }
-
-  @Delete('connect')
-  disconnectWallet(@CurrentUser('id') userId: string) {
-    return this.walletService.disconnectWallet(userId);
-  }
-
-  @Post('withdraw')
-  withdraw(@CurrentUser('id') userId: string, @Body() dto: WithdrawDto) {
-    return this.walletService.withdraw(userId, dto.tonAddress, dto.amount, dto.idempotencyKey);
-  }
-
-  @Post('send')
-  sendBrb(@CurrentUser('id') userId: string, @Body() dto: SendBrbDto) {
-    return this.walletService.sendBrb(userId, dto.recipient, dto.amount, dto.note);
+  @Post('withdraw/ton')
+  withdrawTon(@CurrentUser() user: { id: string }, @Body() dto: WithdrawTonDto) {
+    return this.wallet.requestTonWithdrawal(
+      user.id,
+      dto.tonAddress,
+      dto.amount,
+      dto.idempotencyKey,
+    );
   }
 }

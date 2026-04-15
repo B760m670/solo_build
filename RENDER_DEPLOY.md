@@ -13,6 +13,16 @@ Required environment variables:
 - `DIRECT_URL`
 - `JWT_SECRET`
 - `TELEGRAM_BOT_TOKEN`
+- `BOT_WEBHOOK_SECRET` — random string; also passed to `register-webhook`
+- `WEBAPP_URL` — public URL of the Mini App (frontend)
+- `TON_ENDPOINT` — toncenter endpoint
+- `TON_API_KEY` — optional toncenter key
+- `PLATFORM_TON_MNEMONIC` — 24-word mnemonic for the platform TON wallet
+
+After first deploy, run `npm run register-webhook` from the `bot/` workspace
+(with the same `TELEGRAM_BOT_TOKEN` + `BOT_WEBHOOK_SECRET` and
+`TELEGRAM_WEBHOOK_URL=<backend-url>/telegram/webhook`) to start receiving
+Telegram updates on the backend.
 
 Recommended deploy behavior:
 

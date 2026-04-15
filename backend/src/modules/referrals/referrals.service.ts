@@ -1,84 +1,68 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationsService } from '../notifications/notifications.service';
 
-type TxClient = Prisma.TransactionClient;
-
-const REFERRAL_BONUS = 50;
+const REFERRAL_BONUS_STARS = 50;
+const BOT_USERNAME = 'unisouq_bot';
 
 @Injectable()
 export class ReferralsService {
-  constructor(
-    private prisma: PrismaService,
-    private config: ConfigService,
-    private notifications: NotificationsService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  async getReferralInfo(userId: string) {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+  async getInfo(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new NotFoundException('User not found');
+
+    const count = await this.prisma.user.count({
+      where: { referredById: userId },
     });
 
-    const botUsername = this.config.get<string>('BOT_USERNAME', 'brabble_bot');
+    const earnedAgg = await this.prisma.transaction.aggregate({
+      where: { userId, type: 'REFERRAL_BONUS' },
+      _sum: { amount: true },
+    });
 
     return {
       code: user.referralCode,
-      link: `https://t.me/${botUsername}?start=${user.referralCode}`,
-      count: user.referralCount,
-      earned: user.referralEarned,
+      link: `https://t.me/${BOT_USERNAME}?start=ref_${user.referralCode}`,
+      count,
+      earnedStars: Math.max(0, earnedAgg._sum.amount ?? 0),
     };
   }
 
-  async claimBonus(userId: string) {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
+  /**
+   * Called by orders module after a referred user completes their first deal.
+   * Credits the referrer with a Stars bonus (one level only).
+   */
+  async creditFirstDealBonus(referredUserId: string) {
+    const referred = await this.prisma.user.findUnique({
+      where: { id: referredUserId },
     });
+    if (!referred || !referred.referredById) return null;
+    if (referred.referralBonusClaimedAt) return null;
 
-    if (!user.referredBy) {
-      throw new BadRequestException('Not a referred user');
-    }
-
-    // Check if user completed at least one task
-    const completedTask = await this.prisma.userTask.findFirst({
-      where: { userId, status: 'COMPLETED' },
-    });
-
-    if (!completedTask) {
-      throw new BadRequestException('Complete at least one task first');
-    }
-
-    // Credit referrer
-    return this.prisma.$transaction(async (tx: TxClient) => {
-      const referrer = await tx.user.findUniqueOrThrow({
-        where: { id: user.referredBy! },
+    return this.prisma.$transaction(async (tx) => {
+      const referrer = await tx.user.update({
+        where: { id: referred.referredById! },
+        data: { starsBalance: { increment: REFERRAL_BONUS_STARS } },
       });
 
       await tx.user.update({
-        where: { id: referrer.id },
-        data: {
-          brbBalance: { increment: REFERRAL_BONUS },
-          totalEarned: { increment: REFERRAL_BONUS },
-          referralEarned: { increment: REFERRAL_BONUS },
-        },
+        where: { id: referredUserId },
+        data: { referralBonusClaimedAt: new Date() },
       });
 
       await tx.transaction.create({
         data: {
           userId: referrer.id,
           type: 'REFERRAL_BONUS',
-          amount: REFERRAL_BONUS,
-          balanceBefore: referrer.brbBalance,
-          balanceAfter: referrer.brbBalance + REFERRAL_BONUS,
-          meta: { referredUserId: userId },
+          currency: 'STARS',
+          amount: REFERRAL_BONUS_STARS,
+          balanceAfter: referrer.starsBalance,
+          meta: { referredUserId },
         },
       });
 
-      // Notify referrer
-      this.notifications.sendReferralBonus(referrer.telegramId, REFERRAL_BONUS);
-
-      return { bonus: REFERRAL_BONUS, referrerId: referrer.id };
+      return { credited: REFERRAL_BONUS_STARS };
     });
   }
 }

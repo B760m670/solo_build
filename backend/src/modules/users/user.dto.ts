@@ -1,15 +1,17 @@
-import { IsString, IsOptional, IsIn } from 'class-validator';
+import { IsOptional, IsString, Length } from 'class-validator';
 
-export class UpdateUserDto {
+export class UpdateSettingsDto {
   @IsOptional()
-  @IsIn(['dark', 'light'])
-  theme?: string;
-
-  @IsOptional()
-  @IsIn(['en', 'ru', 'ar'])
+  @IsString()
+  @Length(2, 5)
   language?: string;
 
   @IsOptional()
   @IsString()
-  tonWallet?: string;
+  theme?: string;
+
+  @IsOptional()
+  @IsString()
+  @Length(48, 68)
+  tonAddress?: string;
 }

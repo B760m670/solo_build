@@ -20,6 +20,11 @@ declare global {
         setHeaderColor: (color: string) => void;
         setBackgroundColor: (color: string) => void;
         enableClosingConfirmation: () => void;
+        openInvoice: (
+          url: string,
+          callback?: (status: 'paid' | 'cancelled' | 'failed' | 'pending') => void,
+        ) => void;
+        showAlert: (message: string, callback?: () => void) => void;
         platform: string;
         colorScheme: 'dark' | 'light';
         themeParams: Record<string, string>;
@@ -63,4 +68,17 @@ export function getStartParam(): string | undefined {
 
 export function isTelegramContext(): boolean {
   return !!window.Telegram?.WebApp?.initData;
+}
+
+export function openStarsInvoice(
+  url: string,
+): Promise<'paid' | 'cancelled' | 'failed' | 'pending'> {
+  return new Promise((resolve) => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg?.openInvoice) {
+      resolve('failed');
+      return;
+    }
+    tg.openInvoice(url, (status) => resolve(status));
+  });
 }

@@ -1,46 +1,50 @@
-import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { UpdateUserDto } from './user.dto';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    private prisma: PrismaService,
-    private config: ConfigService,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  private withAdminFlag(user: {
-    telegramId: bigint;
-    role: string;
-    [key: string]: unknown;
-  }) {
-    const adminIds = (this.config.get<string>('ADMIN_TELEGRAM_IDS') || '')
-      .split(',')
-      .map((id) => id.trim())
-      .filter(Boolean);
-    const role = String(user.role || '').toUpperCase();
-    const isRoleAdmin = role === 'ADMIN' || role === 'MODERATOR';
-    const isEnvAdmin = adminIds.includes(String(user.telegramId));
-
-    return {
-      ...user,
-      telegramId: Number(user.telegramId),
-      isAdmin: isRoleAdmin || isEnvAdmin,
-    };
-  }
-
-  async findById(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) return null;
-    return this.withAdminFlag(user);
-  }
-
-  async update(id: string, dto: UpdateUserDto) {
-    const user = await this.prisma.user.update({
-      where: { id },
-      data: dto,
+  async getProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
     });
-    return this.withAdminFlag(user);
+    if (!user) throw new NotFoundException('User not found');
+    return this.serialize(user);
+  }
+
+  async updateSettings(
+    userId: string,
+    data: { language?: string; theme?: string; tonAddress?: string },
+  ) {
+    const updated = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+    });
+    return this.serialize(updated);
+  }
+
+  async getPublicProfile(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        firstName: true,
+        avatarUrl: true,
+        reputationScore: true,
+        reputationTier: true,
+        completedDeals: true,
+        averageRating: true,
+        reviewCount: true,
+        createdAt: true,
+      },
+    });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
+  }
+
+  private serialize(user: Record<string, unknown>) {
+    return { ...user, telegramId: Number(user.telegramId) };
   }
 }

@@ -4,15 +4,75 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+// ─── Enums ───────────────────────────────────────────
 
 enum UserRole {
   USER
   ADMIN
   MODERATOR
+}
+
+enum ReputationTier {
+  NEW
+  TRUSTED
+  EXPERT
+  ELITE
+}
+
+enum ListingCategory {
+  DESIGN
+  WRITING
+  DEVELOPMENT
+  MARKETING
+  VIDEO
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  IN_PROGRESS
+  DELIVERED
+  COMPLETED
+  DISPUTED
+  CANCELLED
+  REFUNDED
+}
+
+enum TaskProofType {
+  SCREENSHOT
+  LINK
+  TEXT
+}
+
+enum UserTaskStatus {
+  ACTIVE
+  DELIVERED
+  APPROVED
+  REJECTED
+}
+
+enum TransactionType {
+  SALE_INCOME
+  PURCHASE
+  TASK_REWARD
+  COMMISSION
+  REFERRAL_BONUS
+  FEATURED_BOOST
+  PREMIUM_BADGE
+  BRAND_TASK_FUNDING
+  TON_WITHDRAWAL
+  TON_DEPOSIT
+}
+
+enum Currency {
+  STARS
+  TON
 }
 
 enum WithdrawalStatus {
@@ -22,130 +82,213 @@ enum WithdrawalStatus {
   FAILED
 }
 
+// ─── Core ────────────────────────────────────────────
+
 model User {
-  id            String        @id @default(uuid())
-  telegramId    BigInt        @unique
-  username      String?
-  firstName     String
-  lastName      String?
-  avatarUrl     String?
-  isPremium     Boolean       @default(false)
-  premiumExpiry DateTime?
-  role          UserRole      @default(USER)
-  brbBalance    Float         @default(0)
-  totalEarned   Float         @default(0)
-  tonWallet     String?
-  referralCode  String        @unique @default(cuid())
-  referredBy    String?
-  referralCount Int           @default(0)
-  referralEarned Float        @default(0)
-  reputationScore Int         @default(50)
-  trustLevel      String      @default("STANDARD")
-  language      String        @default("en")
-  theme         String        @default("dark")
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  tasks         UserTask[]
-  transactions  Transaction[]
-  listings      Listing[]
-  orders        Order[]
-  subscription  Subscription?
-  withdrawals   WithdrawalRequest[]
+  id              String         @id @default(uuid())
+  telegramId      BigInt         @unique
+  username        String?
+  firstName       String
+  lastName        String?
+  avatarUrl       String?
+  role            UserRole       @default(USER)
+
+  // Balances (Stars are virtual, TON is on-chain)
+  starsBalance    Int            @default(0)
+  tonBalance      Float          @default(0)
+  totalEarnedStars Int           @default(0)
+
+  // Reputation
+  reputationScore Int            @default(0)
+  reputationTier  ReputationTier @default(NEW)
+  completedDeals  Int            @default(0)
+  averageRating   Float          @default(0)
+  reviewCount     Int            @default(0)
+
+  // Premium badge
+  premiumBadgeUntil DateTime?
+
+  // Wallet + settings
+  tonAddress      String?
+  language        String         @default("en")
+  theme           String         @default("dark")
+
+  // Referral
+  referralCode    String         @unique @default(cuid())
+  referredById    String?
+  referredBy      User?          @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals       User[]         @relation("UserReferrals")
+  referralBonusClaimedAt DateTime?
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  listings        Listing[]
+  ordersAsBuyer   Order[]        @relation("BuyerOrders")
+  ordersAsSeller  Order[]        @relation("SellerOrders")
+  reviewsGiven    Review[]       @relation("ReviewAuthor")
+  reviewsReceived Review[]       @relation("ReviewTarget")
+  userTasks       UserTask[]
+  transactions    Transaction[]
+  withdrawals     WithdrawalRequest[]
+
+  @@index([reputationTier])
 }
 
-model Task {
-  id          String     @id @default(uuid())
-  title       String
-  description String
-  category    String
-  verificationType String @default("MANUAL")
-  verificationPolicy Json?
-  reward      Float
-  timeMinutes Int
-  brand       String
-  sponsorName String?
-  sponsorType String?
-  sponsorBudgetCurrency String?
-  sponsorBudgetAmount   Float?
-  sponsorBudgetSpent    Float        @default(0)
-  kpiName     String?
-  kpiTarget   Float?
-  kpiUnit     String?
-  audienceRules Json?
-  cooldownSeconds Int      @default(0)
-  minReputation Int        @default(0)
-  minAccountAgeDays Int    @default(0)
-  brandLogo   String?
-  isActive    Boolean    @default(true)
-  totalSlots  Int        @default(100)
-  filledSlots Int        @default(0)
-  expiresAt   DateTime?
-  createdAt   DateTime   @default(now())
-  userTasks   UserTask[]
-}
-
-model UserTask {
-  id          String    @id @default(uuid())
-  userId      String
-  taskId      String
-  status      String    @default("PENDING")
-  proof       String?
-  proofData   Json?
-  deviceFingerprint String?
-  riskScore   Int       @default(0)
-  riskFlags   String[]  @default([])
-  submittedAt DateTime?
-  reviewedAt  DateTime?
-  reviewNote  String?
-  completedAt DateTime?
-  createdAt   DateTime  @default(now())
-  user        User      @relation(fields: [userId], references: [id])
-  task        Task      @relation(fields: [taskId], references: [id])
-
-  @@unique([userId, taskId])
-}
+// ─── Marketplace ─────────────────────────────────────
 
 model Listing {
-  id          String   @id @default(uuid())
-  sellerId    String
-  title       String
-  description String
-  price       Float
-  category    String
-  images      String[]
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  seller      User     @relation(fields: [sellerId], references: [id])
-  orders      Order[]
+  id             String          @id @default(uuid())
+  sellerId       String
+  seller         User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  title          String
+  description    String
+  category       ListingCategory
+  priceStars     Int
+  deliveryDays   Int             @default(3)
+  coverImage     String?
+  images         String[]        @default([])
+
+  isActive       Boolean         @default(true)
+  featuredUntil  DateTime?
+
+  // Denormalized stats
+  orderCount     Int             @default(0)
+  averageRating  Float           @default(0)
+  reviewCount    Int             @default(0)
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  orders         Order[]
+
+  @@index([category, isActive])
+  @@index([featuredUntil])
 }
 
 model Order {
-  id         String   @id @default(uuid())
-  buyerId    String
-  listingId  String
-  amount     Float
-  commission Float
-  status     String   @default("PENDING")
-  createdAt  DateTime @default(now())
-  buyer      User     @relation(fields: [buyerId], references: [id])
-  listing    Listing  @relation(fields: [listingId], references: [id])
+  id             String      @id @default(uuid())
+  listingId      String
+  listing        Listing     @relation(fields: [listingId], references: [id])
+  buyerId        String
+  buyer          User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  sellerId       String
+  seller         User        @relation("SellerOrders", fields: [sellerId], references: [id])
+
+  priceStars     Int
+  commissionStars Int
+  payoutStars    Int
+  commissionRate Float
+
+  status         OrderStatus @default(PENDING)
+  deliverable    String?     // text, link, or file url submitted by seller
+  deliveredAt    DateTime?
+  completedAt    DateTime?
+  cancelledAt    DateTime?
+  disputeReason  String?
+
+  // Telegram Stars payment
+  invoicePayload    String?  @unique  // UUID passed to createInvoiceLink
+  telegramChargeId  String?           // telegram_payment_charge_id from successful_payment
+  paidAt            DateTime?
+  refundedAt        DateTime?
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  reviews        Review[]
+
+  @@index([buyerId, status])
+  @@index([sellerId, status])
+  @@index([status, createdAt])
 }
 
+model Review {
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  targetId  String
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  rating    Int      // 1..5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, authorId])
+  @@index([targetId])
+}
+
+// ─── Tasks (brand missions) ──────────────────────────
+
+model Task {
+  id             String        @id @default(uuid())
+  brandName      String
+  brandLogo      String?
+  title          String
+  description    String
+  proofType      TaskProofType @default(SCREENSHOT)
+
+  rewardStars    Int
+  totalSlots     Int           @default(100)
+  filledSlots    Int           @default(0)
+
+  // Brand funding (paid in TON by brand to platform wallet)
+  fundedTon      Float         @default(0)
+  spentStars     Int           @default(0)
+
+  isActive       Boolean       @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  userTasks      UserTask[]
+
+  @@index([isActive, expiresAt])
+}
+
+model UserTask {
+  id          String         @id @default(uuid())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  taskId      String
+  task        Task           @relation(fields: [taskId], references: [id])
+
+  status      UserTaskStatus @default(ACTIVE)
+  proof       String?
+  rejectReason String?
+  deliveredAt DateTime?
+  approvedAt  DateTime?
+  createdAt   DateTime       @default(now())
+
+  @@unique([userId, taskId])
+  @@index([userId, status])
+}
+
+// ─── Wallet ──────────────────────────────────────────
+
 model Transaction {
-  id            String   @id @default(uuid())
+  id            String          @id @default(uuid())
   userId        String
-  type          String
-  amount        Float
-  balanceBefore Float
+  user          User            @relation(fields: [userId], references: [id])
+
+  type          TransactionType
+  currency      Currency
+  amount        Float           // positive = credit, negative = debit
   balanceAfter  Float
+
   meta          Json?
-  createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime        @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model WithdrawalRequest {
   id             String           @id @default(uuid())
   userId         String
+  user           User             @relation(fields: [userId], references: [id])
   tonAddress     String
   grossAmount    Float
   feeAmount      Float
@@ -159,18 +302,7 @@ model WithdrawalRequest {
   failedAt       DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  user           User             @relation(fields: [userId], references: [id])
 
   @@unique([userId, idempotencyKey])
   @@index([status, createdAt])
-}
-
-model Subscription {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  plan      String   @default("PREMIUM")
-  startsAt  DateTime @default(now())
-  expiresAt DateTime
-  isActive  Boolean  @default(true)
-  user      User     @relation(fields: [userId], references: [id])
 }

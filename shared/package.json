@@ -1,5 +1,5 @@
 {
-  "name": "@brabble/shared",
+  "name": "@unisouq/shared",
   "version": "1.0.0",
   "type": "module",
   "main": "./dist/index.js",

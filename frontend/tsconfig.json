@@ -17,7 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "paths": {
-      "@brabble/shared": ["../shared/src"]
+      "@unisouq/shared": ["../shared/src"]
     }
   },
   "include": ["src"],

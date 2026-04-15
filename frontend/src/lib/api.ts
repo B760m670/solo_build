@@ -4,19 +4,19 @@ let authToken: string | null = null;
 
 export function setAuthToken(token: string) {
   authToken = token;
-  localStorage.setItem('brabble_token', token);
+  localStorage.setItem('unisouq_token', token);
 }
 
 export function getAuthToken(): string | null {
   if (!authToken) {
-    authToken = localStorage.getItem('brabble_token');
+    authToken = localStorage.getItem('unisouq_token');
   }
   return authToken;
 }
 
 export function clearAuthToken() {
   authToken = null;
-  localStorage.removeItem('brabble_token');
+  localStorage.removeItem('unisouq_token');
 }
 
 async function request<T>(

@@ -1,8 +1,8 @@
 import { Controller, Post, Body, Get, UseGuards } from '@nestjs/common';
+import { IsString, IsOptional } from 'class-validator';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { IsString, IsOptional } from 'class-validator';
 
 class LoginDto {
   @IsString()

@@ -46,7 +46,7 @@ function ErrorState({ message, onRetry }: ErrorStateProps) {
             cursor: 'pointer',
           }}
         >
-          {t('tryAgain')}
+          {t('retry')}
         </button>
       )}
     </div>

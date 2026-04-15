@@ -1,52 +1,42 @@
-import { Bot, InlineKeyboard } from 'grammy';
+/**
+ * Unisouq webhook registration script.
+ *
+ * In production, all Telegram updates go straight to the backend
+ * `/telegram/webhook` endpoint. This script just (re-)registers the
+ * webhook URL with Telegram so updates start flowing.
+ *
+ * Run: `npm run register-webhook` (from bot/) or `node dist/index.js`.
+ */
 import 'dotenv/config';
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
-if (!token) {
-  throw new Error('TELEGRAM_BOT_TOKEN is required');
+const webhookUrl = process.env.TELEGRAM_WEBHOOK_URL; // e.g. https://api.unisouq.app/telegram/webhook
+const secret = process.env.BOT_WEBHOOK_SECRET;
+
+if (!token) throw new Error('TELEGRAM_BOT_TOKEN is required');
+if (!webhookUrl) throw new Error('TELEGRAM_WEBHOOK_URL is required');
+if (!secret) throw new Error('BOT_WEBHOOK_SECRET is required');
+
+async function main() {
+  const res = await fetch(`https://api.telegram.org/bot${token}/setWebhook`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      url: webhookUrl,
+      secret_token: secret,
+      allowed_updates: ['message', 'pre_checkout_query'],
+      drop_pending_updates: true,
+    }),
+  });
+  const json = (await res.json()) as { ok: boolean; description?: string };
+  if (!json.ok) {
+    console.error('setWebhook failed:', json.description);
+    process.exit(1);
+  }
+  console.log(`Webhook registered: ${webhookUrl}`);
 }
 
-const webappUrl = process.env.WEBAPP_URL || 'https://your-app.vercel.app';
-const bot = new Bot(token);
-
-bot.command('start', async (ctx) => {
-  const keyboard = new InlineKeyboard().webApp('Open Brabble', webappUrl);
-
-  await ctx.reply(
-    'Welcome to Brabble — your modular Web3 ecosystem.\n\n' +
-      'Earn BRB tokens, trade on the marketplace, and access Web3 tools — all inside Telegram.',
-    { reply_markup: keyboard },
-  );
-});
-
-bot.command('help', async (ctx) => {
-  await ctx.reply(
-    'Brabble Commands:\n\n' +
-      '/start - Open the app\n' +
-      '/help - Show this message\n' +
-      '/balance - Check your BRB balance\n\n' +
-      'BRB is a utility token providing access to Brabble features. ' +
-      'Not a financial instrument. Not investment advice.',
-  );
-});
-
-bot.command('balance', async (ctx) => {
-  const keyboard = new InlineKeyboard().webApp('Open Wallet', webappUrl);
-  await ctx.reply('Open the app to check your BRB balance.', {
-    reply_markup: keyboard,
-  });
-});
-
-bot.on('pre_checkout_query', async (ctx) => {
-  await ctx.answerPreCheckoutQuery(true);
-});
-
-bot.on('message:successful_payment', async (ctx) => {
-  await ctx.reply(
-    'Payment received. Your premium subscription is now active.',
-  );
-});
-
-bot.start({
-  onStart: () => console.log('Brabble bot is running'),
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
 });
