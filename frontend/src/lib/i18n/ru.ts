@@ -68,6 +68,10 @@ const ru: Record<TranslationKeys, string> = {
   creating: 'Создание...',
   publish: 'Опубликовать',
   listingCreated: 'Объявление опубликовано',
+  next: 'Далее',
+  coverImageUrlOptional: 'Ссылка на обложку (необязательно)',
+  review: 'Проверка',
+  days: 'дней',
   reviews: 'отзывов',
   noReviews: 'Отзывов пока нет',
 

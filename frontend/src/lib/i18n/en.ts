@@ -73,6 +73,10 @@ const en = {
   creating: 'Creating...',
   publish: 'Publish',
   listingCreated: 'Listing published',
+  next: 'Next',
+  coverImageUrlOptional: 'Cover image URL (optional)',
+  review: 'Review',
+  days: 'days',
   reviews: 'reviews',
   noReviews: 'No reviews yet',
 
