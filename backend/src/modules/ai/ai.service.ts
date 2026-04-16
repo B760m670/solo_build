@@ -59,7 +59,7 @@ export class AiService {
     private config: ConfigService,
   ) {
     this.apiKey = this.config.get<string>('GEMINI_API_KEY') || '';
-    this.model = this.config.get<string>('AI_MODEL') || 'gemini-2.0-flash';
+    this.model = this.config.get<string>('AI_MODEL') || 'gemini-2.5-flash';
   }
 
   // ─── Health check ───
@@ -277,9 +277,10 @@ export class AiService {
   }
 
   private static readonly MODELS = [
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
     'gemini-2.0-flash',
     'gemini-2.0-flash-lite',
-    'gemini-1.5-flash',
   ];
 
   private async callGemini(
