@@ -140,7 +140,18 @@ export function AiSection({ onBack }: { onBack: () => void }) {
 
   // Load existing chat when selected from history
   const loadedChat = useAiChat(activeChatId);
-  const allMessages = [...(loadedChat.data?.messages ?? []), ...localMessages];
+  const serverMessages = loadedChat.data?.messages ?? [];
+
+  // Clear local messages once the server has caught up
+  // (server will contain the messages we added locally)
+  useEffect(() => {
+    if (serverMessages.length > 0 && localMessages.length > 0) {
+      setLocalMessages([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverMessages.length]);
+
+  const allMessages = [...serverMessages, ...localMessages];
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);

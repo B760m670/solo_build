@@ -201,6 +201,30 @@ export class AiService {
 
   // ─── Google Gemini API ───
 
+  /**
+   * Gemini requires strict alternation of user/model roles.
+   * Merge consecutive same-role messages into one.
+   */
+  private mergeConsecutive(
+    messages: ChatMessage[],
+  ): { role: 'user' | 'model'; parts: { text: string }[] }[] {
+    const result: { role: 'user' | 'model'; parts: { text: string }[] }[] = [];
+    for (const m of messages) {
+      const geminiRole = m.role === 'assistant' ? 'model' : 'user';
+      const last = result[result.length - 1];
+      if (last && last.role === geminiRole) {
+        last.parts.push({ text: m.content });
+      } else {
+        result.push({ role: geminiRole, parts: [{ text: m.content }] });
+      }
+    }
+    // Gemini requires the first message to be from user
+    if (result.length > 0 && result[0].role !== 'user') {
+      result.shift();
+    }
+    return result;
+  }
+
   private async callGemini(
     system: string,
     messages: ChatMessage[],
@@ -211,39 +235,50 @@ export class AiService {
     }
 
     try {
-      // Build Gemini contents array
-      const contents = messages.map((m) => ({
-        role: m.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: m.content }],
-      }));
+      const contents = this.mergeConsecutive(messages);
 
       const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const body = {
+        system_instruction: { parts: [{ text: system }] },
+        contents,
+        generationConfig: {
+          maxOutputTokens: 1024,
+          temperature: 0.7,
+        },
+      };
+
+      this.logger.debug(`Gemini request: ${contents.length} turns, model=${this.model}`);
 
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system_instruction: { parts: [{ text: system }] },
-          contents,
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-          },
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        const err = await res.text();
-        this.logger.error(`Gemini API error: ${res.status} ${err}`);
-        return 'Sorry, I encountered an error. Please try again.';
+        const errBody = await res.text();
+        this.logger.error(`Gemini API ${res.status}: ${errBody}`);
+        return `Sorry, I encountered an error (${res.status}). Please try again.`;
       }
 
       const data = await res.json();
-      const text =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      return text ?? 'No response generated.';
+
+      // Check for blocked / empty responses
+      if (data?.promptFeedback?.blockReason) {
+        this.logger.warn(`Gemini blocked: ${data.promptFeedback.blockReason}`);
+        return 'I cannot respond to that request. Please try a different question.';
+      }
+
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) {
+        this.logger.warn(`Gemini empty response: ${JSON.stringify(data?.candidates?.[0])}`);
+        return 'No response generated. Please try again.';
+      }
+
+      return text;
     } catch (e) {
-      this.logger.error(`Gemini API call failed: ${(e as Error).message}`);
+      this.logger.error(`Gemini call failed: ${(e as Error).message}`, (e as Error).stack);
       return 'Sorry, I encountered an error. Please try again.';
     }
   }
