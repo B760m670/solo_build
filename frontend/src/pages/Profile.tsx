@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
-import { useUser, useUpdateSettings } from '../hooks/useUser';
+import { useUser } from '../hooks/useUser';
 import { useReferrals } from '../hooks/useReferrals';
 import { toggleTheme, getTheme } from '../hooks/useTheme';
 import { ChevronRightIcon, CrownIcon, ShieldIcon, SunIcon, MoonIcon } from '../components/Icons';
@@ -110,10 +110,7 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
   const { t, lang, setLang } = useTranslation();
   const userQ = useUser();
   const refQ = useReferrals();
-  const update = useUpdateSettings();
-  const [tonInput, setTonInput] = useState('');
   const [copied, setCopied] = useState(false);
-  const [editingTon, setEditingTon] = useState(false);
 
   if (userQ.isLoading) {
     return (
@@ -132,13 +129,6 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
 
   const u = userQ.data;
   const isPlus = !!u.premiumBadgeUntil && new Date(u.premiumBadgeUntil) > new Date();
-
-  const handleSaveTon = async () => {
-    if (!tonInput) return;
-    await update.mutateAsync({ tonAddress: tonInput });
-    setTonInput('');
-    setEditingTon(false);
-  };
 
   const handleCopy = async () => {
     if (!refQ.data) return;
@@ -282,50 +272,6 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
             </button>
           </div>
         </Row>
-        <Divider />
-        <div className="px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs" style={{ color: 'var(--text)' }}>
-              {t('tonAddress')}
-            </span>
-            {!editingTon && (
-              <button
-                onClick={() => setEditingTon(true)}
-                className="text-[10px]"
-                style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}
-              >
-                {u.tonAddress ? t('edit') : t('add')}
-              </button>
-            )}
-          </div>
-          {editingTon ? (
-            <div className="flex gap-2">
-              <input
-                value={tonInput}
-                onChange={(e) => setTonInput(e.target.value)}
-                placeholder={t('tonPlaceholder')}
-                className="flex-1 px-3 py-2 text-[11px] rounded-btn outline-none font-mono"
-                style={{
-                  backgroundColor: 'var(--surface2)',
-                  color: 'var(--text)',
-                  border: '1px solid var(--border)',
-                }}
-              />
-              <button
-                onClick={handleSaveTon}
-                disabled={!tonInput || update.isPending}
-                className="text-[10px] font-semibold px-3 py-2 rounded-btn"
-                style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
-              >
-                {t('save')}
-              </button>
-            </div>
-          ) : (
-            <p className="text-[10px] font-mono truncate" style={{ color: 'var(--text-muted)' }}>
-              {u.tonAddress || t('notSet')}
-            </p>
-          )}
-        </div>
       </Section>
 
       {/* Referral */}

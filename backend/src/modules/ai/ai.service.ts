@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   Logger,
   NotFoundException,
@@ -7,7 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 
-const FREE_TIER_LIMIT = 20;
+// No message limit — AI is free for all users
 
 const SYSTEM_PROMPT = `You are Unisouq Assistant — a helpful, friendly AI agent built into the Unisouq Telegram Mini App.
 
@@ -119,12 +118,11 @@ export class AiService {
     const totalMessages = await this.prisma.aiMessage.count({
       where: { chat: { userId }, role: 'user' },
     });
-    const isPlusActive = await this.checkPlus(userId);
     return {
       used: totalMessages,
-      limit: isPlusActive ? null : FREE_TIER_LIMIT,
-      isPlusActive,
-      remaining: isPlusActive ? null : Math.max(0, FREE_TIER_LIMIT - totalMessages),
+      limit: null,
+      isPlusActive: await this.checkPlus(userId),
+      remaining: null,
     };
   }
 
@@ -172,18 +170,6 @@ export class AiService {
   // ─── Send message ───
 
   async sendMessage(userId: string, message: string, chatId?: string) {
-    const isPlusActive = await this.checkPlus(userId);
-    if (!isPlusActive) {
-      const usedCount = await this.prisma.aiMessage.count({
-        where: { chat: { userId }, role: 'user' },
-      });
-      if (usedCount >= FREE_TIER_LIMIT) {
-        throw new BadRequestException(
-          'Free AI limit reached. Subscribe to Unisouq Plus for unlimited access.',
-        );
-      }
-    }
-
     let chat: { id: string; userId: string };
     if (chatId) {
       const existing = await this.prisma.aiChat.findUnique({ where: { id: chatId } });
