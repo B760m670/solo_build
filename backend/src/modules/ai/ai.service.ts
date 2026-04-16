@@ -58,8 +58,8 @@ export class AiService {
     private prisma: PrismaService,
     private config: ConfigService,
   ) {
-    this.apiKey = this.config.get<string>('ANTHROPIC_API_KEY') || '';
-    this.model = this.config.get<string>('AI_MODEL') || 'claude-haiku-4-5-20251001';
+    this.apiKey = this.config.get<string>('GEMINI_API_KEY') || '';
+    this.model = this.config.get<string>('AI_MODEL') || 'gemini-2.0-flash';
   }
 
   // ─── Usage tracking ───
@@ -121,7 +121,6 @@ export class AiService {
   // ─── Send message ───
 
   async sendMessage(userId: string, message: string, chatId?: string) {
-    // Check limits
     const isPlusActive = await this.checkPlus(userId);
     if (!isPlusActive) {
       const usedCount = await this.prisma.aiMessage.count({
@@ -134,7 +133,6 @@ export class AiService {
       }
     }
 
-    // Get or create chat
     let chat: { id: string; userId: string };
     if (chatId) {
       const existing = await this.prisma.aiChat.findUnique({ where: { id: chatId } });
@@ -144,19 +142,14 @@ export class AiService {
       chat = existing;
     } else {
       chat = await this.prisma.aiChat.create({
-        data: {
-          userId,
-          title: message.slice(0, 60),
-        },
+        data: { userId, title: message.slice(0, 60) },
       });
     }
 
-    // Save user message
     await this.prisma.aiMessage.create({
       data: { chatId: chat.id, role: 'user', content: message },
     });
 
-    // Build conversation history
     const history = await this.prisma.aiMessage.findMany({
       where: { chatId: chat.id },
       orderBy: { createdAt: 'asc' },
@@ -167,7 +160,6 @@ export class AiService {
       content: m.content,
     }));
 
-    // Get user context for the system prompt
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -190,69 +182,68 @@ export class AiService {
 - Language preference: ${user.language}`
       : '';
 
-    // Call Anthropic API
-    const reply = await this.callAnthropic(
+    const reply = await this.callGemini(
       SYSTEM_PROMPT + userContext,
       messages,
     );
 
-    // Save assistant reply
     await this.prisma.aiMessage.create({
       data: { chatId: chat.id, role: 'assistant', content: reply },
     });
 
-    // Update chat title from first message
     await this.prisma.aiChat.update({
       where: { id: chat.id },
       data: { updatedAt: new Date() },
     });
 
-    return {
-      chatId: chat.id,
-      reply,
-    };
+    return { chatId: chat.id, reply };
   }
 
-  // ─── Anthropic API ───
+  // ─── Google Gemini API ───
 
-  private async callAnthropic(
+  private async callGemini(
     system: string,
     messages: ChatMessage[],
   ): Promise<string> {
     if (!this.apiKey) {
-      this.logger.warn('ANTHROPIC_API_KEY not set, returning fallback');
-      return 'AI service is not configured yet. Please try again later.';
+      this.logger.warn('GEMINI_API_KEY not set, returning fallback');
+      return 'AI service is not configured yet. Please set GEMINI_API_KEY in your environment.';
     }
 
     try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      // Build Gemini contents array
+      const contents = messages.map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+
+      const res = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: this.model,
-          max_tokens: 1024,
-          system,
-          messages: messages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
+          system_instruction: { parts: [{ text: system }] },
+          contents,
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
         }),
       });
 
       if (!res.ok) {
         const err = await res.text();
-        this.logger.error(`Anthropic API error: ${res.status} ${err}`);
+        this.logger.error(`Gemini API error: ${res.status} ${err}`);
         return 'Sorry, I encountered an error. Please try again.';
       }
 
       const data = await res.json();
-      return data.content?.[0]?.text ?? 'No response generated.';
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return text ?? 'No response generated.';
     } catch (e) {
-      this.logger.error(`Anthropic API call failed: ${(e as Error).message}`);
+      this.logger.error(`Gemini API call failed: ${(e as Error).message}`);
       return 'Sorry, I encountered an error. Please try again.';
     }
   }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from '../../lib/i18n';
 import { SectionHeader } from '../../components/SectionHeader';
-import { PaletteIcon } from '../../components/Icons';
+import { PaletteIcon, StarIcon, DiamondIcon, CheckIcon, CrownIcon, LockIcon } from '../../components/Icons';
 import {
   useThemeCatalog,
   useMyThemes,
@@ -13,12 +13,12 @@ import type { Currency, Theme, ThemePalette } from '@unisouq/shared';
 function PalettePreview({ palette }: { palette: ThemePalette }) {
   const colors = [palette.bg, palette.surface, palette.accent, palette.teal, palette.gold];
   return (
-    <div className="flex gap-1 mt-2">
+    <div className="flex gap-1.5 mt-2">
       {colors.map((c, i) => (
         <div
           key={i}
-          className="w-5 h-5 rounded-full"
-          style={{ backgroundColor: c, border: '1px solid rgba(255,255,255,0.1)' }}
+          className="w-5 h-5 rounded-full transition-transform hover:scale-110"
+          style={{ backgroundColor: c, border: '1px solid rgba(255,255,255,0.1)', boxShadow: `0 0 6px ${c}33` }}
         />
       ))}
     </div>
@@ -39,77 +39,123 @@ function ThemeCard({
   onActivate: (themeId: string | null) => void;
 }) {
   const { t } = useTranslation();
+  const palette = theme.palette as ThemePalette;
+
   return (
     <div
-      className="rounded-card p-3"
+      className="rounded-card overflow-hidden transition-transform active:scale-[0.97]"
       style={{
         backgroundColor: 'var(--surface)',
         border: active ? '2px solid var(--accent)' : '1px solid var(--border)',
       }}
     >
+      {/* Preview area */}
       <div
-        className="w-full aspect-[2/1] rounded-btn flex items-center justify-center mb-2 overflow-hidden"
-        style={{ backgroundColor: (theme.palette as ThemePalette).bg }}
+        className="w-full aspect-[2/1] flex items-center justify-center relative overflow-hidden"
+        style={{
+          background: `linear-gradient(135deg, ${palette.bg} 0%, ${palette.surface || palette.bg} 50%, ${palette.accent} 100%)`,
+        }}
       >
         {theme.previewUrl ? (
-          <img
-            src={theme.previewUrl}
-            alt={theme.name}
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
+          <img src={theme.previewUrl} alt={theme.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
         ) : (
-          <PaletteIcon size={24} color={(theme.palette as ThemePalette).accent} />
+          <PaletteIcon size={28} color={palette.accent} />
+        )}
+        {/* Active badge */}
+        {active && (
+          <span
+            className="absolute top-2 left-2 text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1"
+            style={{ backgroundColor: 'var(--accent)', color: '#fff' }}
+          >
+            <CheckIcon size={8} color="#fff" />
+            Active
+          </span>
+        )}
+        {/* Plus-only badge */}
+        {theme.plusOnly && (
+          <span
+            className="absolute top-2 right-2 text-[8px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full flex items-center gap-1"
+            style={{ backgroundColor: 'var(--gold)', color: '#000' }}
+          >
+            <CrownIcon size={8} color="#000" />
+            Plus
+          </span>
         )}
       </div>
-      <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>
-        {theme.name}
-      </p>
-      {theme.plusOnly && (
-        <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded" style={{ backgroundColor: 'var(--gold)', color: '#000' }}>
-          PLUS
-        </span>
-      )}
-      <PalettePreview palette={theme.palette as ThemePalette} />
 
-      <div className="mt-2">
-        {owned ? (
-          <button
-            onClick={() => onActivate(active ? null : theme.id)}
-            className="w-full py-2 text-[11px] font-semibold rounded-btn"
-            style={{
-              backgroundColor: active ? 'var(--surface2)' : 'var(--accent)',
-              color: active ? 'var(--text)' : '#fff',
-              border: '1px solid var(--border)',
-              cursor: 'pointer',
-            }}
-          >
-            {active ? t('active') : t('activate')}
-          </button>
-        ) : (
-          <button
-            onClick={() => onBuy(theme)}
-            className="w-full py-2 text-[11px] font-semibold rounded-btn"
-            style={{
-              backgroundColor: 'var(--surface2)',
-              color: 'var(--text)',
-              border: '1px solid var(--border)',
-              cursor: 'pointer',
-            }}
-          >
-            {theme.priceStars != null ? `${theme.priceStars} ★` : ''}
-            {theme.priceStars != null && theme.priceTon != null ? ' / ' : ''}
-            {theme.priceTon != null ? `${theme.priceTon} TON` : ''}
-          </button>
+      {/* Info */}
+      <div className="p-3">
+        <p className="text-[11px] font-semibold truncate" style={{ color: 'var(--text)' }}>
+          {theme.name}
+        </p>
+        {theme.description && (
+          <p className="text-[9px] mt-0.5 line-clamp-1" style={{ color: 'var(--text-muted)' }}>
+            {theme.description}
+          </p>
         )}
+        <PalettePreview palette={palette} />
+
+        <div className="mt-3">
+          {owned ? (
+            <button
+              onClick={() => onActivate(active ? null : theme.id)}
+              className="w-full py-2 text-[11px] font-bold rounded-btn flex items-center justify-center gap-1.5 transition-opacity active:opacity-80"
+              style={{
+                backgroundColor: active ? 'transparent' : 'var(--accent)',
+                color: active ? 'var(--text-muted)' : '#fff',
+                border: active ? '1px solid var(--border)' : 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {active ? (
+                <>
+                  <CheckIcon size={12} color="var(--text-muted)" />
+                  {t('active')}
+                </>
+              ) : (
+                t('activate')
+              )}
+            </button>
+          ) : (
+            <button
+              onClick={() => onBuy(theme)}
+              className="w-full py-2 text-[11px] font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+              style={{
+                backgroundColor: 'var(--surface2)',
+                color: 'var(--text)',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+              }}
+            >
+              {theme.plusOnly && <LockIcon size={10} color="var(--gold)" />}
+              {theme.priceStars != null && (
+                <span className="flex items-center gap-0.5" style={{ color: 'var(--gold)' }}>
+                  <StarIcon size={10} color="var(--gold)" filled />
+                  {theme.priceStars}
+                </span>
+              )}
+              {theme.priceStars != null && theme.priceTon != null && (
+                <span style={{ color: 'var(--text-muted)' }}>/</span>
+              )}
+              {theme.priceTon != null && (
+                <span className="flex items-center gap-0.5" style={{ color: 'var(--teal)' }}>
+                  <DiamondIcon size={10} color="var(--teal)" />
+                  {theme.priceTon}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
 }
 
 function BuySheet({ theme, onClose }: { theme: Theme; onClose: () => void }) {
+  const { t } = useTranslation();
   const buy = useBuyTheme();
   const [err, setErr] = useState<string | null>(null);
+  const palette = theme.palette as ThemePalette;
 
   const doBuy = async (currency: Currency) => {
     setErr(null);
@@ -122,47 +168,79 @@ function BuySheet({ theme, onClose }: { theme: Theme; onClose: () => void }) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-40 flex items-end"
-      style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-40 flex items-end" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={onClose}>
       <div
-        className="w-full rounded-t-card p-5"
+        className="w-full rounded-t-[20px] p-5 pb-8"
         style={{ backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <p className="text-base font-bold" style={{ color: 'var(--text)' }}>
-          {theme.name}
-        </p>
+        {/* Theme preview */}
+        <div className="flex items-center gap-3 mb-4">
+          <div
+            className="w-14 h-14 rounded-card flex items-center justify-center shrink-0 overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${palette.bg} 0%, ${palette.accent} 100%)`,
+            }}
+          >
+            {theme.previewUrl ? (
+              <img src={theme.previewUrl} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <PaletteIcon size={24} color={palette.accent} />
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>{theme.name}</p>
+            {theme.plusOnly && (
+              <span
+                className="text-[9px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-full inline-flex items-center gap-1"
+                style={{ backgroundColor: 'var(--gold)', color: '#000' }}
+              >
+                <CrownIcon size={8} color="#000" />
+                Plus
+              </span>
+            )}
+          </div>
+        </div>
         {theme.description && (
-          <p className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
+          <p className="text-[11px] mb-4 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {theme.description}
           </p>
         )}
+        <PalettePreview palette={palette} />
+
+        {/* Buy buttons */}
         <div className="flex flex-col gap-2 mt-4">
           {theme.priceStars != null && (
             <button
               onClick={() => doBuy('STARS')}
               disabled={buy.isPending}
-              className="w-full py-3 text-sm font-semibold rounded-btn"
+              className="w-full py-3.5 text-sm font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
               style={{ backgroundColor: 'var(--gold)', color: '#000', border: 'none', cursor: 'pointer', opacity: buy.isPending ? 0.5 : 1 }}
             >
-              {theme.priceStars} ★
+              <StarIcon size={16} color="#000" filled />
+              {theme.priceStars} Stars
             </button>
           )}
           {theme.priceTon != null && (
             <button
               onClick={() => doBuy('TON')}
               disabled={buy.isPending}
-              className="w-full py-3 text-sm font-semibold rounded-btn"
+              className="w-full py-3.5 text-sm font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
               style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer', opacity: buy.isPending ? 0.5 : 1 }}
             >
+              <DiamondIcon size={16} color="#000" />
               {theme.priceTon} TON
             </button>
           )}
         </div>
-        {err && <p className="text-[11px] mt-2" style={{ color: '#ff6b6b' }}>{err}</p>}
+        <button
+          onClick={onClose}
+          className="w-full py-2.5 mt-2 text-[11px] font-semibold rounded-btn"
+          style={{ backgroundColor: 'transparent', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer' }}
+        >
+          {t('cancel')}
+        </button>
+        {err && <p className="text-[10px] mt-2 text-center" style={{ color: '#ff6b6b' }}>{err}</p>}
       </div>
     </div>
   );
@@ -193,14 +271,15 @@ export function ThemesSection({
       />
 
       {catalog.isLoading && (
-        <p className="text-xs py-8 text-center" style={{ color: 'var(--text-muted)' }}>
-          {t('loading')}
-        </p>
+        <div className="flex items-center justify-center py-16">
+          <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }} />
+        </div>
       )}
       {catalog.data && catalog.data.length === 0 && (
-        <p className="text-xs py-8 text-center" style={{ color: 'var(--text-muted)' }}>
-          {t('emptyCatalog')}
-        </p>
+        <div className="flex flex-col items-center py-16">
+          <PaletteIcon size={32} color="var(--text-muted)" />
+          <p className="text-xs mt-3" style={{ color: 'var(--text-muted)' }}>{t('emptyCatalog')}</p>
+        </div>
       )}
       <div className="grid grid-cols-2 gap-3">
         {catalog.data?.map((th) => (
