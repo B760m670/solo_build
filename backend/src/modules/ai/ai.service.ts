@@ -225,6 +225,12 @@ export class AiService {
     return result;
   }
 
+  private static readonly MODELS = [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite',
+    'gemini-1.5-flash',
+  ];
+
   private async callGemini(
     system: string,
     messages: ChatMessage[],
@@ -234,52 +240,101 @@ export class AiService {
       return 'AI service is not configured yet. Please set GEMINI_API_KEY in your environment.';
     }
 
-    try {
-      const contents = this.mergeConsecutive(messages);
+    const contents = this.mergeConsecutive(messages);
+    const requestBody = {
+      system_instruction: { parts: [{ text: system }] },
+      contents,
+      generationConfig: {
+        maxOutputTokens: 1024,
+        temperature: 0.7,
+      },
+    };
 
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${this.apiKey}`;
+    // Try each model in order — if one hits rate limit, try the next
+    const modelsToTry = this.model === AiService.MODELS[0]
+      ? AiService.MODELS
+      : [this.model, ...AiService.MODELS.filter((m) => m !== this.model)];
 
-      const body = {
-        system_instruction: { parts: [{ text: system }] },
-        contents,
-        generationConfig: {
-          maxOutputTokens: 1024,
-          temperature: 0.7,
-        },
-      };
+    for (const model of modelsToTry) {
+      try {
+        const result = await this.tryModel(model, requestBody);
+        if (result.success) return result.text;
+        if (result.rateLimited) {
+          this.logger.warn(`Model ${model} rate-limited, trying next...`);
+          continue;
+        }
+        // Non-rate-limit error — return error message
+        return result.text;
+      } catch (e) {
+        this.logger.error(`Gemini ${model} failed: ${(e as Error).message}`, (e as Error).stack);
+        continue;
+      }
+    }
 
-      this.logger.debug(`Gemini request: ${contents.length} turns, model=${this.model}`);
+    return 'All AI models are temporarily busy. Please try again in a minute.';
+  }
 
-      const res = await fetch(url, {
+  private async tryModel(
+    model: string,
+    body: object,
+  ): Promise<{ success: boolean; text: string; rateLimited?: boolean }> {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+
+    this.logger.debug(`Trying model=${model}`);
+
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    if (res.status === 429) {
+      const errBody = await res.text();
+      this.logger.warn(`${model} 429: rate limited`);
+
+      // Try once more after a short wait
+      const retryMatch = errBody.match(/"retryDelay":\s*"(\d+)s"/);
+      const waitSec = retryMatch ? Math.min(parseInt(retryMatch[1], 10), 5) : 3;
+      await new Promise((r) => setTimeout(r, waitSec * 1000));
+
+      const retry = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
 
-      if (!res.ok) {
-        const errBody = await res.text();
-        this.logger.error(`Gemini API ${res.status}: ${errBody}`);
-        return `Sorry, I encountered an error (${res.status}). Please try again.`;
+      if (retry.status === 429) {
+        return { success: false, text: '', rateLimited: true };
       }
-
-      const data = await res.json();
-
-      // Check for blocked / empty responses
-      if (data?.promptFeedback?.blockReason) {
-        this.logger.warn(`Gemini blocked: ${data.promptFeedback.blockReason}`);
-        return 'I cannot respond to that request. Please try a different question.';
+      if (!retry.ok) {
+        const retryErr = await retry.text();
+        this.logger.error(`${model} retry ${retry.status}: ${retryErr}`);
+        return { success: false, text: `Error (${retry.status}). Please try again.` };
       }
-
-      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) {
-        this.logger.warn(`Gemini empty response: ${JSON.stringify(data?.candidates?.[0])}`);
-        return 'No response generated. Please try again.';
-      }
-
-      return text;
-    } catch (e) {
-      this.logger.error(`Gemini call failed: ${(e as Error).message}`, (e as Error).stack);
-      return 'Sorry, I encountered an error. Please try again.';
+      const retryData = await retry.json();
+      const retryText = retryData?.candidates?.[0]?.content?.parts?.[0]?.text;
+      return { success: !!retryText, text: retryText ?? 'No response generated.' };
     }
+
+    if (!res.ok) {
+      const errBody = await res.text();
+      this.logger.error(`${model} ${res.status}: ${errBody}`);
+      return { success: false, text: `Sorry, I encountered an error (${res.status}).` };
+    }
+
+    const data = await res.json();
+
+    if (data?.promptFeedback?.blockReason) {
+      this.logger.warn(`${model} blocked: ${data.promptFeedback.blockReason}`);
+      return { success: true, text: 'I cannot respond to that request. Please try a different question.' };
+    }
+
+    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) {
+      this.logger.warn(`${model} empty: ${JSON.stringify(data?.candidates?.[0])}`);
+      return { success: false, text: 'No response generated.' };
+    }
+
+    return { success: true, text };
   }
 }
