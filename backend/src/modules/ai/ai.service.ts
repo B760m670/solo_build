@@ -62,6 +62,57 @@ export class AiService {
     this.model = this.config.get<string>('AI_MODEL') || 'gemini-2.0-flash';
   }
 
+  // ─── Health check ───
+
+  async healthCheck() {
+    if (!this.apiKey) {
+      return { ok: false, error: 'GEMINI_API_KEY not set' };
+    }
+
+    const keyPreview = this.apiKey.slice(0, 6) + '...' + this.apiKey.slice(-4);
+
+    for (const model of AiService.MODELS) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: 'Say "ok"' }] }],
+            generationConfig: { maxOutputTokens: 5 },
+          }),
+        });
+
+        if (res.ok) {
+          return { ok: true, model, key: keyPreview };
+        }
+
+        const body = await res.text();
+        const hasZeroQuota = body.includes('"limit": 0') || body.includes('limit: 0');
+
+        if (res.status === 429 && hasZeroQuota) {
+          this.logger.warn(`Health: ${model} has zero quota`);
+          continue; // try next model
+        }
+
+        if (res.status === 429) {
+          // Has quota but temporarily exhausted — that's fine
+          return { ok: true, model, key: keyPreview, note: 'temporarily rate-limited' };
+        }
+
+        return { ok: false, model, status: res.status, key: keyPreview, error: body.slice(0, 200) };
+      } catch (e) {
+        return { ok: false, model, key: keyPreview, error: (e as Error).message };
+      }
+    }
+
+    return {
+      ok: false,
+      key: keyPreview,
+      error: 'All models return zero quota. Create a new key at https://aistudio.google.com/apikey (click "Create API key in new project")',
+    };
+  }
+
   // ─── Usage tracking ───
 
   async getUsage(userId: string) {
@@ -290,11 +341,18 @@ export class AiService {
 
     if (res.status === 429) {
       const errBody = await res.text();
-      this.logger.warn(`${model} 429: rate limited`);
+      const hasZeroQuota = errBody.includes('"limit": 0') || errBody.includes('limit: 0');
 
-      // Try once more after a short wait
-      const retryMatch = errBody.match(/"retryDelay":\s*"(\d+)s"/);
-      const waitSec = retryMatch ? Math.min(parseInt(retryMatch[1], 10), 5) : 3;
+      if (hasZeroQuota) {
+        // Zero quota = key has no free tier at all, retrying is pointless
+        this.logger.warn(`${model} 429: ZERO QUOTA — key has no free tier for this model`);
+        return { success: false, text: '', rateLimited: true };
+      }
+
+      // Temporary rate limit — retry once after delay
+      this.logger.warn(`${model} 429: temporary rate limit`);
+      const retryMatch = errBody.match(/"retryDelay":\s*"(\d+)/);
+      const waitSec = retryMatch ? Math.min(parseInt(retryMatch[1], 10), 8) : 3;
       await new Promise((r) => setTimeout(r, waitSec * 1000));
 
       const retry = await fetch(url, {

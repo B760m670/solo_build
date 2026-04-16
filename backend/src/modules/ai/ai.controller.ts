@@ -17,6 +17,12 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 export class AiController {
   constructor(private ai: AiService) {}
 
+  /** Quick health check — tests Gemini key with a tiny request */
+  @Get('health')
+  health() {
+    return this.ai.healthCheck();
+  }
+
   @Get('usage')
   usage(@CurrentUser() user: { id: string }) {
     return this.ai.getUsage(user.id);
