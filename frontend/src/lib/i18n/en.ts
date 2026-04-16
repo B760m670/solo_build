@@ -45,6 +45,20 @@ const en = {
   sectionPlus: 'Unisouq Plus',
   sectionPlusDesc: 'Unlock every premium feature',
 
+  // Section shared
+  shop: 'Shop',
+  mine: 'Mine',
+  emptyCatalog: 'Nothing available yet',
+  emptyInventory: 'No items yet',
+  emptyFeed: 'No posts yet',
+  active: 'Active',
+  activate: 'Apply',
+  writePost: 'What\'s on your mind?',
+  comments: 'Comments',
+  noComments: 'No comments yet',
+  addComment: 'Add a comment...',
+  send: 'Send',
+
   // Profile extras
   unisouqPlus: 'Unisouq Plus',
   unisouqPlusPitch: 'Unlimited AI, premium themes, gift discounts',

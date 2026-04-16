@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
+import { useUser } from '../hooks/useUser';
 import {
   CryptoIcon,
   SparklesIcon,
@@ -10,35 +11,36 @@ import {
   CrownIcon,
   ChevronRightIcon,
 } from '../components/Icons';
+import { GiftsSection } from './sections/GiftsSection';
+import { ThemesSection } from './sections/ThemesSection';
+import { PlusSection } from './sections/PlusSection';
+import { SocialSection } from './sections/SocialSection';
 
 type SectionKey = 'crypto' | 'ai' | 'games' | 'social' | 'gifts' | 'themes' | 'plus';
 
 interface SectionDef {
   key: SectionKey;
-  titleKey: 'sectionCrypto' | 'sectionAi' | 'sectionGames' | 'sectionSocial' | 'sectionGifts' | 'sectionThemes' | 'sectionPlus';
-  descKey:
-    | 'sectionCryptoDesc'
-    | 'sectionAiDesc'
-    | 'sectionGamesDesc'
-    | 'sectionSocialDesc'
-    | 'sectionGiftsDesc'
-    | 'sectionThemesDesc'
-    | 'sectionPlusDesc';
+  titleKey: string;
+  descKey: string;
   icon: typeof CryptoIcon;
   tint: string;
+  live: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const tk = (s: string) => s as any;
+
 const SECTIONS: SectionDef[] = [
-  { key: 'crypto', titleKey: 'sectionCrypto', descKey: 'sectionCryptoDesc', icon: CryptoIcon, tint: 'var(--gold)' },
-  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)' },
-  { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--teal)' },
-  { key: 'social', titleKey: 'sectionSocial', descKey: 'sectionSocialDesc', icon: UsersIcon, tint: 'var(--accent)' },
-  { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)' },
-  { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--teal)' },
-  { key: 'plus', titleKey: 'sectionPlus', descKey: 'sectionPlusDesc', icon: CrownIcon, tint: 'var(--gold)' },
+  { key: 'crypto', titleKey: 'sectionCrypto', descKey: 'sectionCryptoDesc', icon: CryptoIcon, tint: 'var(--gold)', live: false },
+  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', live: false },
+  { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--teal)', live: false },
+  { key: 'social', titleKey: 'sectionSocial', descKey: 'sectionSocialDesc', icon: UsersIcon, tint: 'var(--accent)', live: true },
+  { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)', live: true },
+  { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--teal)', live: true },
+  { key: 'plus', titleKey: 'sectionPlus', descKey: 'sectionPlusDesc', icon: CrownIcon, tint: 'var(--gold)', live: true },
 ];
 
-function SectionPlaceholder({ section, onBack }: { section: SectionDef; onBack: () => void }) {
+function ComingSoon({ section, onBack }: { section: SectionDef; onBack: () => void }) {
   const { t } = useTranslation();
   const Icon = section.icon;
   return (
@@ -59,10 +61,10 @@ function SectionPlaceholder({ section, onBack }: { section: SectionDef; onBack: 
           <Icon size={28} color={section.tint} />
         </div>
         <p className="text-base font-semibold mb-1" style={{ color: 'var(--text)' }}>
-          {t(section.titleKey)}
+          {t(tk(section.titleKey))}
         </p>
         <p className="text-[11px] max-w-[260px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-          {t(section.descKey)}
+          {t(tk(section.descKey))}
         </p>
         <p className="text-[10px] mt-6" style={{ color: 'var(--text-muted)' }}>
           {t('comingSoon')}
@@ -74,11 +76,36 @@ function SectionPlaceholder({ section, onBack }: { section: SectionDef; onBack: 
 
 function Studio() {
   const { t } = useTranslation();
+  const user = useUser();
   const [active, setActive] = useState<SectionKey | null>(null);
+
+  const onBack = () => setActive(null);
 
   if (active) {
     const section = SECTIONS.find((s) => s.key === active)!;
-    return <SectionPlaceholder section={section} onBack={() => setActive(null)} />;
+
+    switch (active) {
+      case 'gifts':
+        return <GiftsSection onBack={onBack} />;
+      case 'themes':
+        return (
+          <ThemesSection
+            onBack={onBack}
+            activeThemeId={user.data?.activeThemeId ?? null}
+          />
+        );
+      case 'plus':
+        return <PlusSection onBack={onBack} />;
+      case 'social':
+        return (
+          <SocialSection
+            onBack={onBack}
+            currentUserId={user.data?.id ?? ''}
+          />
+        );
+      default:
+        return <ComingSoon section={section} onBack={onBack} />;
+    }
   }
 
   return (
@@ -114,10 +141,10 @@ function Studio() {
               </div>
               <div className="mt-auto">
                 <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
-                  {t(s.titleKey)}
+                  {t(tk(s.titleKey))}
                 </p>
                 <p className="text-[10px] mt-0.5 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
-                  {t(s.descKey)}
+                  {t(tk(s.descKey))}
                 </p>
               </div>
             </button>
