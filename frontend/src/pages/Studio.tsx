@@ -15,6 +15,7 @@ import { GiftsSection } from './sections/GiftsSection';
 import { ThemesSection } from './sections/ThemesSection';
 import { PlusSection } from './sections/PlusSection';
 import { SocialSection } from './sections/SocialSection';
+import { AiSection } from './sections/AiSection';
 
 type SectionKey = 'crypto' | 'ai' | 'games' | 'social' | 'gifts' | 'themes' | 'plus';
 
@@ -32,7 +33,7 @@ const tk = (s: string) => s as any;
 
 const SECTIONS: SectionDef[] = [
   { key: 'crypto', titleKey: 'sectionCrypto', descKey: 'sectionCryptoDesc', icon: CryptoIcon, tint: 'var(--gold)', live: false },
-  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', live: false },
+  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', live: true },
   { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--teal)', live: false },
   { key: 'social', titleKey: 'sectionSocial', descKey: 'sectionSocialDesc', icon: UsersIcon, tint: 'var(--accent)', live: true },
   { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)', live: true },
@@ -85,6 +86,8 @@ function Studio() {
     const section = SECTIONS.find((s) => s.key === active)!;
 
     switch (active) {
+      case 'ai':
+        return <AiSection onBack={onBack} />;
       case 'gifts':
         return <GiftsSection onBack={onBack} />;
       case 'themes':

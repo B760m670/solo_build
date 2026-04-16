@@ -86,4 +86,31 @@ export class NotificationsService {
       },
     );
   }
+
+  // ─── Social notifications ───
+
+  async postLiked(authorId: string, likerName: string) {
+    await this.send(
+      authorId,
+      `<b>${likerName}</b> liked your post`,
+      {
+        type: 'POST_LIKED',
+        title: 'New like',
+        body: `${likerName} liked your post`,
+      },
+    );
+  }
+
+  async postCommented(authorId: string, commenterName: string, snippet: string) {
+    const preview = snippet.length > 60 ? snippet.slice(0, 60) + '…' : snippet;
+    await this.send(
+      authorId,
+      `<b>${commenterName}</b> commented on your post:\n${preview}`,
+      {
+        type: 'POST_COMMENTED',
+        title: 'New comment',
+        body: `${commenterName}: ${preview}`,
+      },
+    );
+  }
 }

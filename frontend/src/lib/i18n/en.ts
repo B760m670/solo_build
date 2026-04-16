@@ -59,6 +59,15 @@ const en = {
   addComment: 'Add a comment...',
   send: 'Send',
 
+  // AI
+  aiWelcome: 'Unisouq Assistant',
+  aiWelcomeDesc: 'Ask me anything — creative ideas, writing help, questions about Unisouq, and more.',
+  aiThinking: 'Thinking...',
+  aiPlaceholder: 'Ask me anything...',
+  newChat: 'New chat',
+  chatHistory: 'Previous chats',
+  upgradePlus: 'Upgrade to Plus',
+
   // Profile extras
   unisouqPlus: 'Unisouq Plus',
   unisouqPlusPitch: 'Unlimited AI, premium themes, gift discounts',

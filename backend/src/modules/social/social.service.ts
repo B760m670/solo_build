@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { NotificationsService } from '../telegram/notifications.service';
 
 const BOOST_STARS_PER_HOUR = 5;
 const LIKE_REP_BONUS = 1;
@@ -20,7 +21,10 @@ const AUTHOR_SELECT = {
 
 @Injectable()
 export class SocialService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationsService,
+  ) {}
 
   // ─── Feed ───
 
@@ -87,7 +91,7 @@ export class SocialService {
   // ─── Likes ───
 
   async toggleLike(userId: string, postId: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const post = await tx.post.findUnique({ where: { id: postId } });
       if (!post || post.status !== 'PUBLISHED') {
         throw new NotFoundException('Post not found');
@@ -103,7 +107,7 @@ export class SocialService {
           where: { id: postId },
           data: { likeCount: { decrement: 1 } },
         });
-        return { liked: false };
+        return { liked: false, authorId: null as string | null, notify: false };
       }
 
       await tx.postLike.create({ data: { postId, userId } });
@@ -111,15 +115,24 @@ export class SocialService {
         where: { id: postId },
         data: { likeCount: { increment: 1 } },
       });
-      // Reputation: author gains +1 per like received
       if (post.authorId !== userId) {
         await tx.user.update({
           where: { id: post.authorId },
           data: { reputationScore: { increment: LIKE_REP_BONUS } },
         });
       }
-      return { liked: true };
+      return { liked: true, authorId: post.authorId, notify: post.authorId !== userId };
     });
+
+    if (result.liked && result.notify && result.authorId) {
+      const liker = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { firstName: true },
+      });
+      await this.notifications.postLiked(result.authorId, liker?.firstName ?? 'Someone');
+    }
+
+    return { liked: result.liked };
   }
 
   // ─── Comments ───
@@ -144,7 +157,7 @@ export class SocialService {
   }
 
   async addComment(userId: string, postId: string, body: string) {
-    return this.prisma.$transaction(async (tx) => {
+    const result = await this.prisma.$transaction(async (tx) => {
       const post = await tx.post.findUnique({ where: { id: postId } });
       if (!post || post.status !== 'PUBLISHED') {
         throw new NotFoundException('Post not found');
@@ -172,8 +185,15 @@ export class SocialService {
           data: { reputationScore: { increment: COMMENT_REP_BONUS } },
         });
       }
-      return comment;
+      return { comment, authorId: post.authorId, notify: post.authorId !== userId };
     });
+
+    if (result.notify) {
+      const commenterName = result.comment.user?.firstName ?? 'Someone';
+      await this.notifications.postCommented(result.authorId, commenterName, body);
+    }
+
+    return result.comment;
   }
 
   // ─── Boost ───
