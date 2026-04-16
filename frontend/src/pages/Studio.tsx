@@ -8,17 +8,15 @@ import {
   UsersIcon,
   GiftIcon,
   PaletteIcon,
-  CrownIcon,
   ChevronRightIcon,
 } from '../components/Icons';
 import { GiftsSection } from './sections/GiftsSection';
 import { ThemesSection } from './sections/ThemesSection';
-import { PlusSection } from './sections/PlusSection';
 import { SocialSection } from './sections/SocialSection';
 import { AiSection } from './sections/AiSection';
 import { CryptoSection } from './sections/CryptoSection';
 
-type SectionKey = 'crypto' | 'ai' | 'games' | 'social' | 'gifts' | 'themes' | 'plus';
+type SectionKey = 'crypto' | 'ai' | 'games' | 'social' | 'gifts' | 'themes';
 
 interface SectionDef {
   key: SectionKey;
@@ -39,7 +37,6 @@ const SECTIONS: SectionDef[] = [
   { key: 'social', titleKey: 'sectionSocial', descKey: 'sectionSocialDesc', icon: UsersIcon, tint: 'var(--accent)', live: true },
   { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)', live: true },
   { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--teal)', live: true },
-  { key: 'plus', titleKey: 'sectionPlus', descKey: 'sectionPlusDesc', icon: CrownIcon, tint: 'var(--gold)', live: true },
 ];
 
 function ComingSoon({ section, onBack }: { section: SectionDef; onBack: () => void }) {
@@ -100,8 +97,6 @@ function Studio() {
             activeThemeId={user.data?.activeThemeId ?? null}
           />
         );
-      case 'plus':
-        return <PlusSection onBack={onBack} />;
       case 'social':
         return (
           <SocialSection

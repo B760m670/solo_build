@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from '../../lib/i18n';
-import { SectionHeader } from '../../components/SectionHeader';
-import { SparklesIcon, TrashIcon, ArrowUpIcon, CrownIcon, InfinityIcon, ChevronRightIcon } from '../../components/Icons';
+import { SparklesIcon, TrashIcon, ArrowUpIcon, CrownIcon, InfinityIcon, ChevronRightIcon, ClockIcon, PlusIcon } from '../../components/Icons';
 import {
   useAiUsage,
   useAiChats,
@@ -39,29 +38,116 @@ function Bubble({ msg }: { msg: AiMessage }) {
   );
 }
 
-/* ─── Chat view ─── */
-function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => void }) {
+/* ─── History sidebar ─── */
+function HistoryPanel({
+  onClose,
+  onSelect,
+  onNew,
+}: {
+  onClose: () => void;
+  onSelect: (chatId: string) => void;
+  onNew: () => void;
+}) {
   const { t } = useTranslation();
-  const chat = useAiChat(chatId);
+  const chats = useAiChats();
+  const deleteChat = useAiDeleteChat();
+
+  return (
+    <div className="fixed inset-0 z-40 flex" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} onClick={onClose}>
+      <div
+        className="w-[280px] h-full overflow-y-auto flex flex-col"
+        style={{ backgroundColor: 'var(--surface)', borderRight: '1px solid var(--border)' }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="sticky top-0 px-4 py-3 flex items-center justify-between" style={{ backgroundColor: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+          <p className="text-xs font-bold" style={{ color: 'var(--text)' }}>{t('chatHistory')}</p>
+          <button onClick={onClose} className="text-[11px]" style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}>
+            {t('close')}
+          </button>
+        </div>
+
+        {/* New chat button */}
+        <button
+          onClick={onNew}
+          className="mx-3 mt-3 mb-2 py-2.5 text-[11px] font-bold rounded-btn flex items-center justify-center gap-1.5 transition-opacity active:opacity-80"
+          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+        >
+          <PlusIcon size={14} color="#fff" />
+          {t('newChat')}
+        </button>
+
+        <div className="flex-1 px-3 pb-3">
+          {chats.data?.map((c) => (
+            <div
+              key={c.id}
+              className="rounded-btn p-2.5 mb-1.5 flex items-center gap-2.5 transition-colors"
+              style={{ backgroundColor: 'var(--surface2)', cursor: 'pointer' }}
+              onClick={() => onSelect(c.id)}
+            >
+              <SparklesIcon size={12} color="var(--accent)" />
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] font-semibold truncate" style={{ color: 'var(--text)' }}>
+                  {c.title}
+                </p>
+                <p className="text-[8px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  {new Date(c.updatedAt).toLocaleDateString()}
+                </p>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); deleteChat.mutate(c.id); }}
+                className="p-1 shrink-0 transition-opacity active:opacity-60"
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <TrashIcon size={11} color="var(--text-muted)" />
+              </button>
+            </div>
+          ))}
+          {chats.data?.length === 0 && (
+            <p className="text-[10px] text-center py-6" style={{ color: 'var(--text-muted)' }}>
+              {t('nothingHere')}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Suggestion chips ─── */
+const SUGGESTIONS_EN = [
+  'Write a post for my social page',
+  'Give me a creative business idea',
+  'Translate this text to Arabic',
+  'Help me brainstorm a gift name',
+];
+const SUGGESTIONS_RU = [
+  'Напиши пост для моей страницы',
+  'Предложи креативную бизнес-идею',
+  'Переведи текст на арабский',
+  'Помоги придумать название подарка',
+];
+
+/* ─── Main section ─── */
+export function AiSection({ onBack }: { onBack: () => void }) {
+  const { t, lang } = useTranslation();
+  const usage = useAiUsage();
   const send = useAiSend();
   const [input, setInput] = useState('');
   const [localMessages, setLocalMessages] = useState<AiMessage[]>([]);
-  const [activeChatId, setActiveChatId] = useState<string | null>(chatId);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const allMessages = [...(chat.data?.messages ?? []), ...localMessages];
+  // Load existing chat when selected from history
+  const loadedChat = useAiChat(activeChatId);
+  const allMessages = [...(loadedChat.data?.messages ?? []), ...localMessages];
 
   useEffect(() => {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [allMessages.length]);
 
-  useEffect(() => {
-    setLocalMessages([]);
-    setActiveChatId(chatId);
-  }, [chatId]);
-
-  const handleSend = async () => {
-    const msg = input.trim();
+  const handleSend = async (text?: string) => {
+    const msg = (text ?? input).trim();
     if (!msg || send.isPending) return;
     setInput('');
 
@@ -107,9 +193,25 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
     }
   };
 
+  const startNewChat = () => {
+    setActiveChatId(null);
+    setLocalMessages([]);
+    setHistoryOpen(false);
+  };
+
+  const selectChat = (chatId: string) => {
+    setActiveChatId(chatId);
+    setLocalMessages([]);
+    setHistoryOpen(false);
+  };
+
+  const suggestions = lang === 'ru' ? SUGGESTIONS_RU : SUGGESTIONS_EN;
+  const isEmpty = allMessages.length === 0;
+
   return (
     <div className="flex flex-col h-[calc(100vh-120px)]">
-      <div className="shrink-0 px-4 pt-2 pb-2">
+      {/* Top bar */}
+      <div className="shrink-0 px-4 pt-2 pb-2 flex items-center justify-between">
         <button
           onClick={onBack}
           className="text-[11px] flex items-center gap-1 py-1 transition-opacity active:opacity-60"
@@ -118,13 +220,49 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
           <ChevronRightIcon size={14} color="var(--text-muted)" className="rotate-180" />
           {t('back')}
         </button>
+
+        <div className="flex items-center gap-2">
+          {/* Usage indicator */}
+          {usage.data && (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-btn" style={{ backgroundColor: 'var(--surface)' }}>
+              {usage.data.isPlusActive ? (
+                <InfinityIcon size={12} color="var(--gold)" />
+              ) : (
+                <span className="text-[9px] font-bold" style={{ color: usage.data.remaining === 0 ? '#ff6b6b' : 'var(--teal)' }}>
+                  {usage.data.remaining}/{usage.data.limit}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* New chat */}
+          <button
+            onClick={startNewChat}
+            className="w-8 h-8 rounded-btn flex items-center justify-center transition-opacity active:opacity-60"
+            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}
+            title={t('newChat')}
+          >
+            <PlusIcon size={14} color="var(--text-muted)" />
+          </button>
+
+          {/* History */}
+          <button
+            onClick={() => setHistoryOpen(true)}
+            className="w-8 h-8 rounded-btn flex items-center justify-center transition-opacity active:opacity-60"
+            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}
+            title={t('chatHistory')}
+          >
+            <ClockIcon size={14} color="var(--text-muted)" />
+          </button>
+        </div>
       </div>
 
+      {/* Chat area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pb-2">
-        {allMessages.length === 0 && (
-          <div className="flex flex-col items-center justify-center pt-16">
+        {isEmpty && (
+          <div className="flex flex-col items-center justify-center pt-10">
             <div
-              className="w-16 h-16 rounded-card flex items-center justify-center mb-4"
+              className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
               style={{ backgroundColor: 'rgba(108,99,255,0.08)', border: '1px solid rgba(108,99,255,0.15)' }}
             >
               <SparklesIcon size={28} color="var(--accent)" />
@@ -135,6 +273,38 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
             <p className="text-[11px] mt-1.5 text-center max-w-[260px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               {t('aiWelcomeDesc')}
             </p>
+
+            {/* Suggestion chips */}
+            <div className="flex flex-wrap justify-center gap-2 mt-6 max-w-[320px]">
+              {suggestions.map((s, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleSend(s)}
+                  className="text-[10px] px-3 py-2 rounded-card transition-all active:scale-95"
+                  style={{
+                    backgroundColor: 'var(--surface)',
+                    color: 'var(--text)',
+                    border: '1px solid var(--border)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            {/* Plus upsell */}
+            {usage.data && !usage.data.isPlusActive && usage.data.remaining === 0 && (
+              <div
+                className="mt-6 rounded-card p-3 flex items-center gap-2"
+                style={{ backgroundColor: 'rgba(245,200,66,0.06)', border: '1px solid rgba(245,200,66,0.15)' }}
+              >
+                <CrownIcon size={16} color="var(--gold)" />
+                <span className="text-[10px] font-semibold" style={{ color: 'var(--gold)' }}>
+                  {t('upgradePlus')}
+                </span>
+              </div>
+            )}
           </div>
         )}
         {allMessages.map((m) => (
@@ -167,6 +337,7 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
         )}
       </div>
 
+      {/* Input bar */}
       <div className="shrink-0 px-4 pb-4 pt-2">
         <div
           className="flex items-end gap-2 rounded-card p-2"
@@ -183,7 +354,7 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
             style={{ color: 'var(--text)', minHeight: '36px', maxHeight: '100px' }}
           />
           <button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={!input.trim() || send.isPending}
             className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-opacity active:opacity-80"
             style={{
@@ -196,126 +367,14 @@ function ChatView({ chatId, onBack }: { chatId: string | null; onBack: () => voi
           </button>
         </div>
       </div>
-    </div>
-  );
-}
 
-/* ─── Main section ─── */
-export function AiSection({ onBack }: { onBack: () => void }) {
-  const { t } = useTranslation();
-  const usage = useAiUsage();
-  const chats = useAiChats();
-  const deleteChat = useAiDeleteChat();
-  const [activeChatId, setActiveChatId] = useState<string | null | 'new'>(null);
-
-  if (activeChatId !== null) {
-    return (
-      <ChatView
-        chatId={activeChatId === 'new' ? null : activeChatId}
-        onBack={() => setActiveChatId(null)}
-      />
-    );
-  }
-
-  return (
-    <div className="px-4 pt-2 pb-24">
-      <SectionHeader
-        title={t('sectionAi')}
-        subtitle={t('sectionAiDesc')}
-        onBack={onBack}
-        backLabel={t('back')}
-      />
-
-      {/* Usage info */}
-      {usage.data && (
-        <div
-          className="rounded-card p-3.5 mb-4 flex items-center gap-3"
-          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
-        >
-          <div
-            className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0"
-            style={{ backgroundColor: usage.data.isPlusActive ? 'rgba(245,200,66,0.12)' : 'rgba(108,99,255,0.12)' }}
-          >
-            {usage.data.isPlusActive ? (
-              <InfinityIcon size={20} color="var(--gold)" />
-            ) : (
-              <SparklesIcon size={20} color="var(--accent)" />
-            )}
-          </div>
-          <div className="flex-1">
-            <p className="text-[11px] font-bold" style={{ color: 'var(--text)' }}>
-              {usage.data.isPlusActive ? 'Unlimited' : `${usage.data.remaining}/${usage.data.limit} free`}
-            </p>
-            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-              {usage.data.isPlusActive
-                ? 'Plus member'
-                : `${usage.data.used} requests used`}
-            </p>
-          </div>
-          {!usage.data.isPlusActive && usage.data.remaining === 0 && (
-            <span
-              className="text-[9px] font-bold px-2.5 py-1.5 rounded-btn flex items-center gap-1"
-              style={{ backgroundColor: 'var(--gold)', color: '#000' }}
-            >
-              <CrownIcon size={10} color="#000" />
-              {t('upgradePlus')}
-            </span>
-          )}
-        </div>
-      )}
-
-      {/* New chat button */}
-      <button
-        onClick={() => setActiveChatId('new')}
-        className="w-full py-3.5 text-sm font-bold rounded-btn mb-5 flex items-center justify-center gap-2 transition-opacity active:opacity-80"
-        style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
-      >
-        <SparklesIcon size={16} color="#fff" />
-        {t('newChat')}
-      </button>
-
-      {/* Chat history */}
-      {chats.data && chats.data.length > 0 && (
-        <>
-          <p className="text-[11px] font-bold mb-2 uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-            {t('chatHistory')}
-          </p>
-          <div className="flex flex-col gap-2">
-            {chats.data.map((c) => (
-              <div
-                key={c.id}
-                className="rounded-card p-3 flex items-center gap-3 transition-transform active:scale-[0.98]"
-                style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}
-                onClick={() => setActiveChatId(c.id)}
-              >
-                <div
-                  className="w-8 h-8 rounded-btn flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: 'rgba(108,99,255,0.08)' }}
-                >
-                  <SparklesIcon size={14} color="var(--accent)" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[11px] font-semibold truncate" style={{ color: 'var(--text)' }}>
-                    {c.title}
-                  </p>
-                  <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                    {new Date(c.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    deleteChat.mutate(c.id);
-                  }}
-                  className="p-1.5 rounded-btn transition-opacity active:opacity-60 shrink-0"
-                  style={{ color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
-                >
-                  <TrashIcon size={14} color="var(--text-muted)" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </>
+      {/* History sidebar */}
+      {historyOpen && (
+        <HistoryPanel
+          onClose={() => setHistoryOpen(false)}
+          onSelect={selectChat}
+          onNew={startNewChat}
+        />
       )}
     </div>
   );

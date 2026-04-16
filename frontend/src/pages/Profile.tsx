@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
 import { useUser, useUpdateSettings } from '../hooks/useUser';
 import { useReferrals } from '../hooks/useReferrals';
-import { toggleTheme } from '../hooks/useTheme';
+import { toggleTheme, getTheme } from '../hooks/useTheme';
 import { ChevronRightIcon, CrownIcon, ShieldIcon, SunIcon, MoonIcon } from '../components/Icons';
 import type { ReputationTier } from '@unisouq/shared';
 
@@ -250,11 +250,36 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
           </div>
         </Row>
         <Divider />
-        <Row label={t('theme')} onClick={toggleTheme} chevron={false}>
-          <div className="flex items-center gap-1.5">
-            <SunIcon size={12} color="var(--text-muted)" />
-            <span style={{ color: 'var(--text-muted)' }}>/</span>
-            <MoonIcon size={12} color="var(--text-muted)" />
+        <Row label={t('theme')} chevron={false}>
+          <div className="flex gap-1">
+            <button
+              onClick={() => {
+                if (getTheme() !== 'light') toggleTheme();
+              }}
+              className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-btn"
+              style={{
+                backgroundColor: getTheme() === 'light' ? 'var(--accent)' : 'var(--surface2)',
+                color: getTheme() === 'light' ? '#fff' : 'var(--text-muted)',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+              }}
+            >
+              <SunIcon size={10} color={getTheme() === 'light' ? '#fff' : 'var(--text-muted)'} />
+            </button>
+            <button
+              onClick={() => {
+                if (getTheme() !== 'dark') toggleTheme();
+              }}
+              className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-btn"
+              style={{
+                backgroundColor: getTheme() === 'dark' ? 'var(--accent)' : 'var(--surface2)',
+                color: getTheme() === 'dark' ? '#fff' : 'var(--text-muted)',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+              }}
+            >
+              <MoonIcon size={10} color={getTheme() === 'dark' ? '#fff' : 'var(--text-muted)'} />
+            </button>
           </div>
         </Row>
         <Divider />
