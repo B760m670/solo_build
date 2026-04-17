@@ -61,9 +61,27 @@ function App() {
 
   if (auth.isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen gap-2" style={{ backgroundColor: 'var(--bg)' }}>
-        <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--border)', borderTopColor: 'var(--accent)' }} />
-        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('connecting')}</p>
+      <div className="flex flex-col items-center justify-center h-screen" style={{ backgroundColor: 'var(--bg)' }}>
+        {/* Logo mark */}
+        <div className="splash-logo mb-6">
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center relative overflow-hidden"
+            style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+          >
+            <div className="absolute inset-0 splash-glow" />
+            <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" />
+            </svg>
+          </div>
+        </div>
+        {/* Brand name */}
+        <p className="splash-text text-sm font-bold tracking-[0.2em] uppercase" style={{ color: 'var(--text)' }}>
+          UNISOUQ
+        </p>
+        {/* Subtle loading bar */}
+        <div className="mt-6 w-12 h-[2px] rounded-full overflow-hidden" style={{ backgroundColor: 'var(--surface2)' }}>
+          <div className="h-full rounded-full splash-bar" style={{ backgroundColor: 'var(--accent)' }} />
+        </div>
       </div>
     );
   }

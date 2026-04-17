@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from '../../lib/i18n';
 import { SparklesIcon, TrashIcon, ArrowUpIcon, CrownIcon, InfinityIcon, ChevronRightIcon, ClockIcon, PlusIcon } from '../../components/Icons';
 import {
@@ -11,20 +11,20 @@ import {
 } from '../../hooks/useAi';
 
 /* ─── Message bubble ─── */
-function Bubble({ msg }: { msg: AiMessage }) {
+function Bubble({ msg, isNew }: { msg: AiMessage; isNew?: boolean }) {
   const isUser = msg.role === 'user';
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2.5`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-2.5 ${isNew ? 'ai-bubble-enter' : ''}`}>
       {!isUser && (
         <div
-          className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mr-2 mt-1"
+          className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mr-2 mt-1 ${isNew ? 'ai-glow' : ''}`}
           style={{ backgroundColor: 'rgba(108,99,255,0.12)' }}
         >
           <SparklesIcon size={12} color="var(--accent)" />
         </div>
       )}
       <div
-        className="max-w-[80%] px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap"
+        className={`max-w-[80%] px-3.5 py-2.5 text-xs leading-relaxed whitespace-pre-wrap ${isNew && isUser ? 'ai-send-pulse' : ''}`}
         style={{
           backgroundColor: isUser ? 'var(--accent)' : 'var(--surface)',
           color: isUser ? '#fff' : 'var(--text)',
@@ -136,6 +136,8 @@ export function AiSection({ onBack }: { onBack: () => void }) {
   const [localMessages, setLocalMessages] = useState<AiMessage[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [sendAnim, setSendAnim] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Load existing chat when selected from history
@@ -157,10 +159,16 @@ export function AiSection({ onBack }: { onBack: () => void }) {
     scrollRef.current?.scrollTo(0, scrollRef.current.scrollHeight);
   }, [allMessages.length]);
 
+  const triggerSendAnim = useCallback(() => {
+    setSendAnim(true);
+    setTimeout(() => setSendAnim(false), 400);
+  }, []);
+
   const handleSend = async (text?: string) => {
     const msg = (text ?? input).trim();
     if (!msg || send.isPending) return;
     setInput('');
+    triggerSendAnim();
 
     const userMsg: AiMessage = {
       id: `local-${Date.now()}`,
@@ -318,22 +326,22 @@ export function AiSection({ onBack }: { onBack: () => void }) {
             )}
           </div>
         )}
-        {allMessages.map((m) => (
-          <Bubble key={m.id} msg={m} />
+        {allMessages.map((m, i) => (
+          <Bubble key={m.id} msg={m} isNew={m.id.startsWith('local-') && i >= allMessages.length - 2} />
         ))}
         {send.isPending && (
-          <div className="flex justify-start mb-2.5">
+          <div className="flex justify-start mb-2.5 ai-bubble-enter">
             <div
-              className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mr-2 mt-1"
+              className="w-6 h-6 rounded-full flex items-center justify-center shrink-0 mr-2 mt-1 ai-glow"
               style={{ backgroundColor: 'rgba(108,99,255,0.12)' }}
             >
               <SparklesIcon size={12} color="var(--accent)" />
             </div>
             <div
-              className="px-3.5 py-2.5 text-xs"
+              className="px-3.5 py-2.5 text-xs ai-thinking-glow"
               style={{
                 backgroundColor: 'var(--surface)',
-                border: '1px solid var(--border)',
+                border: '1px solid rgba(108,99,255,0.15)',
                 borderRadius: '16px 16px 16px 4px',
                 color: 'var(--text-muted)',
               }}
@@ -352,12 +360,18 @@ export function AiSection({ onBack }: { onBack: () => void }) {
       <div className="shrink-0 px-4 pb-4 pt-2">
         <div
           className="flex items-end gap-2 rounded-card p-2"
-          style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+          style={{
+            backgroundColor: 'var(--surface)',
+            border: inputFocused ? '1px solid rgba(108,99,255,0.3)' : '1px solid var(--border)',
+            boxShadow: inputFocused ? '0 0 12px rgba(108,99,255,0.08)' : 'none',
+          }}
         >
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
             placeholder={t('aiPlaceholder')}
             rows={1}
             maxLength={4000}
@@ -367,7 +381,7 @@ export function AiSection({ onBack }: { onBack: () => void }) {
           <button
             onClick={() => handleSend()}
             disabled={!input.trim() || send.isPending}
-            className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-opacity active:opacity-80"
+            className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 active:opacity-80 ${sendAnim ? 'ai-send-pulse' : ''}`}
             style={{
               backgroundColor: !input.trim() || send.isPending ? 'var(--surface2)' : 'var(--accent)',
               border: 'none',

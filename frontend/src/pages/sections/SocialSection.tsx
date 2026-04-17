@@ -311,8 +311,8 @@ export function SocialSection({
   return (
     <div className="px-4 pt-2 pb-24">
       <SectionHeader
-        title={t('sectionSocial')}
-        subtitle={t('sectionSocialDesc')}
+        title={t('sectionCommunity')}
+        subtitle={t('sectionCommunityDesc')}
         onBack={onBack}
         backLabel={t('back')}
       />
