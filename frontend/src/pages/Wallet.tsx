@@ -175,28 +175,35 @@ function Wallet() {
   const w = q.data;
 
   return (
-    <div className="px-4 pt-2 pb-24">
-      {/* Stars balance card */}
+    <div className="px-4 pt-3 pb-24">
+      {/* Hero header */}
+      <div className="mb-5 px-1">
+        <p className="display-subtitle mb-1.5">{t('wallet')}</p>
+        <p className="display-title" style={{ color: 'var(--text)' }}>
+          {t('starsBalance')}
+        </p>
+      </div>
+
+      {/* Stars balance card — hero */}
       <div
-        className="rounded-card p-4 mb-3 relative overflow-hidden"
+        className="web3-card-heavy rounded-card p-5 mb-3 relative overflow-hidden"
         style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, var(--gold) 0%, transparent 60%)' }} />
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-center justify-between mb-3">
+          <p className="display-label">{t('starsBalance')}</p>
           <div
-            className="w-12 h-12 rounded-card flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'rgba(245,200,66,0.12)' }}
           >
-            <StarIcon size={24} color="var(--gold)" filled />
+            <StarIcon size={18} color="var(--gold)" filled />
           </div>
-          <div className="flex-1">
-            <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
-              {t('starsBalance')}
-            </p>
-            <p className="text-xl font-bold mt-0.5" style={{ color: 'var(--gold)' }}>
-              {w.starsBalance.toLocaleString()}
-            </p>
-          </div>
+        </div>
+        <div className="relative flex items-baseline gap-2">
+          <p className="display-number display-number-hero text-[32px]" style={{ color: 'var(--gold)' }}>
+            {w.starsBalance.toLocaleString()}
+          </p>
+          <p className="display-label" style={{ color: 'var(--gold)' }}>★</p>
         </div>
         <p className="relative text-[9px] mt-3 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
           {t('starsNotWithdrawable')}
@@ -205,34 +212,33 @@ function Wallet() {
 
       {/* TON balance card */}
       <div
-        className="rounded-card p-4 mb-3 relative overflow-hidden"
+        className="web3-card-heavy rounded-card p-5 mb-3 relative overflow-hidden"
         style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
       >
         <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, var(--teal) 0%, transparent 60%)' }} />
-        <div className="relative flex items-center gap-3">
+        <div className="relative flex items-center justify-between mb-3">
+          <p className="display-label">{t('tonBalance')}</p>
           <div
-            className="w-12 h-12 rounded-card flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'rgba(0,212,170,0.08)' }}
           >
-            <DiamondIcon size={24} color="var(--teal)" />
+            <DiamondIcon size={18} color="var(--teal)" />
           </div>
-          <div className="flex-1">
-            <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
-              {t('tonBalance')}
-            </p>
-            <p className="text-xl font-bold mt-0.5" style={{ color: 'var(--teal)' }}>
-              {w.tonBalance.toFixed(2)} TON
-            </p>
-          </div>
-          <button
-            onClick={() => setWithdrawing(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-bold rounded-btn transition-opacity active:opacity-80"
-            style={{ backgroundColor: 'rgba(0,212,170,0.12)', color: 'var(--teal)', border: 'none', cursor: 'pointer' }}
-          >
-            <SendIcon size={12} color="var(--teal)" />
-            {t('withdrawTon')}
-          </button>
         </div>
+        <div className="relative flex items-baseline gap-2 mb-3">
+          <p className="display-number display-number-lg text-[28px]" style={{ color: 'var(--teal)' }}>
+            {w.tonBalance.toFixed(2)}
+          </p>
+          <p className="display-label" style={{ color: 'var(--teal)' }}>TON</p>
+        </div>
+        <button
+          onClick={() => setWithdrawing(true)}
+          className="relative w-full flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold rounded-btn transition-opacity active:opacity-80"
+          style={{ backgroundColor: 'rgba(0,212,170,0.12)', color: 'var(--teal)', border: 'none', cursor: 'pointer' }}
+        >
+          <SendIcon size={12} color="var(--teal)" />
+          {t('withdrawTon')}
+        </button>
       </div>
 
       {/* Total earned */}
@@ -243,16 +249,14 @@ function Wallet() {
         <div className="absolute inset-0 opacity-[0.03]" style={{ background: 'linear-gradient(135deg, var(--accent) 0%, transparent 60%)' }} />
         <div className="relative flex items-center gap-3">
           <div
-            className="w-10 h-10 rounded-card flex items-center justify-center shrink-0"
+            className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0"
             style={{ backgroundColor: 'rgba(108,99,255,0.08)' }}
           >
             <StarIcon size={18} color="var(--accent)" />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>
-              {t('totalEarnedStars')}
-            </p>
-            <p className="text-base font-bold mt-0.5" style={{ color: 'var(--text)' }}>
+            <p className="display-label">{t('totalEarnedStars')}</p>
+            <p className="display-number text-lg mt-1" style={{ color: 'var(--text)' }}>
               {w.totalEarnedStars.toLocaleString()}
             </p>
           </div>
@@ -262,7 +266,7 @@ function Wallet() {
       {/* Transaction history */}
       <div className="mb-3 flex items-center gap-2">
         <ClockIcon size={14} color="var(--text-muted)" />
-        <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+        <p className="display-label">
           {t('recentActivity')}
         </p>
       </div>

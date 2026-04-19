@@ -284,57 +284,63 @@ function WalletView() {
       {wallet.data && (
         <div className="flex flex-col gap-3 mb-5">
           {/* Stars balance */}
-          <div className="rounded-card p-4 relative overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="web3-card-heavy rounded-card p-5 relative overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, var(--gold) 0%, transparent 60%)' }} />
-            <div className="relative flex items-center gap-3">
-              <div className="w-12 h-12 rounded-card flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(245,200,66,0.12)' }}>
-                <StarIcon size={24} color="var(--gold)" filled />
+            <div className="relative flex items-center justify-between mb-3">
+              <p className="display-label">Telegram Stars</p>
+              <div className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(245,200,66,0.12)' }}>
+                <StarIcon size={18} color="var(--gold)" filled />
               </div>
-              <div className="flex-1">
-                <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>Telegram Stars</p>
-                <p className="text-xl font-bold mt-0.5" style={{ color: 'var(--gold)' }}>{wallet.data.starsBalance.toLocaleString()}</p>
-              </div>
+            </div>
+            <div className="relative flex items-baseline gap-2">
+              <p className="display-number display-number-lg text-[28px]" style={{ color: 'var(--gold)' }}>
+                {wallet.data.starsBalance.toLocaleString()}
+              </p>
+              <p className="display-label" style={{ color: 'var(--gold)' }}>★</p>
             </div>
           </div>
 
           {/* TON balance */}
-          <div className="rounded-card p-4 relative overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
+          <div className="web3-card-heavy rounded-card p-5 relative overflow-hidden" style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}>
             <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, var(--teal) 0%, transparent 60%)' }} />
-            <div className="relative flex items-center gap-3">
-              <div className="w-12 h-12 rounded-card flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(0,212,170,0.08)' }}>
-                <DiamondIcon size={24} color="var(--teal)" />
+            <div className="relative flex items-center justify-between mb-3">
+              <p className="display-label">TON</p>
+              <div className="w-10 h-10 rounded-btn flex items-center justify-center shrink-0" style={{ backgroundColor: 'rgba(0,212,170,0.08)' }}>
+                <DiamondIcon size={18} color="var(--teal)" />
               </div>
-              <div className="flex-1">
-                <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--text-muted)' }}>TON</p>
-                <p className="text-xl font-bold mt-0.5" style={{ color: 'var(--teal)' }}>{wallet.data.tonBalance.toFixed(2)}</p>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <button
-                  onClick={() => connectedAddress ? setShowWithdraw(true) : connectWallet()}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-bold rounded-btn transition-opacity active:opacity-80"
-                  style={{ backgroundColor: 'rgba(0,212,170,0.12)', color: 'var(--teal)', border: 'none', cursor: 'pointer' }}
-                >
-                  <SendIcon size={10} color="var(--teal)" />
-                  Send
-                </button>
-                <button
-                  onClick={connectedAddress ? copyAddress : connectWallet}
-                  className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-bold rounded-btn transition-opacity active:opacity-80"
-                  style={{ backgroundColor: 'var(--surface2)', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
-                >
-                  {copied ? (
-                    <>
-                      <CheckIcon size={10} color="var(--teal)" />
-                      <span style={{ color: 'var(--teal)' }}>Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <CopyIcon size={10} color="var(--text-muted)" />
-                      Receive
-                    </>
-                  )}
-                </button>
-              </div>
+            </div>
+            <div className="relative flex items-baseline gap-2 mb-4">
+              <p className="display-number display-number-lg text-[28px]" style={{ color: 'var(--teal)' }}>
+                {wallet.data.tonBalance.toFixed(2)}
+              </p>
+              <p className="display-label" style={{ color: 'var(--teal)' }}>TON</p>
+            </div>
+            <div className="relative flex gap-2">
+              <button
+                onClick={() => connectedAddress ? setShowWithdraw(true) : connectWallet()}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold rounded-btn transition-opacity active:opacity-80"
+                style={{ backgroundColor: 'rgba(0,212,170,0.12)', color: 'var(--teal)', border: 'none', cursor: 'pointer' }}
+              >
+                <SendIcon size={11} color="var(--teal)" />
+                Send
+              </button>
+              <button
+                onClick={connectedAddress ? copyAddress : connectWallet}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 text-[10px] font-bold rounded-btn transition-opacity active:opacity-80"
+                style={{ backgroundColor: 'var(--surface2)', color: 'var(--text-muted)', border: 'none', cursor: 'pointer' }}
+              >
+                {copied ? (
+                  <>
+                    <CheckIcon size={11} color="var(--teal)" />
+                    <span style={{ color: 'var(--teal)' }}>Copied</span>
+                  </>
+                ) : (
+                  <>
+                    <CopyIcon size={11} color="var(--text-muted)" />
+                    Receive
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -343,7 +349,7 @@ function WalletView() {
       {/* Transaction history */}
       <div className="mb-3 flex items-center gap-2">
         <ClockIcon size={14} color="var(--text-muted)" />
-        <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+        <p className="display-label">
           Transaction History
         </p>
       </div>
@@ -704,16 +710,18 @@ function CryptoHub({ onSelect }: { onSelect: (key: CryptoTab) => void }) {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {CRYPTO_SUBS.map((sub) => {
+      {CRYPTO_SUBS.map((sub, i) => {
         const Icon = sub.icon;
+        const num = String(i + 1).padStart(2, '0');
         return (
           <button
             key={sub.key}
             onClick={() => onSelect(sub.key)}
-            className="text-left rounded-card p-4 flex flex-col gap-3 relative overflow-hidden transition-transform active:scale-[0.98]"
+            className="web3-card-heavy text-left rounded-card p-4 flex flex-col gap-3 relative overflow-hidden transition-transform active:scale-[0.98]"
             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}
           >
             <div className="absolute inset-0 opacity-60" style={{ background: sub.gradient }} />
+            <p className="display-index studio-hub-number absolute top-3 right-4">{num}</p>
             <div className="relative">
               <div className="w-10 h-10 rounded-btn flex items-center justify-center mb-3" style={{ backgroundColor: sub.iconBg }}>
                 <Icon size={20} color={sub.tint} />
@@ -724,9 +732,6 @@ function CryptoHub({ onSelect }: { onSelect: (key: CryptoTab) => void }) {
               <p className="text-[10px] mt-0.5 line-clamp-2 leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                 {t(tk(sub.descKey))}
               </p>
-            </div>
-            <div className="absolute top-3 right-3">
-              <ChevronRightIcon size={14} color="var(--text-muted)" />
             </div>
           </button>
         );

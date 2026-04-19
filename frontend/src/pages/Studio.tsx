@@ -111,24 +111,23 @@ function Studio() {
   }
 
   return (
-    <div className="px-4 pt-2 pb-24">
-      <div className="mb-4 px-1">
-        <p className="text-[20px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+    <div className="px-4 pt-3 pb-24">
+      <div className="mb-6 px-1">
+        <p className="display-subtitle mb-1.5">{t('studioSubtitle')}</p>
+        <p className="display-title" style={{ color: 'var(--text)' }}>
           {t('studioTitle')}
-        </p>
-        <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
-          {t('studioSubtitle')}
         </p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {SECTIONS.map((s) => {
+        {SECTIONS.map((s, i) => {
           const Icon = s.icon;
+          const num = String(i + 1).padStart(2, '0');
           return (
             <button
               key={s.key}
               onClick={() => setActive(s.key)}
-              className="text-left rounded-card p-4 flex flex-col gap-3 aspect-square relative overflow-hidden transition-transform active:scale-[0.98]"
+              className="web3-card-heavy text-left rounded-card p-4 flex flex-col gap-3 aspect-square relative overflow-hidden transition-transform active:scale-[0.98]"
               style={{
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -140,6 +139,8 @@ function Studio() {
                 className="absolute inset-0 opacity-[0.04]"
                 style={{ background: `linear-gradient(135deg, ${s.tint} 0%, transparent 60%)` }}
               />
+              {/* Numbered index — more prominent in web3 mode */}
+              <p className="display-index studio-hub-number absolute top-3 right-4">{num}</p>
               <div
                 className="relative w-10 h-10 rounded-btn flex items-center justify-center"
                 style={{ backgroundColor: s.iconBg }}

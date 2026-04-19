@@ -249,3 +249,107 @@ button, a, [role="button"] {
   0%, 100% { box-shadow: 0 0 8px rgba(108,99,255,0.1); }
   50% { box-shadow: 0 0 20px rgba(108,99,255,0.25); }
 }
+
+/* ─── Bybit-inspired display typography ─── */
+/* Used for hero section headers and balance numbers.
+   In default style: restrained, in web3 style: oversized brutalist. */
+
+.display-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.display-subtitle {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.display-number {
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.display-index {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.display-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Web3 style — oversized Bybit brutalism */
+[data-style="web3"] .display-title {
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+
+[data-style="web3"] .display-subtitle {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  font-weight: 700;
+}
+
+[data-style="web3"] .display-number {
+  font-weight: 900;
+  letter-spacing: -0.05em;
+}
+
+[data-style="web3"] .display-number-hero {
+  font-size: 56px !important;
+}
+
+[data-style="web3"] .display-number-lg {
+  font-size: 40px !important;
+}
+
+[data-style="web3"] .display-index {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--gold);
+  font-weight: 800;
+}
+
+[data-style="web3"] .display-label {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  font-weight: 800;
+}
+
+/* Web3 aggressive card treatment */
+[data-style="web3"] .web3-card-heavy {
+  border-width: 1px;
+  border-color: rgba(255,255,255,0.1);
+}
+
+[data-style="web3"] .web3-card-heavy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+/* Only in web3: bigger tap surface, heavier numbering in hub cards */
+[data-style="web3"] .studio-hub-number {
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: var(--gold);
+}
