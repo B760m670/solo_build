@@ -169,7 +169,6 @@ const ru: Record<TranslationKeys, string> = {
   // Learn module
   learnProgress: 'Ваш прогресс',
   minRead: 'мин чтения',
-  markLessonRead: 'Отметить как прочитанное',
   lessonCompleted: 'Пройдено',
 
   learnStarsTitle: 'Что такое Telegram Stars?',
@@ -240,6 +239,67 @@ const ru: Record<TranslationKeys, string> = {
     'Значок Plus в Community-профиле, безлимитные вызовы ИИ, доступ к премиум-темам, скидку на NFT-подарки и сниженную комиссию на буст постов.',
   learnPlusTip:
     'Plus — опционально. Основное (Студия, Кошелёк, Профиль) всегда бесплатно; Plus просто снимает лимиты и даёт бонусы.',
+
+  // Learn quiz UI
+  quizTitle: 'Проверь себя',
+  quizRetry: 'Ещё раз',
+  quizFinishPerfect: 'Завершить урок',
+  quizUnlockNeeded: 'Ответь на все верно, чтобы завершить урок',
+
+  // Learn quiz content
+  learnStarsQ1: 'Для чего нужны Telegram Stars внутри Unisouq?',
+  learnStarsQ1A: 'Покупать подарки, Plus, темы и AI-инструменты',
+  learnStarsQ1B: 'Торговать на криптобиржах',
+  learnStarsQ1C: 'Получать пассивный доход',
+  learnStarsQ2: 'Можно ли вывести Stars на внешний криптокошелёк?',
+  learnStarsQ2A: 'Да, на любой кошелёк',
+  learnStarsQ2B: 'Нет — Stars только для трат внутри Telegram',
+  learnStarsQ2C: 'Только на TON-кошелёк',
+
+  learnTonQ1: 'Что такое TON?',
+  learnTonQ1A: 'Блокчейн, плотно интегрированный с Telegram',
+  learnTonQ1B: 'Стейблкоин от Telegram',
+  learnTonQ1C: 'Внутренний токен лояльности Unisouq',
+  learnTonQ2: 'Что можно делать с TON в Unisouq?',
+  learnTonQ2A: 'Стейкать под фиксированный процент',
+  learnTonQ2B: 'Торговать его против Stars на встроенной бирже',
+  learnTonQ2C: 'Покупать подарки, Plus или вывести во внешний кошелёк',
+
+  learnTonConnectQ1: 'Что на самом деле делает TON Connect?',
+  learnTonConnectQ1A: 'Загружает твою seed-фразу на серверы Unisouq',
+  learnTonConnectQ1B: 'Привязывает внешний TON-кошелёк без передачи seed-фразы',
+  learnTonConnectQ1C: 'Делает мост TON ↔ Ethereum',
+  learnTonConnectQ2: 'Хранит ли Unisouq приватные ключи от привязанного кошелька?',
+  learnTonConnectQ2A: 'Нет — кошелёк остаётся non-custodial',
+  learnTonConnectQ2B: 'Да, для удобства',
+  learnTonConnectQ2C: 'Только во время покупок',
+
+  learnGiftsQ1: 'Подарки Unisouq — это…',
+  learnGiftsQ1A: 'Косметические NFT-коллекционные предметы',
+  learnGiftsQ1B: 'Финансовые инструменты, приносящие доход',
+  learnGiftsQ1C: 'Ваучеры Stars, которые можно вернуть',
+  learnGiftsQ2: 'Где появляются подарки после покупки?',
+  learnGiftsQ2A: 'Только в админ-панели',
+  learnGiftsQ2B: 'В инвентаре и на профиле в Community',
+  learnGiftsQ2C: 'Нигде — они нематериальны',
+
+  learnDexQ1: 'Что такое DEX?',
+  learnDexQ1A: 'Non-custodial биржа, обменивающая токены через смарт-контракты',
+  learnDexQ1B: 'Централизованный сервис внутри Telegram',
+  learnDexQ1C: 'Кастодиальный кошелёк-провайдер',
+  learnDexQ2: 'Кто держит твои средства во время свопа на DEX?',
+  learnDexQ2A: 'Оператор биржи',
+  learnDexQ2B: 'Unisouq',
+  learnDexQ2C: 'Ты — через свой собственный кошелёк',
+
+  learnPlusQ1: 'Unisouq Plus — это…',
+  learnPlusQ1A: 'Опциональная подписка: безлимитный AI и премиум-темы',
+  learnPlusQ1B: 'Обязательная подписка для входа в Unisouq',
+  learnPlusQ1C: 'Только одноразовая пожизненная лицензия',
+  learnPlusQ2: 'Как оплатить Plus?',
+  learnPlusQ2A: 'Только в USD',
+  learnPlusQ2B: 'Stars, TON или фиат — на выбор',
+  learnPlusQ2C: 'Специальным токеном Unisouq',
 
   shop: 'Магазин',
   mine: 'Мои',

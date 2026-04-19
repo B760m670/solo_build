@@ -12,6 +12,7 @@ import {
   CheckIcon,
   LightbulbIcon,
   ChevronRightIcon,
+  CloseIcon,
 } from '../../components/Icons';
 
 /* ─── Lesson data ─── */
@@ -33,6 +34,16 @@ interface LessonTip {
 
 type LessonBlock = LessonParagraph | LessonHeading | LessonTip;
 
+interface QuizChoice {
+  textKey: string;
+  correct: boolean;
+}
+
+interface QuizQuestion {
+  questionKey: string;
+  choices: QuizChoice[];
+}
+
 interface Lesson {
   id: string;
   titleKey: string;
@@ -42,6 +53,7 @@ interface Lesson {
   iconBg: string;
   readMinutes: number;
   body: LessonBlock[];
+  quiz: QuizQuestion[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -64,6 +76,24 @@ const LESSONS: Lesson[] = [
       { kind: 'p', text: 'learnStarsP3' },
       { kind: 'tip', text: 'learnStarsTip' },
     ],
+    quiz: [
+      {
+        questionKey: 'learnStarsQ1',
+        choices: [
+          { textKey: 'learnStarsQ1A', correct: true },
+          { textKey: 'learnStarsQ1B', correct: false },
+          { textKey: 'learnStarsQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnStarsQ2',
+        choices: [
+          { textKey: 'learnStarsQ2A', correct: false },
+          { textKey: 'learnStarsQ2B', correct: true },
+          { textKey: 'learnStarsQ2C', correct: false },
+        ],
+      },
+    ],
   },
   {
     id: 'ton',
@@ -81,6 +111,24 @@ const LESSONS: Lesson[] = [
       { kind: 'p', text: 'learnTonP3' },
       { kind: 'tip', text: 'learnTonTip' },
     ],
+    quiz: [
+      {
+        questionKey: 'learnTonQ1',
+        choices: [
+          { textKey: 'learnTonQ1A', correct: true },
+          { textKey: 'learnTonQ1B', correct: false },
+          { textKey: 'learnTonQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnTonQ2',
+        choices: [
+          { textKey: 'learnTonQ2A', correct: false },
+          { textKey: 'learnTonQ2B', correct: false },
+          { textKey: 'learnTonQ2C', correct: true },
+        ],
+      },
+    ],
   },
   {
     id: 'tonconnect',
@@ -96,6 +144,24 @@ const LESSONS: Lesson[] = [
       { kind: 'p', text: 'learnTonConnectP2' },
       { kind: 'tip', text: 'learnTonConnectTip' },
     ],
+    quiz: [
+      {
+        questionKey: 'learnTonConnectQ1',
+        choices: [
+          { textKey: 'learnTonConnectQ1A', correct: false },
+          { textKey: 'learnTonConnectQ1B', correct: true },
+          { textKey: 'learnTonConnectQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnTonConnectQ2',
+        choices: [
+          { textKey: 'learnTonConnectQ2A', correct: true },
+          { textKey: 'learnTonConnectQ2B', correct: false },
+          { textKey: 'learnTonConnectQ2C', correct: false },
+        ],
+      },
+    ],
   },
   {
     id: 'gifts',
@@ -110,6 +176,24 @@ const LESSONS: Lesson[] = [
       { kind: 'h', text: 'learnGiftsH1' },
       { kind: 'p', text: 'learnGiftsP2' },
       { kind: 'tip', text: 'learnGiftsTip' },
+    ],
+    quiz: [
+      {
+        questionKey: 'learnGiftsQ1',
+        choices: [
+          { textKey: 'learnGiftsQ1A', correct: true },
+          { textKey: 'learnGiftsQ1B', correct: false },
+          { textKey: 'learnGiftsQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnGiftsQ2',
+        choices: [
+          { textKey: 'learnGiftsQ2A', correct: false },
+          { textKey: 'learnGiftsQ2B', correct: true },
+          { textKey: 'learnGiftsQ2C', correct: false },
+        ],
+      },
     ],
   },
   {
@@ -128,6 +212,24 @@ const LESSONS: Lesson[] = [
       { kind: 'p', text: 'learnDexP3' },
       { kind: 'tip', text: 'learnDexTip' },
     ],
+    quiz: [
+      {
+        questionKey: 'learnDexQ1',
+        choices: [
+          { textKey: 'learnDexQ1A', correct: true },
+          { textKey: 'learnDexQ1B', correct: false },
+          { textKey: 'learnDexQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnDexQ2',
+        choices: [
+          { textKey: 'learnDexQ2A', correct: false },
+          { textKey: 'learnDexQ2B', correct: false },
+          { textKey: 'learnDexQ2C', correct: true },
+        ],
+      },
+    ],
   },
   {
     id: 'plus',
@@ -142,6 +244,24 @@ const LESSONS: Lesson[] = [
       { kind: 'h', text: 'learnPlusH1' },
       { kind: 'p', text: 'learnPlusP2' },
       { kind: 'tip', text: 'learnPlusTip' },
+    ],
+    quiz: [
+      {
+        questionKey: 'learnPlusQ1',
+        choices: [
+          { textKey: 'learnPlusQ1A', correct: true },
+          { textKey: 'learnPlusQ1B', correct: false },
+          { textKey: 'learnPlusQ1C', correct: false },
+        ],
+      },
+      {
+        questionKey: 'learnPlusQ2',
+        choices: [
+          { textKey: 'learnPlusQ2A', correct: false },
+          { textKey: 'learnPlusQ2B', correct: true },
+          { textKey: 'learnPlusQ2C', correct: false },
+        ],
+      },
     ],
   },
 ];
@@ -166,6 +286,152 @@ function saveCompleted(set: Set<string>) {
   } catch {
     /* ignore */
   }
+}
+
+/* ─── Quiz panel ─── */
+
+type QuizAnswer = { choiceIdx: number; correct: boolean };
+
+function QuizPanel({
+  lesson,
+  completed,
+  onPass,
+}: {
+  lesson: Lesson;
+  completed: boolean;
+  onPass: () => void;
+}) {
+  const { t } = useTranslation();
+  const [answers, setAnswers] = useState<Record<number, QuizAnswer>>({});
+
+  const total = lesson.quiz.length;
+  const answeredCount = Object.keys(answers).length;
+  const correctCount = Object.values(answers).filter((a) => a.correct).length;
+  const allAnswered = answeredCount === total;
+  const allCorrect = allAnswered && correctCount === total;
+
+  const handlePick = (qIdx: number, cIdx: number, correct: boolean) => {
+    if (answers[qIdx]) return;
+    setAnswers((prev) => ({ ...prev, [qIdx]: { choiceIdx: cIdx, correct } }));
+  };
+
+  const handleReset = () => {
+    setAnswers({});
+  };
+
+  return (
+    <div
+      className="rounded-card p-4 mb-4 relative overflow-hidden"
+      style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{ background: `linear-gradient(135deg, ${lesson.tint} 0%, transparent 60%)` }}
+      />
+      <div className="relative flex items-center justify-between mb-4">
+        <p className="display-label">{t('quizTitle')}</p>
+        <p className="text-[10px] font-mono" style={{ color: 'var(--text-muted)' }}>
+          {answeredCount} / {total}
+        </p>
+      </div>
+
+      <div className="relative flex flex-col gap-5">
+        {lesson.quiz.map((q, qIdx) => {
+          const answer = answers[qIdx];
+          return (
+            <div key={qIdx}>
+              <p className="text-[12px] font-bold mb-2.5" style={{ color: 'var(--text)' }}>
+                {qIdx + 1}. {t(tk(q.questionKey))}
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {q.choices.map((c, cIdx) => {
+                  const isPicked = answer?.choiceIdx === cIdx;
+                  const showState = !!answer;
+                  let bg = 'var(--surface2)';
+                  let border = 'var(--border)';
+                  let color = 'var(--text)';
+                  let trailing: React.ReactNode = null;
+                  if (showState) {
+                    if (c.correct) {
+                      bg = 'rgba(0,212,170,0.10)';
+                      border = 'rgba(0,212,170,0.35)';
+                      color = 'var(--teal)';
+                      trailing = <CheckIcon size={12} color="var(--teal)" />;
+                    } else if (isPicked) {
+                      bg = 'rgba(255,107,107,0.10)';
+                      border = 'rgba(255,107,107,0.35)';
+                      color = 'var(--coral)';
+                      trailing = <CloseIcon size={12} color="var(--coral)" />;
+                    } else {
+                      color = 'var(--text-muted)';
+                    }
+                  }
+                  return (
+                    <button
+                      key={cIdx}
+                      onClick={() => handlePick(qIdx, cIdx, c.correct)}
+                      disabled={!!answer}
+                      className="w-full text-left px-3 py-2 rounded-btn flex items-center justify-between gap-2 transition-colors"
+                      style={{
+                        backgroundColor: bg,
+                        border: `1px solid ${border}`,
+                        color,
+                        cursor: answer ? 'default' : 'pointer',
+                      }}
+                    >
+                      <span className="text-[11px] leading-snug">{t(tk(c.textKey))}</span>
+                      {trailing}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {allAnswered && !allCorrect && (
+        <div className="relative mt-4 flex items-center gap-2">
+          <p className="text-[11px] flex-1" style={{ color: 'var(--coral)' }}>
+            {t('quizUnlockNeeded')}
+          </p>
+          <button
+            onClick={handleReset}
+            className="text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-btn"
+            style={{
+              backgroundColor: 'var(--surface2)',
+              color: 'var(--text)',
+              border: '1px solid var(--border)',
+              cursor: 'pointer',
+            }}
+          >
+            {t('quizRetry')}
+          </button>
+        </div>
+      )}
+
+      {allCorrect && !completed && (
+        <button
+          onClick={onPass}
+          className="relative w-full mt-4 py-3 text-[12px] font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
+          style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}
+        >
+          <CheckIcon size={14} color="#000" />
+          {t('quizFinishPerfect')}
+        </button>
+      )}
+
+      {completed && (
+        <div
+          className="relative mt-4 py-3 text-[12px] font-bold rounded-btn flex items-center justify-center gap-2"
+          style={{ backgroundColor: 'var(--surface2)', color: 'var(--teal)', border: '1px solid var(--border)' }}
+        >
+          <CheckIcon size={14} color="var(--teal)" />
+          {t('lessonCompleted')}
+        </div>
+      )}
+    </div>
+  );
 }
 
 /* ─── Lesson view ─── */
@@ -256,29 +522,11 @@ function LessonView({
         </div>
       </div>
 
-      <button
-        onClick={() => onComplete(lesson.id)}
-        disabled={completed}
-        className="w-full py-3 text-[12px] font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
-        style={{
-          backgroundColor: completed ? 'var(--surface2)' : 'var(--accent)',
-          color: completed ? 'var(--teal)' : '#fff',
-          border: completed ? '1px solid var(--border)' : 'none',
-          cursor: completed ? 'default' : 'pointer',
-        }}
-      >
-        {completed ? (
-          <>
-            <CheckIcon size={14} color="var(--teal)" />
-            {t('lessonCompleted')}
-          </>
-        ) : (
-          <>
-            <CheckIcon size={14} color="#fff" />
-            {t('markLessonRead')}
-          </>
-        )}
-      </button>
+      <QuizPanel
+        lesson={lesson}
+        completed={completed}
+        onPass={() => onComplete(lesson.id)}
+      />
     </>
   );
 }

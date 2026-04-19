@@ -171,7 +171,6 @@ const en = {
   // Learn module
   learnProgress: 'Your progress',
   minRead: 'min read',
-  markLessonRead: 'Mark as read',
   lessonCompleted: 'Completed',
 
   learnStarsTitle: 'What are Telegram Stars?',
@@ -242,6 +241,67 @@ const en = {
     'A verified Plus badge on your Community profile, unlimited AI tool calls, access to premium Themes, discounts on NFT Gifts, and reduced commission on Community boosts.',
   learnPlusTip:
     'Plus is optional. Core Studio, Wallet, and Profile are always free — Plus just removes limits and adds perks.',
+
+  // Learn quiz UI
+  quizTitle: 'Test yourself',
+  quizRetry: 'Retry',
+  quizFinishPerfect: 'Complete lesson',
+  quizUnlockNeeded: 'Answer all correctly to finish the lesson',
+
+  // Learn quiz content
+  learnStarsQ1: 'What are Telegram Stars used for inside Unisouq?',
+  learnStarsQ1A: 'Buying gifts, Plus, themes, and AI tools',
+  learnStarsQ1B: 'Trading on crypto exchanges',
+  learnStarsQ1C: 'Earning passive yield',
+  learnStarsQ2: 'Can Stars be withdrawn to an external crypto wallet?',
+  learnStarsQ2A: 'Yes, to any wallet',
+  learnStarsQ2B: 'No — Stars are spend-only inside Telegram',
+  learnStarsQ2C: 'Only to TON wallets',
+
+  learnTonQ1: 'What is TON?',
+  learnTonQ1A: 'A blockchain tightly integrated with Telegram',
+  learnTonQ1B: 'A Telegram-issued stablecoin',
+  learnTonQ1C: 'An internal Unisouq loyalty token',
+  learnTonQ2: 'What can you do with TON in Unisouq?',
+  learnTonQ2A: 'Stake it for fixed interest',
+  learnTonQ2B: 'Trade it against Stars on a built-in exchange',
+  learnTonQ2C: 'Buy gifts, Plus, or withdraw to an external wallet',
+
+  learnTonConnectQ1: 'What does TON Connect actually do?',
+  learnTonConnectQ1A: 'It uploads your seed phrase to Unisouq',
+  learnTonConnectQ1B: 'It links an external TON wallet without sharing its seed',
+  learnTonConnectQ1C: 'It bridges TON to Ethereum',
+  learnTonConnectQ2: 'Does Unisouq hold the private keys of a connected wallet?',
+  learnTonConnectQ2A: 'No — the wallet stays non-custodial',
+  learnTonConnectQ2B: 'Yes, for convenience',
+  learnTonConnectQ2C: 'Only during purchases',
+
+  learnGiftsQ1: 'Unisouq gifts are...',
+  learnGiftsQ1A: 'Cosmetic NFT collectibles',
+  learnGiftsQ1B: 'Financial instruments that pay yield',
+  learnGiftsQ1C: 'Refundable Stars vouchers',
+  learnGiftsQ2: 'Where do your gifts appear after purchase?',
+  learnGiftsQ2A: 'Only in the admin panel',
+  learnGiftsQ2B: 'In your inventory and on your Community profile',
+  learnGiftsQ2C: 'Nowhere — they are intangible',
+
+  learnDexQ1: 'What is a DEX?',
+  learnDexQ1A: 'A non-custodial exchange that swaps tokens via smart contracts',
+  learnDexQ1B: 'A centralized Telegram service',
+  learnDexQ1C: 'A custodial wallet provider',
+  learnDexQ2: 'During a swap on a DEX, who holds your funds?',
+  learnDexQ2A: 'The exchange operator',
+  learnDexQ2B: 'Unisouq',
+  learnDexQ2C: 'You — via your own wallet',
+
+  learnPlusQ1: 'Unisouq Plus is...',
+  learnPlusQ1A: 'An optional subscription with unlimited AI and premium themes',
+  learnPlusQ1B: 'Required to log in to Unisouq',
+  learnPlusQ1C: 'A one-time lifetime pass only',
+  learnPlusQ2: 'How do you pay for Plus?',
+  learnPlusQ2A: 'Only in USD',
+  learnPlusQ2B: 'Stars, TON, or fiat — your choice',
+  learnPlusQ2C: 'With a custom Unisouq token',
 
   // Section shared
   shop: 'Shop',
