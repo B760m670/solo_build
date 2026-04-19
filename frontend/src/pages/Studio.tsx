@@ -37,13 +37,13 @@ const tk = (s: string) => s as any;
 
 const SECTIONS: SectionDef[] = [
   { key: 'crypto', titleKey: 'sectionCrypto', descKey: 'sectionCryptoDesc', icon: CryptoIcon, tint: 'var(--gold)', iconBg: 'rgba(245,200,66,0.12)', live: true },
-  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.10)', live: true },
-  { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--teal)', iconBg: 'rgba(0,212,170,0.10)', live: false },
-  { key: 'community', titleKey: 'sectionCommunity', descKey: 'sectionCommunityDesc', icon: UsersIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.10)', live: true },
-  { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)', iconBg: 'rgba(245,200,66,0.12)', live: true },
-  { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--teal)', iconBg: 'rgba(0,212,170,0.10)', live: true },
-  { key: 'learn', titleKey: 'sectionLearn', descKey: 'sectionLearnDesc', icon: BookOpenIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.10)', live: true },
-  { key: 'codex', titleKey: 'sectionCodex', descKey: 'sectionCodexDesc', icon: ArchiveIcon, tint: 'var(--gold)', iconBg: 'rgba(245,200,66,0.12)', live: true },
+  { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.12)', live: true },
+  { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--coral)', iconBg: 'rgba(255,107,107,0.12)', live: false },
+  { key: 'community', titleKey: 'sectionCommunity', descKey: 'sectionCommunityDesc', icon: UsersIcon, tint: 'var(--teal)', iconBg: 'rgba(0,212,170,0.12)', live: true },
+  { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--pink)', iconBg: 'rgba(236,72,153,0.12)', live: true },
+  { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--azure)', iconBg: 'rgba(56,189,248,0.12)', live: true },
+  { key: 'learn', titleKey: 'sectionLearn', descKey: 'sectionLearnDesc', icon: BookOpenIcon, tint: 'var(--lime)', iconBg: 'rgba(163,230,53,0.12)', live: true },
+  { key: 'codex', titleKey: 'sectionCodex', descKey: 'sectionCodexDesc', icon: ArchiveIcon, tint: 'var(--violet)', iconBg: 'rgba(167,139,250,0.14)', live: true },
 ];
 
 function ComingSoon({ section, onBack }: { section: SectionDef; onBack: () => void }) {
