@@ -77,6 +77,94 @@ const ru: Record<TranslationKeys, string> = {
   sectionPlusDesc: 'Все премиум-возможности',
   sectionLearn: 'Обучение',
   sectionLearnDesc: 'Крипта, Stars и TON — простыми словами',
+  sectionCodex: 'Кодекс',
+  sectionCodexDesc: 'Коллекционные карточки технологий',
+
+  // Codex UI
+  codexCollection: 'Ваша коллекция',
+  codexLocked: 'Карточка закрыта',
+  codexLockedSubtitle: 'Продолжайте изучать, чтобы открыть',
+  codexLockedTagline: 'Неизвестно — выполните условие, чтобы узнать',
+  codexAuthor: 'Создатель',
+  codexStory: 'История',
+  codexHowToUnlock: 'Как открыть',
+  rarityCommon: 'Обычная',
+  rarityRare: 'Редкая',
+  rarityEpic: 'Эпическая',
+  rarityLegendary: 'Легендарная',
+
+  // Codex unlock hints
+  codexUnlockLessonStars: 'Пройдите урок «Что такое Telegram Stars?» в разделе Обучение.',
+  codexUnlockLessonTon: 'Пройдите урок «Что такое TON?» в разделе Обучение.',
+  codexUnlockTonConnect: 'Пройдите урок «Как подключить TON-кошелёк» или подключите TON-кошелёк в разделе Крипто.',
+  codexUnlockOwnGift: 'Станьте владельцем хотя бы одного NFT-подарка или пройдите урок «Что такое NFT-подарки?».',
+  codexUnlockLessonDex: 'Пройдите урок «Что такое DEX?» в разделе Обучение.',
+  codexUnlockTierTrusted: 'Достигните репутационного уровня Trusted — активничайте в Community.',
+  codexUnlockTierExpert: 'Достигните репутационного уровня Expert.',
+  codexUnlockLessonPlus: 'Пройдите урок «Что такое Unisouq Plus?» в разделе Обучение.',
+  codexUnlockTierElite: 'Достигните высшего репутационного уровня — Elite.',
+  codexUnlockPlus: 'Активируйте подписку Unisouq Plus.',
+
+  // Codex cards
+  codexStarsName: 'Telegram Stars',
+  codexStarsTag: 'Встроенная валюта Telegram',
+  codexStarsAuthor: 'Telegram',
+  codexStarsStory:
+    'Запущены в 2024 году как первая родная валюта для оплаты внутри Telegram-приложений. Stars объединили покупки в сотнях ботов и Mini Apps, заменив разрозненные формы карт и сторонние платёжные системы. По дизайну — только для трат: Telegram позиционирует их как удобную систему кредитов, а не как криптоактив.',
+
+  codexTonName: 'The Open Network',
+  codexTonTag: 'Блокчейн для Telegram-масштаба',
+  codexTonAuthor: 'Николай Дуров',
+  codexTonStory:
+    'Спроектирован в 2018 году Николаем Дуровым для масштабирования на сотни миллионов пользователей Telegram без высоких комиссий Ethereum. После регуляторного давления, остановившего оригинальный запуск, сообщество перезапустило TON в 2022-м как публичный блокчейн без разрешений. Шардированная архитектура и интеграция с Telegram делают его единственной по-настоящему родной для мессенджера такого масштаба блокчейн-сетью.',
+
+  codexTonConnectName: 'TON Connect',
+  codexTonConnectTag: 'Один протокол для всех кошельков',
+  codexTonConnectAuthor: 'TON community',
+  codexTonConnectStory:
+    'Появился в 2022 году как открытый стандарт для подключения TON-кошельков к dApps. До него каждое приложение писало собственные интеграции с Tonkeeper, MyTonWallet и другими. TON Connect унифицировал рукопожатие, формат подписи и запросы транзакций — одна и та же кнопка «Connect Wallet» теперь работает везде на TON.',
+
+  codexNftName: 'NFT (TIP-62)',
+  codexNftTag: 'Невзаимозаменяемые токены на TON',
+  codexNftAuthor: 'TON Foundation',
+  codexNftStory:
+    'NFT получили популярность благодаря стандарту ERC-721 в Ethereum в 2017 году — каждый токен уникален и неделим. TON представил свой стандарт NFT (TIP-62) в 2022 году, оптимизированный под шардинг и низкие комиссии. NFT-подарки Unisouq живут на этом стандарте: верифицируемая редкость, доказуемое владение, халяльная косметическая коллекция.',
+
+  codexDexName: 'Децентрализованная биржа',
+  codexDexTag: 'Обмен без посредника',
+  codexDexAuthor: 'Hayden Adams (Uniswap)',
+  codexDexStory:
+    'Первый AMM DEX — Uniswap — запустился в 2018 году и изменил крипту навсегда. Вместо сведения покупателей и продавцов, AMM использует пул ликвидности и формулу постоянного произведения (x·y=k) для алгоритмического расчёта цен. На TON эту модель принесли STON.fi и DeDust — обмен любого jetton за секунды, без передачи кошелька в чужие руки.',
+
+  codexJettonName: 'Jetton',
+  codexJettonTag: 'Стандарт взаимозаменяемых токенов TON',
+  codexJettonAuthor: 'TON Foundation',
+  codexJettonStory:
+    'Jettons — аналог ERC-20 из Ethereum для TON: взаимозаменяемые токены для стейблкоинов, DEX-ликвидности и утилитарных активов. Стандарт (TIP-74) разработан под шардированную архитектуру TON — баланс каждого держателя живёт в своём отдельном смарт-контракте, а не в общей таблице. Это делает переводы параллелизуемыми и дешёвыми — намеренный отход от дизайна Ethereum.',
+
+  codexSmartContractName: 'Смарт-контракт',
+  codexSmartContractTag: 'Самоисполняющийся код в блокчейне',
+  codexSmartContractAuthor: 'Виталик Бутерин',
+  codexSmartContractStory:
+    'Предложен Виталиком Бутериным в 2014 году в whitepaper Ethereum. Смарт-контракт — программа в блокчейне, запускающаяся автоматически при выполнении условий: без судов, без посредников, без возможности подделки после развёртывания. Каждый DEX, NFT-маркетплейс и DeFi-протокол в итоге является набором смарт-контрактов. TON исполняет свой диалект — на FunC и Tact.',
+
+  codexLlmName: 'Большая языковая модель',
+  codexLlmTag: 'Движок современного ИИ',
+  codexLlmAuthor: 'Vaswani и др. (Google Brain)',
+  codexLlmStory:
+    'Статья 2017 года «Attention Is All You Need» представила архитектуру Transformer, заменившую рекуррентные сети self-attention. Этот один прорыв сделал возможными GPT, Claude, Gemini — каждую известную LLM. ИИ-инструменты Unisouq — это тонкие специализированные обёртки над этими фундаментальными моделями: конкретный prompt, конкретная задача, цена в Stars.',
+
+  codexSbtName: 'Soulbound Token',
+  codexSbtTag: 'Непередаваемые токены для идентичности',
+  codexSbtAuthor: 'Виталик Бутерин и E. Glen Weyl',
+  codexSbtStory:
+    'Предложены в 2022-м в работе «Decentralized Society: Finding Web3\'s Soul». SBT — NFT, который нельзя продать или передать: он навсегда привязан к получателю. SBT кодируют дипломы, членства и достижения в блокчейне, не превращая их в спекулятивные активы. Как диплом, который можно доказать — но нельзя купить.',
+
+  codexPlusName: 'Unisouq Plus',
+  codexPlusTag: 'Премиум-тир этого приложения',
+  codexPlusAuthor: 'Unisouq',
+  codexPlusStory:
+    'Unisouq Plus — единственная регулярная подписка, открывающая все премиум-функции приложения: верифицированный значок, безлимитные вызовы ИИ, премиум-темы, скидки на подарки и сниженную комиссию за Community-буст. Оплата в Stars, TON или фиатом — на выбор. Существует, чтобы power-пользователи снимали лимиты, пока основное (Студия, Кошелёк, Профиль) остаётся бесплатным для всех.',
 
   // Learn module
   learnProgress: 'Ваш прогресс',

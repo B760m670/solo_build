@@ -502,3 +502,52 @@ export function LightbulbIcon({ size = 24, color = 'currentColor', className }: 
     </svg>
   );
 }
+
+export function ArchiveIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="4" width="20" height="5" rx="1" />
+      <path d="M4 9v10a1 1 0 001 1h14a1 1 0 001-1V9" />
+      <line x1="10" y1="13" x2="14" y2="13" />
+    </svg>
+  );
+}
+
+export function CpuIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="6" y="6" width="12" height="12" rx="2" />
+      <rect x="9" y="9" width="6" height="6" rx="0.5" />
+      <line x1="9" y1="1" x2="9" y2="4" />
+      <line x1="15" y1="1" x2="15" y2="4" />
+      <line x1="9" y1="20" x2="9" y2="23" />
+      <line x1="15" y1="20" x2="15" y2="23" />
+      <line x1="20" y1="9" x2="23" y2="9" />
+      <line x1="20" y1="14" x2="23" y2="14" />
+      <line x1="1" y1="9" x2="4" y2="9" />
+      <line x1="1" y1="14" x2="4" y2="14" />
+    </svg>
+  );
+}
+
+export function CoinsIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="8" cy="8" r="6" />
+      <path d="M18.09 10.37A6 6 0 1121.63 14" />
+      <path d="M7 6h1v4" />
+      <path d="M16.71 13.88l.7.71-2.82 2.82" />
+    </svg>
+  );
+}
+
+export function IdCardIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <circle cx="8" cy="12" r="2.5" />
+      <line x1="14" y1="10" x2="19" y2="10" />
+      <line x1="14" y1="14" x2="17" y2="14" />
+    </svg>
+  );
+}

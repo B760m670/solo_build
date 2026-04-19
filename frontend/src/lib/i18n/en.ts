@@ -79,6 +79,94 @@ const en = {
   sectionPlusDesc: 'Unlock every premium feature',
   sectionLearn: 'Learn',
   sectionLearnDesc: 'Crypto, Stars & TON — explained in minutes',
+  sectionCodex: 'Codex',
+  sectionCodexDesc: 'Collect technology cards as you progress',
+
+  // Codex UI
+  codexCollection: 'Your collection',
+  codexLocked: 'Locked card',
+  codexLockedSubtitle: 'Keep exploring to unlock',
+  codexLockedTagline: 'Unknown — complete the requirement to reveal',
+  codexAuthor: 'Created by',
+  codexStory: 'The story',
+  codexHowToUnlock: 'How to unlock',
+  rarityCommon: 'Common',
+  rarityRare: 'Rare',
+  rarityEpic: 'Epic',
+  rarityLegendary: 'Legendary',
+
+  // Codex unlock hints
+  codexUnlockLessonStars: 'Complete the "What are Telegram Stars?" lesson in the Learn section.',
+  codexUnlockLessonTon: 'Complete the "What is TON?" lesson in the Learn section.',
+  codexUnlockTonConnect: 'Complete the "How to connect your TON wallet" lesson, or connect a TON wallet from Crypto.',
+  codexUnlockOwnGift: 'Own at least one NFT Gift, or complete the "What are NFT Gifts?" lesson.',
+  codexUnlockLessonDex: 'Complete the "What is a DEX?" lesson in the Learn section.',
+  codexUnlockTierTrusted: 'Reach the Trusted reputation tier by engaging with the Community.',
+  codexUnlockTierExpert: 'Reach the Expert reputation tier.',
+  codexUnlockLessonPlus: 'Complete the "What is Unisouq Plus?" lesson in the Learn section.',
+  codexUnlockTierElite: 'Reach the Elite reputation tier — the highest rank in Unisouq.',
+  codexUnlockPlus: 'Activate a Unisouq Plus subscription.',
+
+  // Codex cards
+  codexStarsName: 'Telegram Stars',
+  codexStarsTag: 'The in-app currency of Telegram',
+  codexStarsAuthor: 'Telegram',
+  codexStarsStory:
+    'Launched in 2024 as the first native currency for paying inside Telegram apps. Stars unified in-app purchases across hundreds of bots and Mini Apps, replacing a patchwork of card forms and external payment rails. They are spend-only by design — Telegram positions them as a user-friendly credit system, not a crypto asset.',
+
+  codexTonName: 'The Open Network',
+  codexTonTag: 'A blockchain built for Telegram-scale apps',
+  codexTonAuthor: 'Dr. Nikolai Durov',
+  codexTonStory:
+    'Designed in 2018 by Nikolai Durov to scale to hundreds of millions of Telegram users without the fees that plagued Ethereum. After regulatory pressure halted the original launch, the community relaunched TON in 2022 as a public, permissionless chain. Its sharded architecture and Telegram integration make it the only blockchain truly native to a messenger of this size.',
+
+  codexTonConnectName: 'TON Connect',
+  codexTonConnectTag: 'One protocol to link any wallet',
+  codexTonConnectAuthor: 'TON community',
+  codexTonConnectStory:
+    'Introduced in 2022 as an open standard for connecting TON wallets to dApps. Before it, each app had to write custom integrations with Tonkeeper, MyTonWallet, and others. TON Connect unified the handshake, signature format, and transaction prompts — the same "Connect Wallet" button now works everywhere on TON.',
+
+  codexNftName: 'NFT (TIP-62)',
+  codexNftTag: 'Non-fungible tokens on TON',
+  codexNftAuthor: 'TON Foundation',
+  codexNftStory:
+    'Non-fungible tokens were popularized by Ethereum\'s ERC-721 standard in 2017 — each token is unique and cannot be split. TON introduced its own NFT standard (TIP-62) in 2022, optimized for sharding and low fees. Unisouq NFT Gifts live on this standard: provably scarce, verifiably owned, fully halal as cosmetic collectibles.',
+
+  codexDexName: 'Decentralized Exchange',
+  codexDexTag: 'Swap without a middleman',
+  codexDexAuthor: 'Hayden Adams (Uniswap)',
+  codexDexStory:
+    'The first automated market maker DEX, Uniswap, launched in 2018 and changed crypto forever. Instead of matching buyers and sellers, an AMM uses a liquidity pool and a constant-product formula (x·y=k) to quote prices algorithmically. On TON, STON.fi and DeDust brought this model to the Telegram ecosystem — swap any TON jetton in seconds, never giving up custody of your coins.',
+
+  codexJettonName: 'Jetton',
+  codexJettonTag: 'TON\'s fungible token standard',
+  codexJettonAuthor: 'TON Foundation',
+  codexJettonStory:
+    'Jettons are TON\'s equivalent of Ethereum\'s ERC-20: fungible tokens used for stablecoins, DEX liquidity, and utility assets. The standard (TIP-74) was designed for TON\'s sharded architecture, distributing each holder\'s balance across its own smart contract rather than a single central ledger. This makes transfers parallelizable and cheap — a deliberate break from the Ethereum design.',
+
+  codexSmartContractName: 'Smart Contract',
+  codexSmartContractTag: 'Self-executing code on a blockchain',
+  codexSmartContractAuthor: 'Vitalik Buterin',
+  codexSmartContractStory:
+    'Proposed by Vitalik Buterin in 2014 with the Ethereum whitepaper. A smart contract is a program stored on a blockchain that runs automatically when its conditions are met — no courts, no intermediaries, no ability to tamper once deployed. Every DEX, NFT marketplace, and DeFi protocol is ultimately a collection of smart contracts. TON executes its own flavor, written in FunC and Tact.',
+
+  codexLlmName: 'Large Language Model',
+  codexLlmTag: 'The engine behind modern AI tools',
+  codexLlmAuthor: 'Vaswani et al. (Google Brain)',
+  codexLlmStory:
+    'The 2017 "Attention Is All You Need" paper introduced the Transformer architecture, replacing recurrent networks with self-attention. That single breakthrough enabled GPT, Claude, Gemini — every modern LLM you have heard of. Unisouq\'s AI tools are thin, focused wrappers around these foundation models: a specific prompt, a specific task, a Star cost.',
+
+  codexSbtName: 'Soulbound Token',
+  codexSbtTag: 'Non-transferable tokens for identity',
+  codexSbtAuthor: 'Vitalik Buterin & E. Glen Weyl',
+  codexSbtStory:
+    'Proposed in 2022 as "Decentralized Society: Finding Web3\'s Soul". A Soulbound Token is an NFT that cannot be sold or transferred — it is permanently tied to its recipient. SBTs encode credentials, memberships, and achievements on-chain without turning them into speculative assets. Think: a university degree you can prove you earned, not one you could buy.',
+
+  codexPlusName: 'Unisouq Plus',
+  codexPlusTag: 'The premium tier of this app',
+  codexPlusAuthor: 'Unisouq',
+  codexPlusStory:
+    'Unisouq Plus is the single recurring subscription that unlocks every premium feature in the app: verified badge, unlimited AI calls, premium themes, gift discounts, and lower Community boost fees. Priced in Stars, TON, or fiat — admin\'s choice. It exists so that power users can remove limits while the core Studio, Wallet, and Profile stay free for everyone.',
 
   // Learn module
   learnProgress: 'Your progress',
