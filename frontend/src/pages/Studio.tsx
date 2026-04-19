@@ -8,6 +8,7 @@ import {
   UsersIcon,
   GiftIcon,
   PaletteIcon,
+  BookOpenIcon,
   ChevronRightIcon,
 } from '../components/Icons';
 import { GiftsSection } from './sections/GiftsSection';
@@ -15,8 +16,9 @@ import { ThemesSection } from './sections/ThemesSection';
 import { CommunitySection } from './sections/CommunitySection';
 import { AiSection } from './sections/AiSection';
 import { CryptoSection } from './sections/CryptoSection';
+import { LearnSection } from './sections/LearnSection';
 
-type SectionKey = 'crypto' | 'ai' | 'games' | 'community' | 'gifts' | 'themes';
+type SectionKey = 'crypto' | 'ai' | 'games' | 'community' | 'gifts' | 'themes' | 'learn';
 
 interface SectionDef {
   key: SectionKey;
@@ -38,6 +40,7 @@ const SECTIONS: SectionDef[] = [
   { key: 'community', titleKey: 'sectionCommunity', descKey: 'sectionCommunityDesc', icon: UsersIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.10)', live: true },
   { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--gold)', iconBg: 'rgba(245,200,66,0.12)', live: true },
   { key: 'themes', titleKey: 'sectionThemes', descKey: 'sectionThemesDesc', icon: PaletteIcon, tint: 'var(--teal)', iconBg: 'rgba(0,212,170,0.10)', live: true },
+  { key: 'learn', titleKey: 'sectionLearn', descKey: 'sectionLearnDesc', icon: BookOpenIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.10)', live: true },
 ];
 
 function ComingSoon({ section, onBack }: { section: SectionDef; onBack: () => void }) {
@@ -105,6 +108,8 @@ function Studio() {
             currentUserId={user.data?.id ?? ''}
           />
         );
+      case 'learn':
+        return <LearnSection onBack={onBack} />;
       default:
         return <ComingSoon section={section} onBack={onBack} />;
     }

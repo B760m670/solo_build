@@ -77,6 +77,83 @@ const en = {
   sectionThemesDesc: 'Premium visual styles for the app',
   sectionPlus: 'Unisouq Plus',
   sectionPlusDesc: 'Unlock every premium feature',
+  sectionLearn: 'Learn',
+  sectionLearnDesc: 'Crypto, Stars & TON — explained in minutes',
+
+  // Learn module
+  learnProgress: 'Your progress',
+  minRead: 'min read',
+  markLessonRead: 'Mark as read',
+  lessonCompleted: 'Completed',
+
+  learnStarsTitle: 'What are Telegram Stars?',
+  learnStarsDesc: 'The digital currency inside Telegram',
+  learnStarsP1:
+    'Telegram Stars are the native digital currency for paying inside Telegram apps. You buy them once and spend them anywhere — no card details, no separate accounts.',
+  learnStarsH1: 'Where do they come from?',
+  learnStarsP2:
+    'Stars are purchased through Telegram itself using Apple Pay, Google Pay, or your card. Once bought, your balance lives in your Telegram account and shows up automatically in Unisouq.',
+  learnStarsH2: 'What can you spend them on in Unisouq?',
+  learnStarsP3:
+    'NFT Gifts, Unisouq Plus, premium Themes, AI tool calls, and boosting your Community posts. Every price is explicit and set by the admin — no surprises.',
+  learnStarsTip:
+    'Stars are spend-only. They cannot be withdrawn back to your bank card — this is a Telegram rule, not ours. Treat them like a gift card.',
+
+  learnTonTitle: 'What is TON?',
+  learnTonDesc: 'The blockchain powering Telegram',
+  learnTonP1:
+    'TON is a fast, low-fee blockchain originally designed for Telegram. Its native coin (also called TON) can be sent between wallets in seconds and costs almost nothing in fees.',
+  learnTonH1: 'Why TON specifically?',
+  learnTonP2:
+    'Telegram integrates TON directly — you can send coins by username, connect wallets with one tap, and use dApps without leaving Telegram. No other blockchain has that level of integration.',
+  learnTonH2: 'TON vs. Stars — what is the difference?',
+  learnTonP3:
+    'Stars live inside Telegram only. TON is real crypto on a public blockchain — you can send it to anyone, withdraw to exchanges, or hold it in your own wallet. Unisouq supports both.',
+  learnTonTip:
+    'TON is fully withdrawable. Any TON you earn or hold in Unisouq can be sent to an external wallet at any time.',
+
+  learnTonConnectTitle: 'How to connect your TON wallet',
+  learnTonConnectDesc: 'One tap to link Tonkeeper, MyTonWallet, and more',
+  learnTonConnectP1:
+    'TON Connect is the standard way to link a crypto wallet to any TON app. You approve the connection once in your wallet app, and Unisouq can then verify your address and send you transaction prompts.',
+  learnTonConnectH1: 'What it does NOT do',
+  learnTonConnectP2:
+    'Connecting a wallet does not give Unisouq access to your funds. Every transaction still requires you to confirm it in your wallet app. Disconnect anytime from the Crypto section.',
+  learnTonConnectTip:
+    'If you do not have a TON wallet yet, Tonkeeper is the most popular option and works both as a Telegram bot and a standalone app.',
+
+  learnGiftsTitle: 'What are NFT Gifts?',
+  learnGiftsDesc: 'Collectibles minted by Unisouq',
+  learnGiftsP1:
+    'NFT Gifts are original digital collectibles issued only by Unisouq. Each has artwork, a rarity tier (Common → Legendary), and a limited edition size. You buy them with Stars or TON.',
+  learnGiftsH1: 'What do you do with them?',
+  learnGiftsP2:
+    'Gifts live in your inventory and appear on your Community profile. Rare gifts boost your reputation score. They are cosmetic and collectible — they do not generate yield.',
+  learnGiftsTip:
+    'All gifts are halal-compliant: fixed prices, no randomized drops, no lootboxes, no gambling. What you buy is what you get.',
+
+  learnDexTitle: 'What is a DEX?',
+  learnDexDesc: 'Swap coins without giving up custody',
+  learnDexP1:
+    'A DEX (Decentralized Exchange) lets you swap one coin for another directly from your wallet, without an intermediary holding your funds. On TON, the most popular DEXes are STON.fi and DeDust.',
+  learnDexH1: 'How does a swap work?',
+  learnDexP2:
+    'You connect your wallet, pick the two coins (for example, TON → USDT), approve the rate, and the swap happens on-chain in a few seconds. The DEX takes a small fee, usually 0.1–0.3%.',
+  learnDexH2: 'Why this matters',
+  learnDexP3:
+    'Unlike a centralized exchange, a DEX never holds your coins. Your wallet stays in your control from start to finish. Unisouq links out to trusted TON DEXes from the Crypto section.',
+  learnDexTip:
+    'Always double-check the amount and destination token before confirming a swap. Slippage — the difference between the expected and actual rate — can surprise beginners.',
+
+  learnPlusTitle: 'What is Unisouq Plus?',
+  learnPlusDesc: 'The premium subscription tier',
+  learnPlusP1:
+    'Unisouq Plus is a recurring subscription that unlocks every premium feature in one bundle. Pay with Stars, TON, or fiat — your choice, set by the admin.',
+  learnPlusH1: 'What you get',
+  learnPlusP2:
+    'A verified Plus badge on your Community profile, unlimited AI tool calls, access to premium Themes, discounts on NFT Gifts, and reduced commission on Community boosts.',
+  learnPlusTip:
+    'Plus is optional. Core Studio, Wallet, and Profile are always free — Plus just removes limits and adds perks.',
 
   // Section shared
   shop: 'Shop',

@@ -476,3 +476,29 @@ export function SwapArrowsIcon({ size = 24, color = 'currentColor', className }:
     </svg>
   );
 }
+
+export function BookOpenIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M2 4h6a4 4 0 014 4v12a3 3 0 00-3-3H2V4z" />
+      <path d="M22 4h-6a4 4 0 00-4 4v12a3 3 0 013-3h7V4z" />
+    </svg>
+  );
+}
+
+export function GraduationCapIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M22 10L12 4 2 10l10 6 10-6z" />
+      <path d="M6 12v5a6 6 0 0012 0v-5" />
+    </svg>
+  );
+}
+
+export function LightbulbIcon({ size = 24, color = 'currentColor', className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M9 18h6M10 22h4M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z" />
+    </svg>
+  );
+}
