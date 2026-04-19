@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from '../lib/i18n';
 import { useUser } from '../hooks/useUser';
 import { useReferrals } from '../hooks/useReferrals';
-import { toggleTheme, getTheme, setStyle, getStyle } from '../hooks/useTheme';
+import { toggleTheme, getTheme } from '../hooks/useTheme';
 import { ChevronRightIcon, CrownIcon, ShieldIcon, SunIcon, MoonIcon } from '../components/Icons';
 import type { ReputationTier } from '@unisouq/shared';
 
@@ -111,7 +111,6 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
   const userQ = useUser();
   const refQ = useReferrals();
   const [copied, setCopied] = useState(false);
-  const [currentStyle, setCurrentStyle] = useState(getStyle);
 
   if (userQ.isLoading) {
     return (
@@ -271,29 +270,6 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
             >
               <MoonIcon size={10} color={getTheme() === 'dark' ? '#fff' : 'var(--text-muted)'} />
             </button>
-          </div>
-        </Row>
-        <Divider />
-        <Row label={t('displayStyle')} chevron={false}>
-          <div className="flex gap-1">
-            {(['default', 'web3'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  setStyle(s);
-                  setCurrentStyle(s);
-                }}
-                className="text-[10px] font-semibold px-2 py-0.5 rounded-btn"
-                style={{
-                  backgroundColor: currentStyle === s ? 'var(--accent)' : 'var(--surface2)',
-                  color: currentStyle === s ? '#fff' : 'var(--text-muted)',
-                  border: '1px solid var(--border)',
-                  cursor: 'pointer',
-                }}
-              >
-                {s === 'default' ? t('styleDefault') : t('styleWeb3')}
-              </button>
-            ))}
           </div>
         </Row>
       </Section>

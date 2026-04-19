@@ -710,9 +710,8 @@ function CryptoHub({ onSelect }: { onSelect: (key: CryptoTab) => void }) {
 
   return (
     <div className="grid grid-cols-2 gap-3">
-      {CRYPTO_SUBS.map((sub, i) => {
+      {CRYPTO_SUBS.map((sub) => {
         const Icon = sub.icon;
-        const num = String(i + 1).padStart(2, '0');
         return (
           <button
             key={sub.key}
@@ -721,7 +720,6 @@ function CryptoHub({ onSelect }: { onSelect: (key: CryptoTab) => void }) {
             style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)', cursor: 'pointer' }}
           >
             <div className="absolute inset-0 opacity-60" style={{ background: sub.gradient }} />
-            <p className="display-index studio-hub-number absolute top-3 right-4">{num}</p>
             <div className="relative">
               <div className="w-10 h-10 rounded-btn flex items-center justify-center mb-3" style={{ backgroundColor: sub.iconBg }}>
                 <Icon size={20} color={sub.tint} />

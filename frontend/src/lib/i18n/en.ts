@@ -269,9 +269,6 @@ const en = {
   // Profile extras
   unisouqPlus: 'Unisouq Plus',
   unisouqPlusPitch: 'Unlimited AI, premium themes, gift discounts',
-  displayStyle: 'Style',
-  styleDefault: 'Classic',
-  styleWeb3: 'Web3',
   edit: 'Edit',
   add: 'Add',
   notSet: 'Not set',

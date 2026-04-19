@@ -7,12 +7,9 @@ export function useTheme() {
     const theme = saved || tgScheme || 'dark';
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('unisouq_theme', theme);
-
-    // Restore style preference
-    const style = localStorage.getItem('unisouq_style') || 'default';
-    if (style === 'web3') {
-      document.documentElement.setAttribute('data-style', 'web3');
-    }
+    // Clear legacy style attribute if it exists from previous versions
+    document.documentElement.removeAttribute('data-style');
+    localStorage.removeItem('unisouq_style');
   }, []);
 }
 
@@ -25,17 +22,4 @@ export function toggleTheme() {
 
 export function getTheme(): string {
   return document.documentElement.getAttribute('data-theme') || 'dark';
-}
-
-export function setStyle(style: 'default' | 'web3') {
-  if (style === 'web3') {
-    document.documentElement.setAttribute('data-style', 'web3');
-  } else {
-    document.documentElement.removeAttribute('data-style');
-  }
-  localStorage.setItem('unisouq_style', style);
-}
-
-export function getStyle(): string {
-  return localStorage.getItem('unisouq_style') || 'default';
 }

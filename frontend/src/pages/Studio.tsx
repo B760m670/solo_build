@@ -130,9 +130,8 @@ function Studio() {
       </div>
 
       <div className="grid grid-cols-2 gap-3">
-        {SECTIONS.map((s, i) => {
+        {SECTIONS.map((s) => {
           const Icon = s.icon;
-          const num = String(i + 1).padStart(2, '0');
           return (
             <button
               key={s.key}
@@ -144,13 +143,10 @@ function Studio() {
                 cursor: 'pointer',
               }}
             >
-              {/* Subtle gradient glow from icon color */}
               <div
                 className="absolute inset-0 opacity-[0.04]"
                 style={{ background: `linear-gradient(135deg, ${s.tint} 0%, transparent 60%)` }}
               />
-              {/* Numbered index — more prominent in web3 mode */}
-              <p className="display-index studio-hub-number absolute top-3 right-4">{num}</p>
               <div
                 className="relative w-10 h-10 rounded-btn flex items-center justify-center"
                 style={{ backgroundColor: s.iconBg }}
