@@ -449,6 +449,20 @@ const en = {
   disclaimer: 'Telegram Stars are Telegram\u2019s virtual currency. TON is a cryptocurrency. Platform does not guarantee income. This is not financial advice.',
   failedLoadProfile: 'Failed to load profile',
 
+  // Profile identity
+  identity: 'Identity',
+  walletNotLinked: 'Not linked',
+  walletLinkHint: 'Link via Crypto \u2192 Wallet',
+  xp: 'XP',
+  codexProgress: 'Codex',
+  giftsOwned: 'Gifts',
+  myGifts: 'My gifts',
+  myCodex: 'Codex',
+  seeAll: 'See all',
+  emptyGiftsShort: 'No gifts yet',
+  emptyCodexShort: 'No cards unlocked',
+  openSettings: 'Settings',
+
   // Admin
   adminRequired: 'Admin access required',
   platformStats: 'Platform statistics',
