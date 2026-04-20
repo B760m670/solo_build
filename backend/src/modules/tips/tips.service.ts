@@ -7,6 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TonService } from '../ton/ton.service';
+import { TelegramService } from '../telegram/telegram.service';
 import { ConfirmTipDto, CreateTipDto } from './tips.dto';
 
 const DEFAULT_ESCROW_DAYS = 7;
@@ -20,7 +21,63 @@ export class TipsService {
     private prisma: PrismaService,
     private ton: TonService,
     private config: ConfigService,
+    private telegram: TelegramService,
   ) {}
+
+  private async notifyRecipientOfNewTip(tipId: string) {
+    const tip = await this.prisma.tip.findUnique({
+      where: { id: tipId },
+      include: {
+        sender: { select: { username: true, firstName: true } },
+        recipient: { select: { telegramId: true } },
+      },
+    });
+    if (!tip) return;
+    const chatId = tip.recipient?.telegramId ?? tip.recipientTelegramId;
+    if (!chatId) return;
+
+    const from = tip.sender.username ? `@${tip.sender.username}` : tip.sender.firstName;
+    const verb = tip.viaEscrow ? 'is waiting' : 'just arrived';
+    await this.telegram.sendMessage(
+      chatId,
+      `You've got a tip of <b>${tip.netTon} TON</b> from ${from}. It ${verb}.`,
+    );
+  }
+
+  private async notifySenderOfClaim(tipId: string) {
+    const tip = await this.prisma.tip.findUnique({
+      where: { id: tipId },
+      include: {
+        sender: { select: { telegramId: true } },
+        recipient: { select: { username: true, firstName: true } },
+      },
+    });
+    if (!tip) return;
+    const target = tip.recipient?.username
+      ? `@${tip.recipient.username}`
+      : tip.recipient?.firstName ?? 'the recipient';
+    await this.telegram.sendMessage(
+      tip.sender.telegramId,
+      `<b>${target}</b> claimed your tip of <b>${tip.netTon} TON</b>.`,
+    );
+  }
+
+  private async notifySenderOfRefund(tipId: string) {
+    const tip = await this.prisma.tip.findUnique({
+      where: { id: tipId },
+      include: {
+        sender: { select: { telegramId: true } },
+      },
+    });
+    if (!tip) return;
+    const target = tip.recipientUsername
+      ? `@${tip.recipientUsername}`
+      : 'the recipient';
+    await this.telegram.sendMessage(
+      tip.sender.telegramId,
+      `Your <b>${tip.netTon} TON</b> tip to ${target} expired unclaimed and was refunded.`,
+    );
+  }
 
   private escrowDays(): number {
     const raw = this.config.get<string>('TIP_ESCROW_DAYS');
@@ -93,6 +150,13 @@ export class TipsService {
         expiresAt,
         idempotencyKey: dto.idempotencyKey,
       },
+    });
+
+    // Fire-and-forget notification — we want the recipient to know a tip is
+    // pending even before the sender actually signs. Failing to DM shouldn't
+    // block the create call.
+    void this.notifyRecipientOfNewTip(tip.id).catch((err) => {
+      this.logger.warn(`notifyRecipientOfNewTip failed: ${(err as Error).message}`);
     });
 
     return this.hydrateDestination(tip);
@@ -223,7 +287,7 @@ export class TipsService {
       throw new BadRequestException('Payout dispatch failed — try again');
     }
 
-    return this.prisma.tip.update({
+    const updated = await this.prisma.tip.update({
       where: { id: tipId },
       data: {
         status: 'CLAIMED',
@@ -231,6 +295,12 @@ export class TipsService {
         claimTxHash,
       },
     });
+
+    void this.notifySenderOfClaim(updated.id).catch((err) => {
+      this.logger.warn(`notifySenderOfClaim failed: ${(err as Error).message}`);
+    });
+
+    return updated;
   }
 
   /**
@@ -277,6 +347,9 @@ export class TipsService {
             refundedAt: new Date(),
             refundTxHash: `seqno:${result.seqno}`,
           },
+        });
+        void this.notifySenderOfRefund(tip.id).catch((err) => {
+          this.logger.warn(`notifySenderOfRefund failed: ${(err as Error).message}`);
         });
         results.push({ id: tip.id, status: 'REFUNDED' });
       } catch (err) {
