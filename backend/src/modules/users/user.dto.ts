@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsOptional, IsString, Length, ValidateIf } from 'class-validator';
 
 export class UpdateSettingsDto {
   @IsOptional()
@@ -11,7 +11,8 @@ export class UpdateSettingsDto {
   theme?: string;
 
   @IsOptional()
+  @ValidateIf((_, v) => v !== null)
   @IsString()
   @Length(48, 68)
-  tonAddress?: string;
+  tonAddress?: string | null;
 }

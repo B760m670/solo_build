@@ -58,8 +58,12 @@ const DISCOVER: SectionKey[] = ['gifts', 'learn', 'codex', 'themes', 'games'];
 
 /* ─── Hero CTA ─── */
 
+type HeroTarget =
+  | { kind: 'section'; section: SectionKey }
+  | { kind: 'tab'; tab: 'wallet' | 'profile' };
+
 interface HeroCTA {
-  target: SectionKey;
+  target: HeroTarget;
   icon: typeof CryptoIcon;
   tint: string;
   iconBg: string;
@@ -80,7 +84,7 @@ function useHeroCTA(): HeroCTA {
 
     if (unlockedCount === 0) {
       return {
-        target: 'learn',
+        target: { kind: 'section', section: 'learn' },
         icon: BookOpenIcon,
         tint: 'var(--lime)',
         iconBg: 'rgba(163,230,53,0.14)',
@@ -91,7 +95,7 @@ function useHeroCTA(): HeroCTA {
     }
     if (!hasWallet) {
       return {
-        target: 'crypto',
+        target: { kind: 'tab', tab: 'wallet' },
         icon: WalletIcon,
         tint: 'var(--teal)',
         iconBg: 'rgba(0,212,170,0.14)',
@@ -102,7 +106,7 @@ function useHeroCTA(): HeroCTA {
     }
     if (giftCount === 0) {
       return {
-        target: 'gifts',
+        target: { kind: 'section', section: 'gifts' },
         icon: GiftIcon,
         tint: 'var(--pink)',
         iconBg: 'rgba(236,72,153,0.14)',
@@ -113,7 +117,7 @@ function useHeroCTA(): HeroCTA {
     }
     if (unlockedCount < total) {
       return {
-        target: 'codex',
+        target: { kind: 'section', section: 'codex' },
         icon: ArchiveIcon,
         tint: 'var(--violet)',
         iconBg: 'rgba(167,139,250,0.16)',
@@ -124,7 +128,7 @@ function useHeroCTA(): HeroCTA {
       };
     }
     return {
-      target: 'community',
+      target: { kind: 'section', section: 'community' },
       icon: UsersIcon,
       tint: 'var(--teal)',
       iconBg: 'rgba(0,212,170,0.14)',
@@ -135,13 +139,29 @@ function useHeroCTA(): HeroCTA {
   }, [user?.tonAddress, myGiftsQ.data, unlockedCount, total]);
 }
 
-function HeroCard({ cta, onOpen }: { cta: HeroCTA; onOpen: (k: SectionKey) => void }) {
+function HeroCard({
+  cta,
+  onOpen,
+  onNavigate,
+}: {
+  cta: HeroCTA;
+  onOpen: (k: SectionKey) => void;
+  onNavigate?: (tab: 'wallet' | 'profile') => void;
+}) {
   const { t } = useTranslation();
   const Icon = cta.icon;
 
+  const handleClick = () => {
+    if (cta.target.kind === 'section') {
+      onOpen(cta.target.section);
+    } else if (onNavigate) {
+      onNavigate(cta.target.tab);
+    }
+  };
+
   return (
     <button
-      onClick={() => onOpen(cta.target)}
+      onClick={handleClick}
       className="web3-card-heavy w-full text-left rounded-card p-5 mb-5 relative overflow-hidden transition-transform active:scale-[0.995]"
       style={{
         backgroundColor: 'var(--surface)',
@@ -306,7 +326,7 @@ function ComingSoon({ section, onBack }: { section: SectionDef; onBack: () => vo
   );
 }
 
-function Studio() {
+function Studio({ onNavigate }: { onNavigate?: (tab: 'wallet' | 'profile') => void } = {}) {
   const { t } = useTranslation();
   const user = useUser();
   const hero = useHeroCTA();
@@ -358,7 +378,7 @@ function Studio() {
         </p>
       </div>
 
-      <HeroCard cta={hero} onOpen={setActive} />
+      <HeroCard cta={hero} onOpen={setActive} onNavigate={onNavigate} />
 
       <p className="display-label px-1 mb-2.5">{t('groupDaily')}</p>
       <div className="grid grid-cols-2 gap-3 mb-5">

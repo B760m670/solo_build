@@ -29,7 +29,7 @@ function App() {
   const [lang, setLangState] = useState<Lang>(getStoredLang);
   useTheme();
   const auth = useAuth();
-  const userQuery = useUser();
+  const userQuery = useUser(auth.isAuthenticated);
   const navHidden = useScrollDirection(10);
 
   const i18n = useMemo(() => {
@@ -108,9 +108,10 @@ function App() {
         <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{t('authFailed')}</p>
         <p className="text-xs text-center" style={{ color: 'var(--text-muted)' }}>{auth.error}</p>
         <button
-          onClick={() => window.location.reload()}
+          onClick={() => auth.retry()}
+          disabled={auth.isLoading}
           className="mt-2 px-4 py-2 text-xs font-medium rounded-btn"
-          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer' }}
+          style={{ backgroundColor: 'var(--accent)', color: '#fff', border: 'none', cursor: 'pointer', opacity: auth.isLoading ? 0.5 : 1 }}
         >
           {t('retry')}
         </button>
@@ -123,7 +124,7 @@ function App() {
   const renderPage = () => {
     switch (page) {
       case 'studio':
-        return <Studio />;
+        return <Studio onNavigate={(t) => setPage(t)} />;
       case 'wallet':
         return <Wallet />;
       case 'admin':

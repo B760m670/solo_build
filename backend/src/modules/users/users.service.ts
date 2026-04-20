@@ -15,7 +15,7 @@ export class UsersService {
 
   async updateSettings(
     userId: string,
-    data: { language?: string; theme?: string; tonAddress?: string },
+    data: { language?: string; theme?: string; tonAddress?: string | null },
   ) {
     const updated = await this.prisma.user.update({
       where: { id: userId },

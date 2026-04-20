@@ -4,18 +4,19 @@ import type { User } from '@unisouq/shared';
 
 export type CurrentUser = User & { isAdmin?: boolean };
 
-export function useUser() {
+export function useUser(enabled: boolean = true) {
   return useQuery<CurrentUser>({
     queryKey: ['user', 'me'],
     queryFn: () => api.get<CurrentUser>('/users/me'),
     staleTime: 30_000,
+    enabled,
   });
 }
 
 export interface UpdateSettingsInput {
   language?: string;
   theme?: string;
-  tonAddress?: string;
+  tonAddress?: string | null;
 }
 
 export function useUpdateSettings() {

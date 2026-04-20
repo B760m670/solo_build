@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTonConnectUI, useTonAddress } from '@tonconnect/ui-react';
 import { useTranslation } from '../lib/i18n';
 import { useWallet, useWithdrawTon } from '../hooks/useWallet';
-import { useUser } from '../hooks/useUser';
-import { StarIcon, DiamondIcon, ClockIcon, SendIcon } from '../components/Icons';
+import { useUser, useUpdateSettings } from '../hooks/useUser';
+import { StarIcon, DiamondIcon, ClockIcon, SendIcon, WalletIcon, CopyIcon, CheckIcon } from '../components/Icons';
 import type { Transaction } from '@unisouq/shared';
 
 /* ─── Transaction row ─── */
@@ -26,7 +27,7 @@ function TxRow({ tx }: { tx: Transaction }) {
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-[11px] font-semibold truncate" style={{ color: 'var(--text)' }}>
-          {t(`tx${tx.type}` as any)}
+          {t(`tx${tx.type}` as never)}
         </p>
         <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
           {new Date(tx.createdAt).toLocaleDateString()}{' '}
@@ -41,14 +42,12 @@ function TxRow({ tx }: { tx: Transaction }) {
 }
 
 /* ─── Withdraw sheet ─── */
-function WithdrawSheet({ onClose }: { onClose: () => void }) {
+function WithdrawSheet({ tonAddress, onClose }: { tonAddress: string; onClose: () => void }) {
   const { t } = useTranslation();
-  const userQ = useUser();
   const withdraw = useWithdrawTon();
   const [amount, setAmount] = useState('');
   const [err, setErr] = useState<string | null>(null);
 
-  const tonAddress = userQ.data?.tonAddress ?? '';
   const numAmount = parseFloat(amount) || 0;
   const feeAmount = numAmount * 0.05;
   const netAmount = numAmount - feeAmount;
@@ -74,7 +73,6 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
         style={{ backgroundColor: 'var(--surface)', borderTop: '1px solid var(--border)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center gap-3 mb-4">
           <div
             className="w-12 h-12 rounded-card flex items-center justify-center shrink-0"
@@ -84,17 +82,12 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <p className="text-sm font-bold" style={{ color: 'var(--text)' }}>{t('withdrawTon')}</p>
-            {tonAddress ? (
-              <p className="text-[9px] font-mono mt-0.5 truncate max-w-[200px]" style={{ color: 'var(--text-muted)' }}>
-                {tonAddress}
-              </p>
-            ) : (
-              <p className="text-[9px] mt-0.5" style={{ color: '#ff6b6b' }}>{t('noTonAddress')}</p>
-            )}
+            <p className="text-[9px] font-mono mt-0.5 truncate max-w-[200px]" style={{ color: 'var(--text-muted)' }}>
+              {tonAddress}
+            </p>
           </div>
         </div>
 
-        {/* Amount input */}
         <div className="mb-4">
           <label className="text-[10px] font-semibold mb-1 block" style={{ color: 'var(--text-muted)' }}>
             {t('amount')} (TON)
@@ -109,7 +102,6 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
           />
         </div>
 
-        {/* Fee breakdown */}
         {numAmount > 0 && (
           <div
             className="rounded-btn p-3 mb-4 flex flex-col gap-1.5"
@@ -130,14 +122,14 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
 
         <button
           onClick={handleSubmit}
-          disabled={!tonAddress || withdraw.isPending || numAmount <= 0}
+          disabled={withdraw.isPending || numAmount <= 0}
           className="w-full py-3.5 text-sm font-bold rounded-btn flex items-center justify-center gap-2 transition-opacity active:opacity-80"
           style={{
             backgroundColor: 'var(--teal)',
             color: '#000',
             border: 'none',
             cursor: 'pointer',
-            opacity: !tonAddress || withdraw.isPending || numAmount <= 0 ? 0.4 : 1,
+            opacity: withdraw.isPending || numAmount <= 0 ? 0.4 : 1,
           }}
         >
           <SendIcon size={16} color="#000" />
@@ -159,7 +151,40 @@ function WithdrawSheet({ onClose }: { onClose: () => void }) {
 function Wallet() {
   const { t } = useTranslation();
   const q = useWallet();
+  const userQ = useUser();
+  const updateSettings = useUpdateSettings();
+
+  const [tonConnectUI] = useTonConnectUI();
+  const connectedAddress = useTonAddress(false);
+
   const [withdrawing, setWithdrawing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Persist TonConnect address to backend as the single source of truth.
+  const persistedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (userQ.isLoading) return;
+    const stored = userQ.data?.tonAddress ?? null;
+    const live = connectedAddress || null;
+    if (live === stored) {
+      persistedRef.current = live;
+      return;
+    }
+    if (persistedRef.current === live) return;
+    persistedRef.current = live;
+    updateSettings.mutate({ tonAddress: live });
+  }, [connectedAddress, userQ.data?.tonAddress, userQ.isLoading, updateSettings]);
+
+  const tonAddress = userQ.data?.tonAddress ?? connectedAddress ?? '';
+  const isLinked = !!tonAddress;
+  const shortAddr = tonAddress ? tonAddress.slice(0, 6) + '...' + tonAddress.slice(-4) : '';
+
+  const copyAddress = async () => {
+    if (!tonAddress) return;
+    await navigator.clipboard.writeText(tonAddress);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   if (q.isLoading) {
     return (
@@ -176,7 +201,6 @@ function Wallet() {
 
   return (
     <div className="px-4 pt-3 pb-24">
-      {/* Hero header */}
       <div className="mb-5 px-1">
         <p className="display-subtitle mb-1.5">{t('wallet')}</p>
         <p className="display-title" style={{ color: 'var(--text)' }}>
@@ -184,7 +208,65 @@ function Wallet() {
         </p>
       </div>
 
-      {/* Stars balance card — hero */}
+      {/* TON Connect status */}
+      <div
+        className="rounded-card p-4 mb-3 relative overflow-hidden"
+        style={{ backgroundColor: 'var(--surface)', border: isLinked ? '1px solid var(--teal)' : '1px solid var(--border)' }}
+      >
+        {isLinked && (
+          <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(135deg, var(--teal) 0%, transparent 60%)' }} />
+        )}
+        <div className="relative flex items-center gap-3">
+          <div
+            className="w-10 h-10 rounded-card flex items-center justify-center shrink-0"
+            style={{ backgroundColor: isLinked ? 'rgba(0,212,170,0.12)' : 'var(--surface2)' }}
+          >
+            <WalletIcon size={18} color={isLinked ? 'var(--teal)' : 'var(--text-muted)'} />
+          </div>
+          {isLinked ? (
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] uppercase tracking-wider font-semibold" style={{ color: 'var(--teal)' }}>
+                TON Wallet Connected
+              </p>
+              <button
+                onClick={copyAddress}
+                className="text-[11px] font-mono mt-0.5 flex items-center gap-1.5"
+                style={{ color: 'var(--text)', background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              >
+                {shortAddr}
+                {copied
+                  ? <CheckIcon size={11} color="var(--teal)" />
+                  : <CopyIcon size={11} color="var(--text-muted)" />
+                }
+              </button>
+            </div>
+          ) : (
+            <div className="flex-1">
+              <p className="text-[11px] font-semibold" style={{ color: 'var(--text)' }}>Connect TON Wallet</p>
+              <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-muted)' }}>Tonkeeper, MyTonWallet, etc.</p>
+            </div>
+          )}
+          {isLinked ? (
+            <button
+              onClick={() => tonConnectUI.disconnect()}
+              className="text-[9px] font-semibold px-2 py-1 rounded-btn transition-opacity active:opacity-80"
+              style={{ backgroundColor: 'var(--surface2)', color: 'var(--text-muted)', border: '1px solid var(--border)', cursor: 'pointer' }}
+            >
+              Disconnect
+            </button>
+          ) : (
+            <button
+              onClick={() => tonConnectUI.openModal()}
+              className="text-[10px] font-bold px-3 py-1.5 rounded-btn transition-opacity active:opacity-80"
+              style={{ backgroundColor: 'var(--teal)', color: '#000', border: 'none', cursor: 'pointer' }}
+            >
+              Connect
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Stars balance card */}
       <div
         className="web3-card-heavy rounded-card p-5 mb-3 relative overflow-hidden"
         style={{ backgroundColor: 'var(--surface)', border: '1px solid var(--border)' }}
@@ -232,12 +314,12 @@ function Wallet() {
           <p className="display-label" style={{ color: 'var(--teal)' }}>TON</p>
         </div>
         <button
-          onClick={() => setWithdrawing(true)}
+          onClick={() => isLinked ? setWithdrawing(true) : tonConnectUI.openModal()}
           className="relative w-full flex items-center justify-center gap-2 py-2.5 text-[11px] font-bold rounded-btn transition-opacity active:opacity-80"
           style={{ backgroundColor: 'rgba(0,212,170,0.12)', color: 'var(--teal)', border: 'none', cursor: 'pointer' }}
         >
           <SendIcon size={12} color="var(--teal)" />
-          {t('withdrawTon')}
+          {isLinked ? t('withdrawTon') : 'Connect to withdraw'}
         </button>
       </div>
 
@@ -287,7 +369,7 @@ function Wallet() {
         </div>
       </div>
 
-      {withdrawing && <WithdrawSheet onClose={() => setWithdrawing(false)} />}
+      {withdrawing && tonAddress && <WithdrawSheet tonAddress={tonAddress} onClose={() => setWithdrawing(false)} />}
     </div>
   );
 }
