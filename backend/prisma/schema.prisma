@@ -73,6 +73,29 @@ enum PostStatus {
   REMOVED
 }
 
+enum FlowStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum FlowTriggerType {
+  TELEGRAM_COMMAND
+  TELEGRAM_BUTTON
+  WEBHOOK
+  SCHEDULE
+  STARS_PAYMENT
+}
+
+enum FlowStepType {
+  SEND_MESSAGE
+  ASK_TEXT
+  SET_VAR
+  BRANCH
+  CREATE_STARS_INVOICE
+  AI_CALL
+}
+
 // ─── Core ────────────────────────────────────────────
 
 model User {
@@ -125,8 +148,38 @@ model User {
   postLikes         PostLike[]
   postComments      PostComment[]
   aiChats           AiChat[]
+  flows             Flow[]
 
   @@index([reputationTier])
+}
+
+// ─── Flows (automation) ──────────────────────────────
+
+model Flow {
+  id            String          @id @default(uuid())
+  ownerId       String
+  owner         User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name          String
+  status        FlowStatus      @default(DRAFT)
+  triggerType   FlowTriggerType
+  triggerConfig Json?
+  steps         FlowStep[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([ownerId, status, createdAt])
+}
+
+model FlowStep {
+  id        String        @id @default(uuid())
+  flowId    String
+  flow      Flow          @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  idx       Int
+  type      FlowStepType
+  config    Json?
+  createdAt DateTime      @default(now())
+
+  @@unique([flowId, idx])
 }
 
 // ─── Gifts (NFT collectibles minted by admin) ───────

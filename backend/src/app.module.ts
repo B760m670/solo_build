@@ -15,6 +15,7 @@ import { ThemesModule } from './modules/themes/themes.module';
 import { PlusModule } from './modules/plus/plus.module';
 import { SocialModule } from './modules/social/social.module';
 import { AiModule } from './modules/ai/ai.module';
+import { FlowsModule } from './modules/flows/flows.module';
 import { HealthController } from './health.controller';
 import { VersionController } from './version.controller';
 
@@ -36,6 +37,7 @@ import { VersionController } from './version.controller';
     PlusModule,
     SocialModule,
     AiModule,
+    FlowsModule,
   ],
   controllers: [HealthController, VersionController],
 })

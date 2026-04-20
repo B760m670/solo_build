@@ -10,6 +10,7 @@ import {
   PaletteIcon,
   BookOpenIcon,
   ArchiveIcon,
+  LayersIcon,
   ChevronRightIcon,
 } from '../components/Icons';
 import { GiftsSection } from './sections/GiftsSection';
@@ -19,8 +20,9 @@ import { AiSection } from './sections/AiSection';
 import { CryptoSection } from './sections/CryptoSection';
 import { LearnSection } from './sections/LearnSection';
 import { CodexSection } from './sections/CodexSection';
+import { FlowsSection } from './sections/FlowsSection';
 
-type SectionKey = 'crypto' | 'ai' | 'games' | 'community' | 'gifts' | 'themes' | 'learn' | 'codex';
+type SectionKey = 'crypto' | 'ai' | 'flows' | 'games' | 'community' | 'gifts' | 'themes' | 'learn' | 'codex';
 
 interface SectionDef {
   key: SectionKey;
@@ -38,6 +40,7 @@ const tk = (s: string) => s as any;
 const SECTIONS: SectionDef[] = [
   { key: 'crypto', titleKey: 'sectionCrypto', descKey: 'sectionCryptoDesc', icon: CryptoIcon, tint: 'var(--gold)', iconBg: 'rgba(245,200,66,0.12)', live: true },
   { key: 'ai', titleKey: 'sectionAi', descKey: 'sectionAiDesc', icon: SparklesIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.12)', live: true },
+  { key: 'flows', titleKey: 'sectionFlows', descKey: 'sectionFlowsDesc', icon: LayersIcon, tint: 'var(--accent)', iconBg: 'rgba(108,99,255,0.12)', live: true },
   { key: 'games', titleKey: 'sectionGames', descKey: 'sectionGamesDesc', icon: GamepadIcon, tint: 'var(--coral)', iconBg: 'rgba(255,107,107,0.12)', live: false },
   { key: 'community', titleKey: 'sectionCommunity', descKey: 'sectionCommunityDesc', icon: UsersIcon, tint: 'var(--teal)', iconBg: 'rgba(0,212,170,0.12)', live: true },
   { key: 'gifts', titleKey: 'sectionGifts', descKey: 'sectionGiftsDesc', icon: GiftIcon, tint: 'var(--pink)', iconBg: 'rgba(236,72,153,0.12)', live: true },
@@ -95,6 +98,8 @@ function Studio() {
         return <CryptoSection onBack={onBack} />;
       case 'ai':
         return <AiSection onBack={onBack} />;
+      case 'flows':
+        return <FlowsSection onBack={onBack} />;
       case 'gifts':
         return <GiftsSection onBack={onBack} />;
       case 'themes':

@@ -218,6 +218,46 @@ export interface LoginResponse {
   user: User;
 }
 
+// ─── Flows ───────────────────────────────────────────
+
+export type FlowStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export type FlowTriggerType =
+  | 'TELEGRAM_COMMAND'
+  | 'TELEGRAM_BUTTON'
+  | 'WEBHOOK'
+  | 'SCHEDULE'
+  | 'STARS_PAYMENT';
+
+export type FlowStepType =
+  | 'SEND_MESSAGE'
+  | 'ASK_TEXT'
+  | 'SET_VAR'
+  | 'BRANCH'
+  | 'CREATE_STARS_INVOICE'
+  | 'AI_CALL';
+
+export interface FlowStep {
+  id: string;
+  flowId: string;
+  idx: number;
+  type: FlowStepType;
+  config: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface Flow {
+  id: string;
+  ownerId: string;
+  name: string;
+  status: FlowStatus;
+  triggerType: FlowTriggerType;
+  triggerConfig: Record<string, unknown> | null;
+  steps?: FlowStep[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── API envelope ────────────────────────────────────
 
 export interface ApiSuccess<T> {
