@@ -33,6 +33,18 @@ enum TransactionType {
   REFERRAL_BONUS
   TON_WITHDRAWAL
   TON_DEPOSIT
+  TIP_SENT
+  TIP_RECEIVED
+  TIP_REFUNDED
+}
+
+enum TipStatus {
+  PENDING_SIGN
+  PENDING_CLAIM
+  CLAIMED
+  EXPIRED
+  REFUNDED
+  FAILED
 }
 
 enum Currency {
@@ -149,6 +161,8 @@ model User {
   postComments      PostComment[]
   aiChats           AiChat[]
   flows             Flow[]
+  tipsSent          Tip[]          @relation("TipSender")
+  tipsReceived      Tip[]          @relation("TipRecipient")
 
   @@index([reputationTier])
 }
@@ -429,4 +443,68 @@ model Notification {
 
   @@index([userId, createdAt])
   @@index([userId, readAt])
+}
+
+// ─── Tips (peer-to-peer TON transfers with escrow) ───
+//
+// State machine:
+//   PENDING_SIGN   — row created, sender hasn't confirmed tx hash yet
+//   PENDING_CLAIM  — sent to escrow; recipient unlinked; awaiting claim
+//   CLAIMED        — escrow payout dispatched to recipient's address
+//   EXPIRED        — past expiresAt, flagged for refund
+//   REFUNDED       — escrow returned to sender
+//   FAILED         — on-chain dispatch gave up after retries
+//
+// Direct delivery (recipient already has tonAddress): sender's TonConnect tx
+// goes straight to recipient, no escrow. Row stays at PENDING_SIGN until
+// confirmed, then jumps to CLAIMED.
+//
+// Indirect (escrow) delivery (recipient has no address or unknown): sender's
+// TonConnect tx goes to platform escrow. Row becomes PENDING_CLAIM; recipient
+// claims later, backend dispatches payout from escrow.
+model Tip {
+  id                  String    @id @default(uuid())
+
+  senderId            String
+  sender              User      @relation("TipSender", fields: [senderId], references: [id])
+
+  // Recipient may not yet be a Unisouq user — we only know their Telegram handle.
+  recipientId         String?
+  recipient           User?     @relation("TipRecipient", fields: [recipientId], references: [id])
+  recipientTelegramId BigInt?
+  recipientUsername   String?   // snapshot at send time
+
+  amountTon           Float     // gross, what sender signs
+  feeTon              Float     @default(0)
+  netTon              Float     // amount - fee, what recipient ultimately gets
+  note                String?   // short off-chain memo, optional
+
+  status              TipStatus @default(PENDING_SIGN)
+
+  // Escrow path vs direct path. If true, platform wallet holds funds until claim.
+  viaEscrow           Boolean   @default(false)
+
+  // Sender's TonConnect tx (to recipient or to escrow).
+  sendTxHash          String?
+  // Backend-signed payout tx from escrow to recipient on claim.
+  claimTxHash         String?
+  // Backend-signed refund tx from escrow back to sender on expiry.
+  refundTxHash        String?
+
+  expiresAt           DateTime
+  confirmedAt         DateTime?
+  claimedAt           DateTime?
+  refundedAt          DateTime?
+
+  // Idempotency for send — client-supplied.
+  idempotencyKey      String
+
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  @@unique([senderId, idempotencyKey])
+  @@index([recipientId, status])
+  @@index([recipientTelegramId, status])
+  @@index([status, expiresAt])
+  @@index([senderId, createdAt])
 }
