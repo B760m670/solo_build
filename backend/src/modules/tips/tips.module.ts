@@ -7,5 +7,6 @@ import { TipsService } from './tips.service';
   imports: [PrismaModule],
   controllers: [TipsController],
   providers: [TipsService],
+  exports: [TipsService],
 })
 export class TipsModule {}
