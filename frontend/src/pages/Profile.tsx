@@ -24,11 +24,13 @@ import {
   CodeBracketIcon,
   IdCardIcon,
   LockIcon,
+  BookOpenIcon,
 } from '../components/Icons';
 import type { ReputationTier } from '@unisouq/shared';
 
 interface ProfileProps {
   onAdminOpen: () => void;
+  onLearnOpen: () => void;
   canOpenAdmin: boolean;
 }
 
@@ -237,7 +239,7 @@ function SettingsSheet({
 
 /* ─── Profile ─── */
 
-function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
+function Profile({ onAdminOpen, onLearnOpen, canOpenAdmin }: ProfileProps) {
   const { t } = useTranslation();
   const userQ = useUser();
   const refQ = useReferrals();
@@ -353,6 +355,32 @@ function Profile({ onAdminOpen, canOpenAdmin }: ProfileProps) {
           )}
         </div>
       </div>
+
+      {/* Learn entry */}
+      <button
+        onClick={onLearnOpen}
+        className="rounded-card px-4 py-3 mb-3 flex items-center gap-3 w-full"
+        style={{
+          backgroundColor: 'var(--surface)',
+          border: '1px solid var(--border)',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
+      >
+        <div
+          className="w-9 h-9 rounded-btn flex items-center justify-center flex-shrink-0"
+          style={{ backgroundColor: 'rgba(108,99,255,0.12)' }}
+        >
+          <BookOpenIcon size={16} color="var(--accent)" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="display-label">{t('sectionLearn')}</p>
+          <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+            {t('sectionLearnDesc')}
+          </p>
+        </div>
+        <ChevronRightIcon size={14} color="var(--text-muted)" />
+      </button>
 
       {/* Stats row */}
       <div className="grid grid-cols-3 gap-2 mb-4">

@@ -10,12 +10,14 @@ import Header from './components/Header';
 import BottomNav, { type NavPage } from './components/BottomNav';
 import Onboarding from './components/Onboarding';
 
-const Studio = lazy(() => import('./pages/Studio'));
 const Wallet = lazy(() => import('./pages/Wallet'));
 const Profile = lazy(() => import('./pages/Profile'));
 const Admin = lazy(() => import('./pages/Admin'));
+const LearnSection = lazy(() =>
+  import('./pages/sections/LearnSection').then((m) => ({ default: m.LearnSection })),
+);
 
-type Page = NavPage | 'admin';
+type Page = NavPage | 'admin' | 'learn';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -24,7 +26,7 @@ const pageVariants = {
 };
 
 function App() {
-  const [page, setPage] = useState<Page>('studio');
+  const [page, setPage] = useState<Page>('wallet');
   const [onboarded, setOnboarded] = useState(() => localStorage.getItem('unisouq_onboarded') === '1');
   const [lang, setLangState] = useState<Lang>(getStoredLang);
   useTheme();
@@ -119,22 +121,32 @@ function App() {
     );
   }
 
-  const navPage: NavPage = page === 'admin' ? 'profile' : page;
+  const navPage: NavPage = page === 'admin' || page === 'learn' ? 'profile' : page;
 
   const renderPage = () => {
     switch (page) {
-      case 'studio':
-        return <Studio onNavigate={(t) => setPage(t)} />;
       case 'wallet':
         return <Wallet />;
       case 'admin':
         return canOpenAdmin ? (
           <Admin onBack={() => setPage('profile')} />
         ) : (
-          <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={false} />
+          <Profile
+            onAdminOpen={() => setPage('admin')}
+            onLearnOpen={() => setPage('learn')}
+            canOpenAdmin={false}
+          />
         );
+      case 'learn':
+        return <LearnSection onBack={() => setPage('profile')} />;
       case 'profile':
-        return <Profile onAdminOpen={() => setPage('admin')} canOpenAdmin={canOpenAdmin} />;
+        return (
+          <Profile
+            onAdminOpen={() => setPage('admin')}
+            onLearnOpen={() => setPage('learn')}
+            canOpenAdmin={canOpenAdmin}
+          />
+        );
     }
   };
 
